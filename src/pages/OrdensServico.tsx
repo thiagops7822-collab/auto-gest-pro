@@ -91,11 +91,11 @@ export default function OrdensServico() {
               <DialogTitle>Nova Ordem de Serviço</DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div><Label>Placa *</Label><Input placeholder="ABC-1234" value={form.placa} onChange={e => handleChange('placa', e.target.value)} /></div>
+              <div><Label>Placa</Label><Input placeholder="ABC-1234" value={form.placa} onChange={e => handleChange('placa', e.target.value)} /></div>
               <div><Label>Modelo *</Label><Input placeholder="Ex: Honda Civic" value={form.modelo} onChange={e => handleChange('modelo', e.target.value)} /></div>
               <div><Label>Ano</Label><Input placeholder="2022" value={form.ano} onChange={e => handleChange('ano', e.target.value)} /></div>
               <div><Label>Cor</Label><Input placeholder="Prata" value={form.cor} onChange={e => handleChange('cor', e.target.value)} /></div>
-              <div><Label>Cliente *</Label><Input placeholder="Nome completo" value={form.cliente} onChange={e => handleChange('cliente', e.target.value)} /></div>
+              <div><Label>Cliente</Label><Input placeholder="Nome completo" value={form.cliente} onChange={e => handleChange('cliente', e.target.value)} /></div>
               <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" value={form.telefone} onChange={e => handleChange('telefone', e.target.value)} /></div>
               <div>
                 <Label>Tipo de Serviço</Label>
