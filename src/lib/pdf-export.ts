@@ -191,8 +191,8 @@ export function exportRelatorioFinanceiro() {
     startY: y,
     head: [["Descrição", "Cartão", "Categoria", "Valor Total", "Parcelas", "Valor Parcela"]],
     body: despesasCartao.map((d) => {
-      const cartao = (await import("@/lib/mock-data")).cartoes.find((c: any) => c.id === d.cartaoId);
-      return [d.descricao, cartao?.nome || "", d.categoria, formatCurrency(d.valorTotal), `${d.parcelas}x`, formatCurrency(d.valorTotal / d.parcelas)];
+      const cartaoNome = cartoes.find((c) => c.id === d.cartaoId)?.nome || "";
+      return [d.descricao, cartaoNome, d.categoria, formatCurrency(d.valorTotal), `${d.parcelas}x`, formatCurrency(d.valorTotal / d.parcelas)];
     }),
     headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
     bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
