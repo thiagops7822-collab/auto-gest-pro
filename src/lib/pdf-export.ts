@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
+  cartoes,
   ordensServico,
   custosFixos,
   funcionarios,
