@@ -1,5 +1,7 @@
-import { FileBarChart, TrendingUp, TrendingDown, DollarSign, Users, CreditCard, Building2, AlertTriangle } from "lucide-react";
+import { FileBarChart, TrendingUp, TrendingDown, DollarSign, Users, CreditCard, Building2, AlertTriangle, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ordensServico, custosFixos, funcionarios, despesasCartao, formatCurrency, getTotalRecebido, getTotalPecas } from "@/lib/mock-data";
+import { exportRelatorioFinanceiro, exportRelatorioOS } from "@/lib/pdf-export";
 
 export default function Relatorios() {
   const totalRecebido = ordensServico.reduce((s, os) => s + getTotalRecebido(os), 0);
@@ -32,9 +34,19 @@ export default function Relatorios() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Relatórios e Análise de Lucro</h1>
-        <p className="text-muted-foreground text-sm">Visão financeira completa do período</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Relatórios e Análise de Lucro</h1>
+          <p className="text-muted-foreground text-sm">Visão financeira completa do período</p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <Button onClick={exportRelatorioFinanceiro} className="gap-2">
+            <Download className="w-4 h-4" /> Relatório Financeiro
+          </Button>
+          <Button onClick={exportRelatorioOS} variant="outline" className="gap-2">
+            <Download className="w-4 h-4" /> Relatório de OS
+          </Button>
+        </div>
       </div>
 
       {/* Profit Dashboard */}
