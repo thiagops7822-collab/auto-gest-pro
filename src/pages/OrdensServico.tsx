@@ -47,8 +47,8 @@ export default function OrdensServico() {
   const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value.toUpperCase() }));
 
   const handleCreate = () => {
-    if (!form.placa || !form.cliente || !form.modelo || !form.valorOrcado) {
-      toast({ title: "Campos obrigatórios", description: "Preencha placa, cliente, modelo e valor orçado.", variant: "destructive" });
+    if (!form.modelo || !form.valorOrcado) {
+      toast({ title: "Campos obrigatórios", description: "Preencha modelo e valor orçado.", variant: "destructive" });
       return;
     }
     const nextNumero = Math.max(...osList.map(o => o.numero), 1000) + 1;
