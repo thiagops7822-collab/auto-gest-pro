@@ -44,11 +44,11 @@ export default function OrdensServico() {
     return matchSearch && matchStatus;
   });
 
-  const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+  const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value.toUpperCase() }));
 
   const handleCreate = () => {
-    if (!form.placa || !form.cliente || !form.modelo || !form.valorOrcado) {
-      toast({ title: "Campos obrigatórios", description: "Preencha placa, cliente, modelo e valor orçado.", variant: "destructive" });
+    if (!form.modelo || !form.valorOrcado) {
+      toast({ title: "Campos obrigatórios", description: "Preencha modelo e valor orçado.", variant: "destructive" });
       return;
     }
     const nextNumero = Math.max(...osList.map(o => o.numero), 1000) + 1;
@@ -91,21 +91,25 @@ export default function OrdensServico() {
               <DialogTitle>Nova Ordem de Serviço</DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div><Label>Placa *</Label><Input placeholder="ABC-1234" value={form.placa} onChange={e => handleChange('placa', e.target.value)} /></div>
+              <div><Label>Placa</Label><Input placeholder="ABC-1234" value={form.placa} onChange={e => handleChange('placa', e.target.value)} /></div>
               <div><Label>Modelo *</Label><Input placeholder="Ex: Honda Civic" value={form.modelo} onChange={e => handleChange('modelo', e.target.value)} /></div>
               <div><Label>Ano</Label><Input placeholder="2022" value={form.ano} onChange={e => handleChange('ano', e.target.value)} /></div>
               <div><Label>Cor</Label><Input placeholder="Prata" value={form.cor} onChange={e => handleChange('cor', e.target.value)} /></div>
-              <div><Label>Cliente *</Label><Input placeholder="Nome completo" value={form.cliente} onChange={e => handleChange('cliente', e.target.value)} /></div>
+              <div><Label>Cliente</Label><Input placeholder="Nome completo" value={form.cliente} onChange={e => handleChange('cliente', e.target.value)} /></div>
               <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" value={form.telefone} onChange={e => handleChange('telefone', e.target.value)} /></div>
               <div>
                 <Label>Tipo de Serviço</Label>
                 <Select value={form.tipoServico} onValueChange={v => handleChange('tipoServico', v)}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Funilaria">Funilaria</SelectItem>
-                    <SelectItem value="Pintura">Pintura</SelectItem>
-                    <SelectItem value="Estética">Estética</SelectItem>
-                    <SelectItem value="Combinado">Combinado</SelectItem>
+                     <SelectItem value="Funilaria">Funilaria</SelectItem>
+                     <SelectItem value="Pintura">Pintura</SelectItem>
+                     <SelectItem value="Estética">Estética</SelectItem>
+                     <SelectItem value="Martelinho de Ouro">Martelinho de Ouro</SelectItem>
+                     <SelectItem value="Higienização">Higienização</SelectItem>
+                     <SelectItem value="Polimento">Polimento</SelectItem>
+                     <SelectItem value="Reparo Geral">Reparo Geral</SelectItem>
+                     <SelectItem value="Funilaria|Pintura|Polimento">Funilaria|Pintura|Polimento</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
