@@ -102,10 +102,14 @@ export default function OrdensServico() {
                 <Select value={form.tipoServico} onValueChange={v => handleChange('tipoServico', v)}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Funilaria">Funilaria</SelectItem>
-                    <SelectItem value="Pintura">Pintura</SelectItem>
-                    <SelectItem value="Estética">Estética</SelectItem>
-                    <SelectItem value="Combinado">Combinado</SelectItem>
+                     <SelectItem value="Funilaria">Funilaria</SelectItem>
+                     <SelectItem value="Pintura">Pintura</SelectItem>
+                     <SelectItem value="Estética">Estética</SelectItem>
+                     <SelectItem value="Martelinho de Ouro">Martelinho de Ouro</SelectItem>
+                     <SelectItem value="Higienização">Higienização</SelectItem>
+                     <SelectItem value="Polimento">Polimento</SelectItem>
+                     <SelectItem value="Reparo Geral">Reparo Geral</SelectItem>
+                     <SelectItem value="Funilaria|Pintura|Polimento">Funilaria|Pintura|Polimento</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
