@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ordensServico, formatCurrency, formatDate, getTotalRecebido, getSaldoPendente, getStatusPagamento, getTotalPecas, type OrdemServico } from "@/lib/mock-data";
+import { useToast } from "@/hooks/use-toast";
+import { ordensServico as initialData, formatCurrency, formatDate, getTotalRecebido, getSaldoPendente, getStatusPagamento, getTotalPecas, type OrdemServico } from "@/lib/mock-data";
 
 const statusColors: Record<string, string> = {
   'Em Andamento': 'badge-info',
@@ -24,12 +25,18 @@ const pagamentoColors: Record<string, string> = {
   'Pendente': 'badge-danger',
 };
 
+const emptyForm = { placa: '', modelo: '', ano: '', cor: '', cliente: '', telefone: '', tipoServico: '', valorOrcado: '', descricao: '' };
+
 export default function OrdensServico() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [selectedOS, setSelectedOS] = useState<OrdemServico | null>(null);
+  const [osList, setOsList] = useState<OrdemServico[]>(initialData);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const { toast } = useToast();
 
-  const filtered = ordensServico.filter(os => {
+  const filtered = osList.filter(os => {
     const matchSearch = os.placa.toLowerCase().includes(search.toLowerCase()) ||
       os.cliente.toLowerCase().includes(search.toLowerCase()) ||
       os.numero.toString().includes(search);
@@ -37,14 +44,45 @@ export default function OrdensServico() {
     return matchSearch && matchStatus;
   });
 
+  const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+
+  const handleCreate = () => {
+    if (!form.placa || !form.cliente || !form.modelo || !form.valorOrcado) {
+      toast({ title: "Campos obrigatórios", description: "Preencha placa, cliente, modelo e valor orçado.", variant: "destructive" });
+      return;
+    }
+    const nextNumero = Math.max(...osList.map(o => o.numero), 1000) + 1;
+    const newOS: OrdemServico = {
+      id: crypto.randomUUID(),
+      numero: nextNumero,
+      dataEntrada: new Date().toISOString().split('T')[0],
+      placa: form.placa,
+      modelo: form.modelo,
+      ano: form.ano,
+      cor: form.cor,
+      cliente: form.cliente,
+      telefone: form.telefone,
+      tipoServico: form.tipoServico || 'Combinado',
+      descricao: form.descricao,
+      valorOrcado: parseFloat(form.valorOrcado) || 0,
+      status: 'Em Andamento',
+      pecas: [],
+      pagamentos: [],
+    };
+    setOsList(prev => [newOS, ...prev]);
+    setForm(emptyForm);
+    setDialogOpen(false);
+    toast({ title: "OS criada com sucesso!", description: `Ordem de Serviço #${nextNumero} cadastrada.` });
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Ordens de Serviço</h1>
-          <p className="text-muted-foreground text-sm">{ordensServico.length} ordens cadastradas</p>
+          <p className="text-muted-foreground text-sm">{osList.length} ordens cadastradas</p>
         </div>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2"><Plus className="w-4 h-4" /> Nova OS</Button>
           </DialogTrigger>
@@ -53,15 +91,16 @@ export default function OrdensServico() {
               <DialogTitle>Nova Ordem de Serviço</DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div><Label>Placa</Label><Input placeholder="ABC-1234" /></div>
-              <div><Label>Modelo</Label><Input placeholder="Ex: Honda Civic" /></div>
-              <div><Label>Ano</Label><Input placeholder="2022" /></div>
-              <div><Label>Cor</Label><Input placeholder="Prata" /></div>
-              <div><Label>Cliente</Label><Input placeholder="Nome completo" /></div>
-              <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" /></div>
+              <div><Label>Placa *</Label><Input placeholder="ABC-1234" value={form.placa} onChange={e => handleChange('placa', e.target.value)} /></div>
+              <div><Label>Modelo *</Label><Input placeholder="Ex: Honda Civic" value={form.modelo} onChange={e => handleChange('modelo', e.target.value)} /></div>
+              <div><Label>Ano</Label><Input placeholder="2022" value={form.ano} onChange={e => handleChange('ano', e.target.value)} /></div>
+              <div><Label>Cor</Label><Input placeholder="Prata" value={form.cor} onChange={e => handleChange('cor', e.target.value)} /></div>
+              <div><Label>Cliente *</Label><Input placeholder="Nome completo" value={form.cliente} onChange={e => handleChange('cliente', e.target.value)} /></div>
+              <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" value={form.telefone} onChange={e => handleChange('telefone', e.target.value)} /></div>
               <div>
                 <Label>Tipo de Serviço</Label>
-                <Select><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <Select value={form.tipoServico} onValueChange={v => handleChange('tipoServico', v)}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Funilaria">Funilaria</SelectItem>
                     <SelectItem value="Pintura">Pintura</SelectItem>
@@ -70,10 +109,10 @@ export default function OrdensServico() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Valor Orçado (R$)</Label><Input placeholder="0,00" type="number" /></div>
-              <div className="sm:col-span-2"><Label>Descrição do Serviço</Label><Textarea placeholder="Descreva o serviço..." /></div>
+              <div><Label>Valor Orçado (R$) *</Label><Input placeholder="0,00" type="number" value={form.valorOrcado} onChange={e => handleChange('valorOrcado', e.target.value)} /></div>
+              <div className="sm:col-span-2"><Label>Descrição do Serviço</Label><Textarea placeholder="Descreva o serviço..." value={form.descricao} onChange={e => handleChange('descricao', e.target.value)} /></div>
             </div>
-            <Button className="w-full mt-4">Criar Ordem de Serviço</Button>
+            <Button className="w-full mt-4" onClick={handleCreate}>Criar Ordem de Serviço</Button>
           </DialogContent>
         </Dialog>
       </div>
@@ -151,7 +190,6 @@ export default function OrdensServico() {
                 <DialogTitle>OS #{selectedOS.numero} — {selectedOS.modelo} ({selectedOS.placa})</DialogTitle>
               </DialogHeader>
               <div className="space-y-6 mt-4">
-                {/* Info */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                   <div><span className="text-muted-foreground">Cliente:</span><br /><strong>{selectedOS.cliente}</strong></div>
                   <div><span className="text-muted-foreground">Telefone:</span><br /><strong>{selectedOS.telefone}</strong></div>
@@ -162,7 +200,6 @@ export default function OrdensServico() {
                 </div>
                 <div className="text-sm"><span className="text-muted-foreground">Descrição:</span><br />{selectedOS.descricao}</div>
 
-                {/* Peças */}
                 <div>
                   <h4 className="font-semibold text-sm mb-2">Peças e Terceiros</h4>
                   {selectedOS.pecas.length === 0 ? <p className="text-muted-foreground text-sm">Nenhuma peça registrada</p> : (
@@ -181,7 +218,6 @@ export default function OrdensServico() {
                   )}
                 </div>
 
-                {/* Pagamentos */}
                 <div>
                   <h4 className="font-semibold text-sm mb-2">Pagamentos Recebidos</h4>
                   {selectedOS.pagamentos.length === 0 ? <p className="text-muted-foreground text-sm">Nenhum pagamento registrado</p> : (
@@ -199,7 +235,6 @@ export default function OrdensServico() {
                   )}
                 </div>
 
-                {/* Resultado */}
                 <div className="glass-card p-4">
                   <h4 className="font-semibold text-sm mb-3">Resultado da OS</h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
