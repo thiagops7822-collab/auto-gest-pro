@@ -44,7 +44,7 @@ export default function OrdensServico() {
     return matchSearch && matchStatus;
   });
 
-  const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+  const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value.toUpperCase() }));
 
   const handleCreate = () => {
     if (!form.placa || !form.cliente || !form.modelo || !form.valorOrcado) {
