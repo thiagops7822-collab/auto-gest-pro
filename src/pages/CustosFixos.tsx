@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
-import { custosFixos, formatCurrency } from "@/lib/mock-data";
+import { useToast } from "@/hooks/use-toast";
+import { custosFixos as initialData, formatCurrency, type CustoFixo } from "@/lib/mock-data";
 
 const statusColors: Record<string, string> = {
   'Pago': 'badge-success',
@@ -16,14 +17,40 @@ const statusColors: Record<string, string> = {
   'Isento': 'bg-muted text-muted-foreground border-border',
 };
 
+const emptyForm = { nome: '', categoria: '', valorPrevisto: '', diaVencimento: '', recorrencia: '' };
+
 export default function CustosFixos() {
   const [catFilter, setCatFilter] = useState("todos");
+  const [custosList, setCustosList] = useState<CustoFixo[]>(initialData);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const { toast } = useToast();
 
-  const filtered = custosFixos.filter(c => catFilter === "todos" || c.categoria === catFilter);
+  const filtered = custosList.filter(c => catFilter === "todos" || c.categoria === catFilter);
   const totalFixo = filtered.filter(c => c.categoria.startsWith('Fixo')).reduce((s, c) => s + c.valorPrevisto, 0);
   const totalVariavel = filtered.filter(c => c.categoria === 'Variável').reduce((s, c) => s + c.valorPrevisto, 0);
   const totalImposto = filtered.filter(c => c.categoria === 'Imposto').reduce((s, c) => s + c.valorPrevisto, 0);
   const totalGeral = filtered.reduce((s, c) => s + c.valorPrevisto, 0);
+
+  const handleCreate = () => {
+    if (!form.nome || !form.categoria || !form.valorPrevisto) {
+      toast({ title: "Campos obrigatórios", description: "Preencha nome, categoria e valor.", variant: "destructive" });
+      return;
+    }
+    const novo: CustoFixo = {
+      id: crypto.randomUUID(),
+      nome: form.nome.toUpperCase(),
+      categoria: form.categoria as CustoFixo['categoria'],
+      valorPrevisto: parseFloat(form.valorPrevisto) || 0,
+      diaVencimento: parseInt(form.diaVencimento) || 1,
+      recorrencia: form.recorrencia || 'Mensal',
+      statusPagamento: 'Pendente',
+    };
+    setCustosList(prev => [novo, ...prev]);
+    setForm(emptyForm);
+    setDialogOpen(false);
+    toast({ title: "Custo cadastrado!", description: `${novo.nome} adicionado com sucesso.` });
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -32,15 +59,16 @@ export default function CustosFixos() {
           <h1 className="text-2xl font-bold text-foreground">Custos Fixos e Variáveis</h1>
           <p className="text-muted-foreground text-sm">Controle de despesas operacionais</p>
         </div>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild><Button className="gap-2"><Plus className="w-4 h-4" /> Novo Custo</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Cadastrar Custo</DialogTitle></DialogHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div className="sm:col-span-2"><Label>Nome</Label><Input placeholder="Ex: Aluguel" /></div>
+              <div className="sm:col-span-2"><Label>Nome *</Label><Input placeholder="Ex: Aluguel" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} /></div>
               <div>
-                <Label>Categoria</Label>
-                <Select><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <Label>Categoria *</Label>
+                <Select value={form.categoria} onValueChange={v => setForm(p => ({ ...p, categoria: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Fixo Mensal">Fixo Mensal</SelectItem>
                     <SelectItem value="Fixo Anual">Fixo Anual</SelectItem>
@@ -49,11 +77,12 @@ export default function CustosFixos() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Valor Previsto (R$)</Label><Input type="number" placeholder="0,00" /></div>
-              <div><Label>Dia de Vencimento</Label><Input type="number" placeholder="10" /></div>
+              <div><Label>Valor Previsto (R$) *</Label><Input type="number" placeholder="0,00" value={form.valorPrevisto} onChange={e => setForm(p => ({ ...p, valorPrevisto: e.target.value }))} /></div>
+              <div><Label>Dia de Vencimento</Label><Input type="number" placeholder="10" value={form.diaVencimento} onChange={e => setForm(p => ({ ...p, diaVencimento: e.target.value }))} /></div>
               <div>
                 <Label>Recorrência</Label>
-                <Select><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <Select value={form.recorrencia} onValueChange={v => setForm(p => ({ ...p, recorrencia: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Mensal">Mensal</SelectItem>
                     <SelectItem value="Bimestral">Bimestral</SelectItem>
@@ -65,7 +94,7 @@ export default function CustosFixos() {
                 </Select>
               </div>
             </div>
-            <Button className="w-full mt-4">Cadastrar</Button>
+            <Button className="w-full mt-4" onClick={handleCreate}>Cadastrar</Button>
           </DialogContent>
         </Dialog>
       </div>
