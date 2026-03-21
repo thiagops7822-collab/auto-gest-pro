@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Eye } from "lucide-react";
+import { Search, Plus, Eye, DollarSign } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ordensServico as initialData, formatCurrency, formatDate, getTotalRecebido, getSaldoPendente, getStatusPagamento, getTotalPecas, type OrdemServico } from "@/lib/mock-data";
+import { ordensServico as initialData, formatCurrency, formatDate, getTotalRecebido, getSaldoPendente, getStatusPagamento, getTotalPecas, type OrdemServico, type PagamentoOS } from "@/lib/mock-data";
 
 const statusColors: Record<string, string> = {
   'Em Andamento': 'badge-info',
@@ -25,7 +25,7 @@ const pagamentoColors: Record<string, string> = {
   'Pendente': 'badge-danger',
 };
 
-const emptyForm = { placa: '', modelo: '', ano: '', cor: '', cliente: '', telefone: '', tipoServico: '', valorOrcado: '', descricao: '' };
+const emptyForm = { placa: '', modelo: '', ano: '', cor: '', cliente: '', telefone: '', tipoServico: '', valorOrcado: '', valorPecas: '', valorTerceiros: '', descricao: '' };
 
 export default function OrdensServico() {
   const [search, setSearch] = useState("");
@@ -34,6 +34,8 @@ export default function OrdensServico() {
   const [osList, setOsList] = useState<OrdemServico[]>(initialData);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [pagForm, setPagForm] = useState({ valor: '', forma: 'PIX', observacao: '' });
+  const [pagDialogOS, setPagDialogOS] = useState<string | null>(null);
   const { toast } = useToast();
 
   const filtered = osList.filter(os => {
@@ -46,12 +48,21 @@ export default function OrdensServico() {
 
   const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: field === 'tipoServico' ? value : value.toUpperCase() }));
 
+  const getValorTotal = () => {
+    const orcado = parseFloat(form.valorOrcado) || 0;
+    const pecas = parseFloat(form.valorPecas) || 0;
+    const terceiros = parseFloat(form.valorTerceiros) || 0;
+    return orcado + pecas + terceiros;
+  };
+
   const handleCreate = () => {
     if (!form.modelo || !form.valorOrcado) {
       toast({ title: "Campos obrigatórios", description: "Preencha modelo e valor orçado.", variant: "destructive" });
       return;
     }
     const nextNumero = Math.max(...osList.map(o => o.numero), 1000) + 1;
+    const valorPecas = parseFloat(form.valorPecas) || 0;
+    const valorTerceiros = parseFloat(form.valorTerceiros) || 0;
     const newOS: OrdemServico = {
       id: crypto.randomUUID(),
       numero: nextNumero,
@@ -62,17 +73,42 @@ export default function OrdensServico() {
       cor: form.cor,
       cliente: form.cliente,
       telefone: form.telefone,
-      tipoServico: form.tipoServico || 'Combinado',
+      tipoServico: form.tipoServico || 'Reparo Geral',
       descricao: form.descricao,
       valorOrcado: parseFloat(form.valorOrcado) || 0,
       status: 'Em Andamento',
-      pecas: [],
+      pecas: valorPecas > 0 ? [{ id: crypto.randomUUID(), descricao: 'Peças diversas', fornecedor: 'Diversos', valor: valorPecas, data: new Date().toISOString().split('T')[0], status: 'Solicitado' }] : [],
       pagamentos: [],
     };
+    // Store valorTerceiros as additional peca entry
+    if (valorTerceiros > 0) {
+      newOS.pecas.push({ id: crypto.randomUUID(), descricao: 'Serviços de terceiros', fornecedor: 'Terceiros', valor: valorTerceiros, data: new Date().toISOString().split('T')[0], status: 'Solicitado' });
+    }
     setOsList(prev => [newOS, ...prev]);
     setForm(emptyForm);
     setDialogOpen(false);
     toast({ title: "OS criada com sucesso!", description: `Ordem de Serviço #${nextNumero} cadastrada.` });
+  };
+
+  const handleAddPagamento = (osId: string) => {
+    const valor = parseFloat(pagForm.valor);
+    if (!valor || valor <= 0) {
+      toast({ title: "Valor inválido", description: "Informe um valor válido.", variant: "destructive" });
+      return;
+    }
+    const novoPag: PagamentoOS = {
+      id: crypto.randomUUID(),
+      data: new Date().toISOString().split('T')[0],
+      valor,
+      forma: pagForm.forma,
+      observacao: pagForm.observacao || undefined,
+    };
+    setOsList(prev => prev.map(os => os.id === osId ? { ...os, pagamentos: [...os.pagamentos, novoPag] } : os));
+    // Update selectedOS if viewing
+    setSelectedOS(prev => prev && prev.id === osId ? { ...prev, pagamentos: [...prev.pagamentos, novoPag] } : prev);
+    setPagForm({ valor: '', forma: 'PIX', observacao: '' });
+    setPagDialogOS(null);
+    toast({ title: "Pagamento registrado!", description: `${formatCurrency(valor)} recebido.` });
   };
 
   return (
@@ -114,6 +150,11 @@ export default function OrdensServico() {
                 </Select>
               </div>
               <div><Label>Valor Orçado (R$) *</Label><Input placeholder="0,00" type="number" value={form.valorOrcado} onChange={e => handleChange('valorOrcado', e.target.value)} /></div>
+              <div><Label>Valor de Peças (R$)</Label><Input placeholder="0,00" type="number" value={form.valorPecas} onChange={e => handleChange('valorPecas', e.target.value)} /></div>
+              <div><Label>Valor Serviços Terceiros (R$)</Label><Input placeholder="0,00" type="number" value={form.valorTerceiros} onChange={e => handleChange('valorTerceiros', e.target.value)} /></div>
+              <div className="sm:col-span-2 p-3 rounded-lg bg-secondary/50">
+                <p className="text-sm text-muted-foreground">Valor Total da OS: <span className="text-lg font-bold text-primary">{formatCurrency(getValorTotal())}</span></p>
+              </div>
               <div className="sm:col-span-2"><Label>Descrição do Serviço</Label><Textarea placeholder="Descreva o serviço..." value={form.descricao} onChange={e => handleChange('descricao', e.target.value)} /></div>
             </div>
             <Button className="w-full mt-4" onClick={handleCreate}>Criar Ordem de Serviço</Button>
@@ -175,7 +216,10 @@ export default function OrdensServico() {
                     <TableCell><Badge variant="outline" className={statusColors[os.status]}>{os.status}</Badge></TableCell>
                     <TableCell><Badge variant="outline" className={pagamentoColors[statusPag]}>{statusPag}</Badge></TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => setSelectedOS(os)}><Eye className="w-4 h-4" /></Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedOS(os)}><Eye className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => setPagDialogOS(os.id)} title="Registrar pagamento"><DollarSign className="w-4 h-4" /></Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -185,24 +229,60 @@ export default function OrdensServico() {
         </div>
       </div>
 
+      {/* Payment Dialog */}
+      <Dialog open={!!pagDialogOS} onOpenChange={() => setPagDialogOS(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Registrar Pagamento</DialogTitle></DialogHeader>
+          {pagDialogOS && (() => {
+            const os = osList.find(o => o.id === pagDialogOS);
+            if (!os) return null;
+            const pendente = Math.max(0, getSaldoPendente(os));
+            return (
+              <div className="space-y-4 mt-4">
+                <div className="p-3 rounded-lg bg-secondary/50 text-sm">
+                  <p>OS #{os.numero} — {os.modelo} {os.placa && `(${os.placa})`}</p>
+                  <p className="text-muted-foreground">Valor: {formatCurrency(os.valorOrcado)} | Recebido: {formatCurrency(getTotalRecebido(os))} | <span className="text-warning font-semibold">Restante: {formatCurrency(pendente)}</span></p>
+                </div>
+                <div><Label>Valor (R$)</Label><Input type="number" placeholder="0,00" value={pagForm.valor} onChange={e => setPagForm(p => ({ ...p, valor: e.target.value }))} /></div>
+                <div>
+                  <Label>Forma de Pagamento</Label>
+                  <Select value={pagForm.forma} onValueChange={v => setPagForm(p => ({ ...p, forma: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PIX">PIX</SelectItem>
+                      <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                      <SelectItem value="Débito">Débito</SelectItem>
+                      <SelectItem value="Crédito">Crédito</SelectItem>
+                      <SelectItem value="Transferência">Transferência</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div><Label>Observação</Label><Input placeholder="Opcional" value={pagForm.observacao} onChange={e => setPagForm(p => ({ ...p, observacao: e.target.value }))} /></div>
+                <Button className="w-full" onClick={() => handleAddPagamento(pagDialogOS)}>Registrar Pagamento</Button>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
       {/* Detail Dialog */}
       <Dialog open={!!selectedOS} onOpenChange={() => setSelectedOS(null)}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           {selectedOS && (
             <>
               <DialogHeader>
-                <DialogTitle>OS #{selectedOS.numero} — {selectedOS.modelo} ({selectedOS.placa})</DialogTitle>
+                <DialogTitle>OS #{selectedOS.numero} — {selectedOS.modelo} {selectedOS.placa && `(${selectedOS.placa})`}</DialogTitle>
               </DialogHeader>
               <div className="space-y-6 mt-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-                  <div><span className="text-muted-foreground">Cliente:</span><br /><strong>{selectedOS.cliente}</strong></div>
-                  <div><span className="text-muted-foreground">Telefone:</span><br /><strong>{selectedOS.telefone}</strong></div>
+                  <div><span className="text-muted-foreground">Cliente:</span><br /><strong>{selectedOS.cliente || '—'}</strong></div>
+                  <div><span className="text-muted-foreground">Telefone:</span><br /><strong>{selectedOS.telefone || '—'}</strong></div>
                   <div><span className="text-muted-foreground">Tipo:</span><br /><strong>{selectedOS.tipoServico}</strong></div>
-                  <div><span className="text-muted-foreground">Cor:</span><br /><strong>{selectedOS.cor}</strong></div>
-                  <div><span className="text-muted-foreground">Ano:</span><br /><strong>{selectedOS.ano}</strong></div>
+                  <div><span className="text-muted-foreground">Cor:</span><br /><strong>{selectedOS.cor || '—'}</strong></div>
+                  <div><span className="text-muted-foreground">Ano:</span><br /><strong>{selectedOS.ano || '—'}</strong></div>
                   <div><span className="text-muted-foreground">Status:</span><br /><Badge variant="outline" className={statusColors[selectedOS.status]}>{selectedOS.status}</Badge></div>
                 </div>
-                <div className="text-sm"><span className="text-muted-foreground">Descrição:</span><br />{selectedOS.descricao}</div>
+                <div className="text-sm"><span className="text-muted-foreground">Descrição:</span><br />{selectedOS.descricao || '—'}</div>
 
                 <div>
                   <h4 className="font-semibold text-sm mb-2">Peças e Terceiros</h4>
@@ -223,7 +303,12 @@ export default function OrdensServico() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-sm mb-2">Pagamentos Recebidos</h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-sm">Pagamentos Recebidos</h4>
+                    <Button size="sm" variant="outline" className="gap-1" onClick={() => { setPagDialogOS(selectedOS.id); }}>
+                      <DollarSign className="w-3 h-3" /> Novo Pagamento
+                    </Button>
+                  </div>
                   {selectedOS.pagamentos.length === 0 ? <p className="text-muted-foreground text-sm">Nenhum pagamento registrado</p> : (
                     <div className="space-y-2">
                       {selectedOS.pagamentos.map(pg => (

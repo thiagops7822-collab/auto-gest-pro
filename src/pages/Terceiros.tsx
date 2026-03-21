@@ -1,12 +1,13 @@
+import { useState } from "react";
 import { Plus, Phone, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { terceiros, ordensServico, formatCurrency } from "@/lib/mock-data";
+import { useToast } from "@/hooks/use-toast";
+import { terceiros as initialData, ordensServico, formatCurrency, type Terceiro } from "@/lib/mock-data";
 
 const tipoColors: Record<string, string> = {
   'Fornecedor de Peças': 'badge-info',
@@ -14,9 +15,33 @@ const tipoColors: Record<string, string> = {
   'Ambos': 'bg-primary/15 text-primary border-primary/30',
 };
 
+const emptyForm = { nome: '', tipo: '', telefone: '', especialidade: '' };
+
 export default function Terceiros() {
-  // Calculate stats per third party
-  const stats = terceiros.map(t => {
+  const [terceirosList, setTerceirosList] = useState<Terceiro[]>(initialData);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const { toast } = useToast();
+
+  const handleCreate = () => {
+    if (!form.nome || !form.tipo) {
+      toast({ title: "Campos obrigatórios", description: "Preencha nome e tipo.", variant: "destructive" });
+      return;
+    }
+    const novo: Terceiro = {
+      id: crypto.randomUUID(),
+      nome: form.nome.toUpperCase(),
+      tipo: form.tipo as Terceiro['tipo'],
+      telefone: form.telefone,
+      especialidade: form.especialidade.toUpperCase(),
+    };
+    setTerceirosList(prev => [...prev, novo]);
+    setForm(emptyForm);
+    setDialogOpen(false);
+    toast({ title: "Terceiro cadastrado!", description: `${novo.nome} adicionado.` });
+  };
+
+  const stats = terceirosList.map(t => {
     const osComTerceiro = ordensServico.filter(os => os.pecas.some(p => p.fornecedor === t.nome));
     const totalPago = osComTerceiro.flatMap(os => os.pecas.filter(p => p.fornecedor === t.nome)).reduce((s, p) => s + p.valor, 0);
     const totalCobrado = osComTerceiro.reduce((s, os) => s + os.valorOrcado, 0);
@@ -28,17 +53,18 @@ export default function Terceiros() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Terceiros e Fornecedores</h1>
-          <p className="text-muted-foreground text-sm">{terceiros.length} cadastrados</p>
+          <p className="text-muted-foreground text-sm">{terceirosList.length} cadastrados</p>
         </div>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild><Button className="gap-2"><Plus className="w-4 h-4" /> Novo Terceiro</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Cadastrar Terceiro/Fornecedor</DialogTitle></DialogHeader>
             <div className="grid gap-4 mt-4">
-              <div><Label>Nome</Label><Input placeholder="Nome da empresa ou pessoa" /></div>
+              <div><Label>Nome *</Label><Input placeholder="Nome da empresa ou pessoa" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} /></div>
               <div>
-                <Label>Tipo</Label>
-                <Select><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <Label>Tipo *</Label>
+                <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Fornecedor de Peças">Fornecedor de Peças</SelectItem>
                     <SelectItem value="Prestador de Serviço">Prestador de Serviço</SelectItem>
@@ -46,10 +72,10 @@ export default function Terceiros() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" /></div>
-              <div><Label>Especialidade</Label><Input placeholder="Ex: Vidros automotivos" /></div>
+              <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" value={form.telefone} onChange={e => setForm(p => ({ ...p, telefone: e.target.value }))} /></div>
+              <div><Label>Especialidade</Label><Input placeholder="Ex: Vidros automotivos" value={form.especialidade} onChange={e => setForm(p => ({ ...p, especialidade: e.target.value }))} /></div>
             </div>
-            <Button className="w-full mt-4">Cadastrar</Button>
+            <Button className="w-full mt-4" onClick={handleCreate}>Cadastrar</Button>
           </DialogContent>
         </Dialog>
       </div>
