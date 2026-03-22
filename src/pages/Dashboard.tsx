@@ -1,70 +1,106 @@
+import { useMemo } from "react";
 import { Car, DollarSign, TrendingUp, TrendingDown, AlertTriangle, Clock } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
-import { ordensServico, custosFixos, funcionarios, formatCurrency, getTotalRecebido, getSaldoPendente, getTotalPecas } from "@/lib/mock-data";
+import { formatCurrency, getTotalRecebido, getSaldoPendente, getTotalPecas } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
-
-const revenueExpenseData = [
-  { mes: 'Out', receitas: 14200, despesas: 9800 },
-  { mes: 'Nov', receitas: 16800, despesas: 10500 },
-  { mes: 'Dez', receitas: 18500, despesas: 11200 },
-  { mes: 'Jan', receitas: 15300, despesas: 10800 },
-  { mes: 'Fev', receitas: 17600, despesas: 11000 },
-  { mes: 'Mar', receitas: 16500, despesas: 10300 },
-];
-
-const expenseCategoryData = [
-  { name: 'Fixos', value: 7100, color: 'hsl(24, 95%, 53%)' },
-  { name: 'Variáveis', value: 400, color: 'hsl(38, 92%, 50%)' },
-  { name: 'Pessoal', value: 14400, color: 'hsl(210, 80%, 55%)' },
-  { name: 'Terceiros', value: 2195, color: 'hsl(142, 71%, 45%)' },
-  { name: 'Cartão', value: 1080, color: 'hsl(280, 65%, 55%)' },
-];
-
-const profitData = [
-  { mes: 'Out', lucro: 4400 },
-  { mes: 'Nov', lucro: 6300 },
-  { mes: 'Dez', lucro: 7300 },
-  { mes: 'Jan', lucro: 4500 },
-  { mes: 'Fev', lucro: 6600 },
-  { mes: 'Mar', lucro: 6200 },
-];
-
-const osStatusData = [
-  { status: 'Em Andamento', total: 2, color: 'hsl(210, 80%, 55%)' },
-  { status: 'Ag. Peça', total: 1, color: 'hsl(38, 92%, 50%)' },
-  { status: 'Pronto', total: 1, color: 'hsl(142, 71%, 45%)' },
-  { status: 'Finalizado', total: 1, color: 'hsl(215, 15%, 55%)' },
-];
+import { useData } from "@/contexts/DataContext";
 
 export default function Dashboard() {
-  const veiculosAtivos = ordensServico.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').length;
-  const faturamentoBruto = ordensServico.reduce((sum, os) => sum + os.valorOrcado, 0);
-  const totalRecebido = ordensServico.reduce((sum, os) => sum + getTotalRecebido(os), 0);
-  const totalPendente = ordensServico.reduce((sum, os) => sum + Math.max(0, getSaldoPendente(os)), 0);
-  const totalCustos = custosFixos.reduce((sum, c) => sum + c.valorPrevisto, 0) + funcionarios.reduce((sum, f) => sum + f.salarioBase, 0);
-  const lucroEstimado = totalRecebido - totalCustos - ordensServico.reduce((sum, os) => sum + getTotalPecas(os), 0);
+  const { osList, custosList, funcList, despesasList, saidasList } = useData();
 
-  const alerts = [
-    { type: 'warning' as const, text: 'Conta de Luz vence em 2 dias (R$ 1.200,00)', icon: AlertTriangle },
-    { type: 'danger' as const, text: 'OS #1005 sem pagamento há 5 dias', icon: Clock },
-    { type: 'warning' as const, text: 'Conta de Água vence em 7 dias (R$ 350,00)', icon: AlertTriangle },
-    { type: 'info' as const, text: 'Parcela cartão Nubank vence dia 10 (R$ 600,00)', icon: Clock },
-  ];
+  const computed = useMemo(() => {
+    const veiculosAtivos = osList.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').length;
+    const faturamentoBruto = osList.reduce((sum, os) => sum + os.valorOrcado, 0);
+    const totalRecebido = osList.reduce((sum, os) => sum + getTotalRecebido(os), 0);
+    const totalPendente = osList.reduce((sum, os) => sum + Math.max(0, getSaldoPendente(os)), 0);
+    const totalCustosFixos = custosList.reduce((sum, c) => sum + c.valorPrevisto, 0);
+    const totalFolha = funcList.filter(f => f.status === 'Ativo').reduce((sum, f) => sum + f.salarioBase, 0);
+    const totalPecas = osList.reduce((sum, os) => sum + getTotalPecas(os), 0);
+    const totalCartao = despesasList.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta')).reduce((s, p) => s + p.valor, 0);
+    const totalSaidas = saidasList.reduce((s, item) => s + item.valor, 0);
+    const totalDespesas = totalCustosFixos + totalFolha + totalCartao + totalSaidas;
+    const lucroEstimado = totalRecebido - totalCustosFixos - totalFolha - totalPecas - totalSaidas;
+
+    // Expense categories from real data
+    const expenseCategoryData = [
+      { name: 'Fixos', value: custosList.filter(c => c.categoria.startsWith('Fixo')).reduce((s, c) => s + c.valorPrevisto, 0), color: 'hsl(24, 95%, 53%)' },
+      { name: 'Variáveis', value: custosList.filter(c => c.categoria === 'Variável').reduce((s, c) => s + c.valorPrevisto, 0), color: 'hsl(38, 92%, 50%)' },
+      { name: 'Pessoal', value: totalFolha, color: 'hsl(210, 80%, 55%)' },
+      { name: 'Peças/Terceiros', value: totalPecas, color: 'hsl(142, 71%, 45%)' },
+      { name: 'Cartão', value: totalCartao, color: 'hsl(280, 65%, 55%)' },
+      { name: 'Saídas Avulsas', value: totalSaidas, color: 'hsl(0, 84%, 60%)' },
+    ].filter(d => d.value > 0);
+
+    // OS by status from real data
+    const statusCounts: Record<string, number> = {};
+    osList.forEach(os => { statusCounts[os.status] = (statusCounts[os.status] || 0) + 1; });
+    const statusColorMap: Record<string, string> = {
+      'Em Andamento': 'hsl(210, 80%, 55%)',
+      'Aguardando Peça': 'hsl(38, 92%, 50%)',
+      'Pronto para Entrega': 'hsl(142, 71%, 45%)',
+      'Finalizado': 'hsl(215, 15%, 55%)',
+      'Cancelado': 'hsl(0, 84%, 60%)',
+    };
+    const osStatusData = Object.entries(statusCounts).map(([status, total]) => ({
+      status, total, color: statusColorMap[status] || 'hsl(215, 15%, 55%)',
+    }));
+
+    // Alerts from real data
+    const alerts: { type: 'warning' | 'danger' | 'info'; text: string; icon: typeof AlertTriangle }[] = [];
+    const hoje = new Date();
+    const diaHoje = hoje.getDate();
+
+    custosList.filter(c => c.statusPagamento === 'Pendente' || c.statusPagamento === 'Vencido').forEach(c => {
+      const diasAteVencer = c.diaVencimento - diaHoje;
+      if (diasAteVencer < 0) {
+        alerts.push({ type: 'danger', text: `${c.nome} vencido (Dia ${c.diaVencimento}) — ${formatCurrency(c.valorPrevisto)}`, icon: AlertTriangle });
+      } else if (diasAteVencer <= 7) {
+        alerts.push({ type: 'warning', text: `${c.nome} vence em ${diasAteVencer} dias (${formatCurrency(c.valorPrevisto)})`, icon: AlertTriangle });
+      }
+    });
+
+    osList.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').forEach(os => {
+      const pendente = Math.max(0, getSaldoPendente(os));
+      if (pendente > 0) {
+        alerts.push({ type: 'info', text: `OS #${os.numero} com saldo pendente de ${formatCurrency(pendente)}`, icon: Clock });
+      }
+    });
+
+    return {
+      veiculosAtivos, faturamentoBruto, totalRecebido, totalPendente, totalDespesas, lucroEstimado,
+      expenseCategoryData, osStatusData, alerts,
+    };
+  }, [osList, custosList, funcList, despesasList, saidasList]);
 
   const stats = [
-    { label: 'Veículos em Atendimento', value: veiculosAtivos, icon: Car, color: 'text-info' },
-    { label: 'Faturamento Bruto', value: formatCurrency(faturamentoBruto), icon: DollarSign, color: 'text-primary' },
-    { label: 'Total Recebido', value: formatCurrency(totalRecebido), icon: TrendingUp, color: 'text-success' },
-    { label: 'Total Pendente', value: formatCurrency(totalPendente), icon: Clock, color: 'text-warning' },
-    { label: 'Lucro Estimado', value: formatCurrency(lucroEstimado), icon: TrendingUp, color: lucroEstimado > 0 ? 'text-success' : 'text-destructive' },
-    { label: 'Total Despesas', value: formatCurrency(totalCustos), icon: TrendingDown, color: 'text-destructive' },
+    { label: 'Veículos em Atendimento', value: computed.veiculosAtivos, icon: Car, color: 'text-info' },
+    { label: 'Faturamento Bruto', value: formatCurrency(computed.faturamentoBruto), icon: DollarSign, color: 'text-primary' },
+    { label: 'Total Recebido', value: formatCurrency(computed.totalRecebido), icon: TrendingUp, color: 'text-success' },
+    { label: 'Total Pendente', value: formatCurrency(computed.totalPendente), icon: Clock, color: 'text-warning' },
+    { label: 'Lucro Estimado', value: formatCurrency(computed.lucroEstimado), icon: TrendingUp, color: computed.lucroEstimado > 0 ? 'text-success' : 'text-destructive' },
+    { label: 'Total Despesas', value: formatCurrency(computed.totalDespesas), icon: TrendingDown, color: 'text-destructive' },
   ];
+
+  // Lucro health indicator
+  const margemPct = computed.faturamentoBruto > 0 ? (computed.lucroEstimado / computed.faturamentoBruto) * 100 : 0;
+  const healthColor = computed.lucroEstimado <= 0 ? 'bg-destructive/15 border-destructive/30 text-destructive' :
+    margemPct < 15 ? 'bg-warning/15 border-warning/30 text-warning' : 'bg-success/15 border-success/30 text-success';
+  const healthLabel = computed.lucroEstimado <= 0 ? '⛔ Prejuízo' : margemPct < 15 ? '⚠️ Margem Baixa' : '✅ Saudável';
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">Visão geral do seu negócio</p>
+        <p className="text-muted-foreground text-sm">Visão geral do seu negócio — dados em tempo real</p>
+      </div>
+
+      {/* Health indicator */}
+      <div className={`p-4 rounded-lg border ${healthColor} flex items-center justify-between`}>
+        <div>
+          <p className="text-sm font-semibold">{healthLabel}</p>
+          <p className="text-xs opacity-80">Margem: {margemPct.toFixed(1)}% | Lucro: {formatCurrency(computed.lucroEstimado)}</p>
+        </div>
+        <TrendingUp className="w-8 h-8 opacity-40" />
       </div>
 
       {/* Stat Cards */}
@@ -86,91 +122,88 @@ export default function Dashboard() {
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Revenue vs Expenses */}
-        <div className="glass-card p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">Receitas x Despesas</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={revenueExpenseData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 18%)" />
-              <XAxis dataKey="mes" tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} />
-              <YAxis tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} />
-              <Tooltip contentStyle={{ background: 'hsl(220, 15%, 13%)', border: '1px solid hsl(220, 13%, 20%)', borderRadius: '8px', color: 'hsl(210, 20%, 92%)' }} />
-              <Bar dataKey="receitas" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} name="Receitas" />
-              <Bar dataKey="despesas" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} name="Despesas" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
         {/* Expense Categories */}
         <div className="glass-card p-5">
           <h3 className="text-sm font-semibold text-foreground mb-4">Despesas por Categoria</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie data={expenseCategoryData} cx="50%" cy="50%" outerRadius={90} innerRadius={55} dataKey="value" paddingAngle={3}>
-                {expenseCategoryData.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
+          {computed.expenseCategoryData.length > 0 ? (
+            <>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie data={computed.expenseCategoryData} cx="50%" cy="50%" outerRadius={90} innerRadius={55} dataKey="value" paddingAngle={3}>
+                    {computed.expenseCategoryData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ background: 'hsl(220, 15%, 13%)', border: '1px solid hsl(220, 13%, 20%)', borderRadius: '8px', color: 'hsl(210, 20%, 92%)' }} formatter={(value: number) => formatCurrency(value)} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex flex-wrap gap-3 mt-2 justify-center">
+                {computed.expenseCategoryData.map((item) => (
+                  <div key={item.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: item.color }} />
+                    {item.name}: {formatCurrency(item.value)}
+                  </div>
                 ))}
-              </Pie>
-              <Tooltip contentStyle={{ background: 'hsl(220, 15%, 13%)', border: '1px solid hsl(220, 13%, 20%)', borderRadius: '8px', color: 'hsl(210, 20%, 92%)' }} formatter={(value: number) => formatCurrency(value)} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="flex flex-wrap gap-3 mt-2 justify-center">
-            {expenseCategoryData.map((item) => (
-              <div key={item.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ background: item.color }} />
-                {item.name}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Profit Evolution */}
-        <div className="glass-card p-5">
-          <h3 className="text-sm font-semibold text-foreground mb-4">Evolução do Lucro Líquido</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={profitData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 18%)" />
-              <XAxis dataKey="mes" tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} />
-              <YAxis tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} />
-              <Tooltip contentStyle={{ background: 'hsl(220, 15%, 13%)', border: '1px solid hsl(220, 13%, 20%)', borderRadius: '8px', color: 'hsl(210, 20%, 92%)' }} formatter={(value: number) => formatCurrency(value)} />
-              <Line type="monotone" dataKey="lucro" stroke="hsl(24, 95%, 53%)" strokeWidth={2.5} dot={{ fill: 'hsl(24, 95%, 53%)', r: 4 }} name="Lucro" />
-            </LineChart>
-          </ResponsiveContainer>
+            </>
+          ) : (
+            <p className="text-muted-foreground text-sm text-center py-10">Sem dados de despesas</p>
+          )}
         </div>
 
         {/* OS by Status */}
         <div className="glass-card p-5">
           <h3 className="text-sm font-semibold text-foreground mb-4">OS por Status</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={osStatusData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 18%)" />
-              <XAxis type="number" tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} />
-              <YAxis dataKey="status" type="category" width={100} tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 11 }} />
-              <Tooltip contentStyle={{ background: 'hsl(220, 15%, 13%)', border: '1px solid hsl(220, 13%, 20%)', borderRadius: '8px', color: 'hsl(210, 20%, 92%)' }} />
-              <Bar dataKey="total" radius={[0, 4, 4, 0]} name="Quantidade">
-                {osStatusData.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {computed.osStatusData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={computed.osStatusData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 18%)" />
+                <XAxis type="number" tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} />
+                <YAxis dataKey="status" type="category" width={120} tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 11 }} />
+                <Tooltip contentStyle={{ background: 'hsl(220, 15%, 13%)', border: '1px solid hsl(220, 13%, 20%)', borderRadius: '8px', color: 'hsl(210, 20%, 92%)' }} />
+                <Bar dataKey="total" radius={[0, 4, 4, 0]} name="Quantidade">
+                  {computed.osStatusData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm text-center py-10">Sem ordens de serviço</p>
+          )}
+        </div>
+      </div>
+
+      {/* Lucro Real breakdown */}
+      <div className="glass-card p-5">
+        <h3 className="text-sm font-semibold text-foreground mb-4">💰 Cálculo do Lucro Real</h3>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between p-2 rounded bg-success/10"><span className="text-success">+ Total recebido de clientes</span><span className="font-bold text-success">{formatCurrency(computed.totalRecebido)}</span></div>
+          {computed.expenseCategoryData.map(cat => (
+            <div key={cat.name} className="flex justify-between p-2 rounded bg-destructive/10"><span className="text-destructive">- {cat.name}</span><span className="font-bold text-destructive">{formatCurrency(cat.value)}</span></div>
+          ))}
+          <div className={`flex justify-between p-3 rounded-lg font-bold text-lg ${computed.lucroEstimado >= 0 ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
+            <span>= LUCRO LÍQUIDO ESTIMADO</span><span>{formatCurrency(computed.lucroEstimado)}</span>
+          </div>
         </div>
       </div>
 
       {/* Alerts */}
-      <div className="glass-card p-5">
-        <h3 className="text-sm font-semibold text-foreground mb-4">⚠️ Alertas e Vencimentos</h3>
-        <div className="space-y-2">
-          {alerts.map((alert, i) => (
-            <div key={i} className={`flex items-center gap-3 p-3 rounded-lg border ${
-              alert.type === 'danger' ? 'badge-danger' : alert.type === 'warning' ? 'badge-warning' : 'badge-info'
-            }`}>
-              <alert.icon className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm">{alert.text}</span>
-            </div>
-          ))}
+      {computed.alerts.length > 0 && (
+        <div className="glass-card p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">⚠️ Alertas e Vencimentos</h3>
+          <div className="space-y-2">
+            {computed.alerts.map((alert, i) => (
+              <div key={i} className={`flex items-center gap-3 p-3 rounded-lg border ${
+                alert.type === 'danger' ? 'badge-danger' : alert.type === 'warning' ? 'badge-warning' : 'badge-info'
+              }`}>
+                <alert.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm">{alert.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
