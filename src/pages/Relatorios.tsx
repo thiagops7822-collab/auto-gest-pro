@@ -1,16 +1,20 @@
 import { FileBarChart, TrendingUp, TrendingDown, DollarSign, Users, CreditCard, Building2, AlertTriangle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ordensServico, custosFixos, funcionarios, despesasCartao, formatCurrency, getTotalRecebido, getTotalPecas } from "@/lib/mock-data";
+import { formatCurrency, getTotalRecebido, getTotalPecas } from "@/lib/mock-data";
 import { exportRelatorioFinanceiro, exportRelatorioOS } from "@/lib/pdf-export";
+import { useData } from "@/contexts/DataContext";
 
 export default function Relatorios() {
-  const totalRecebido = ordensServico.reduce((s, os) => s + getTotalRecebido(os), 0);
-  const totalPecas = ordensServico.reduce((s, os) => s + getTotalPecas(os), 0);
-  const totalFolha = funcionarios.filter(f => f.status === 'Ativo').reduce((s, f) => s + f.salarioBase, 0);
-  const totalFixos = custosFixos.filter(c => c.categoria.startsWith('Fixo')).reduce((s, c) => s + c.valorPrevisto, 0);
-  const totalVariaveis = custosFixos.filter(c => c.categoria === 'Variável').reduce((s, c) => s + c.valorPrevisto, 0);
-  const totalCartao = despesasCartao.flatMap(d => d.parcelasGeradas.filter(p => p.mes === '2025-03')).reduce((s, p) => s + p.valor, 0);
-  const lucroLiquido = totalRecebido - totalPecas - totalFolha - totalFixos - totalVariaveis - totalCartao;
+  const { osList, custosList, funcList, despesasList, saidasList } = useData();
+
+  const totalRecebido = osList.reduce((s, os) => s + getTotalRecebido(os), 0);
+  const totalPecas = osList.reduce((s, os) => s + getTotalPecas(os), 0);
+  const totalFolha = funcList.filter(f => f.status === 'Ativo').reduce((s, f) => s + f.salarioBase, 0);
+  const totalFixos = custosList.filter(c => c.categoria.startsWith('Fixo')).reduce((s, c) => s + c.valorPrevisto, 0);
+  const totalVariaveis = custosList.filter(c => c.categoria === 'Variável').reduce((s, c) => s + c.valorPrevisto, 0);
+  const totalCartao = despesasList.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta')).reduce((s, p) => s + p.valor, 0);
+  const totalSaidas = saidasList.reduce((s, item) => s + item.valor, 0);
+  const lucroLiquido = totalRecebido - totalPecas - totalFolha - totalFixos - totalVariaveis - totalCartao - totalSaidas;
   const margemPct = totalRecebido > 0 ? (lucroLiquido / totalRecebido) * 100 : 0;
 
   const healthColor = lucroLiquido < 0 ? 'text-destructive' : margemPct < 15 ? 'text-warning' : 'text-success';
@@ -23,11 +27,12 @@ export default function Relatorios() {
     { label: '(-) Folha de Pagamento', value: -totalFolha, color: 'text-destructive', icon: Users },
     { label: '(-) Custos Fixos', value: -totalFixos, color: 'text-destructive', icon: TrendingDown },
     { label: '(-) Custos Variáveis', value: -totalVariaveis, color: 'text-destructive', icon: AlertTriangle },
-    { label: '(-) Fatura Cartão do Mês', value: -totalCartao, color: 'text-destructive', icon: CreditCard },
+    { label: '(-) Fatura Cartão', value: -totalCartao, color: 'text-destructive', icon: CreditCard },
+    { label: '(-) Saídas Avulsas', value: -totalSaidas, color: 'text-destructive', icon: AlertTriangle },
   ];
 
-  const osComPrejuizo = ordensServico.filter(os => os.valorOrcado < getTotalPecas(os));
-  const osPendentes = ordensServico.filter(os => {
+  const osComPrejuizo = osList.filter(os => os.valorOrcado < getTotalPecas(os));
+  const osPendentes = osList.filter(os => {
     const pendente = os.valorOrcado - getTotalRecebido(os);
     return pendente > 0 && os.status !== 'Cancelado';
   });
@@ -52,7 +57,7 @@ export default function Relatorios() {
       {/* Profit Dashboard */}
       <div className="glass-card p-6">
         <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-primary" /> Dashboard de Lucro Real — Março/2025
+          <DollarSign className="w-4 h-4 text-primary" /> Dashboard de Lucro Real
         </h3>
 
         <div className="space-y-3">
@@ -83,7 +88,7 @@ export default function Relatorios() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="stat-card">
           <p className="text-xs text-muted-foreground">OS Finalizadas</p>
-          <p className="text-2xl font-bold text-success mt-1">{ordensServico.filter(os => os.status === 'Finalizado').length}</p>
+          <p className="text-2xl font-bold text-success mt-1">{osList.filter(os => os.status === 'Finalizado').length}</p>
         </div>
         <div className="stat-card">
           <p className="text-xs text-muted-foreground">OS com Saldo Pendente</p>
@@ -95,7 +100,7 @@ export default function Relatorios() {
         </div>
         <div className="stat-card">
           <p className="text-xs text-muted-foreground">Dívida Cartões (Futura)</p>
-          <p className="text-2xl font-bold text-info mt-1">{formatCurrency(despesasCartao.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta')).reduce((s, p) => s + p.valor, 0))}</p>
+          <p className="text-2xl font-bold text-info mt-1">{formatCurrency(totalCartao)}</p>
         </div>
       </div>
 
