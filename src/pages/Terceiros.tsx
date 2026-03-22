@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { terceiros as initialData, ordensServico, formatCurrency, type Terceiro } from "@/lib/mock-data";
+import { formatCurrency, type Terceiro } from "@/lib/mock-data";
+import { useData } from "@/contexts/DataContext";
 
 const tipoColors: Record<string, string> = {
   'Fornecedor de Peças': 'badge-info',
@@ -18,7 +19,7 @@ const tipoColors: Record<string, string> = {
 const emptyForm = { nome: '', tipo: '', telefone: '', especialidade: '' };
 
 export default function Terceiros() {
-  const [terceirosList, setTerceirosList] = useState<Terceiro[]>(initialData);
+  const { terceirosList, setTerceirosList, osList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const { toast } = useToast();
@@ -42,7 +43,7 @@ export default function Terceiros() {
   };
 
   const stats = terceirosList.map(t => {
-    const osComTerceiro = ordensServico.filter(os => os.pecas.some(p => p.fornecedor === t.nome));
+    const osComTerceiro = osList.filter(os => os.pecas.some(p => p.fornecedor === t.nome));
     const totalPago = osComTerceiro.flatMap(os => os.pecas.filter(p => p.fornecedor === t.nome)).reduce((s, p) => s + p.valor, 0);
     const totalCobrado = osComTerceiro.reduce((s, os) => s + os.valorOrcado, 0);
     return { ...t, osCount: osComTerceiro.length, totalPago, totalCobrado, margem: totalCobrado - totalPago };
@@ -80,7 +81,6 @@ export default function Terceiros() {
         </Dialog>
       </div>
 
-      {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {stats.map(t => (
           <div key={t.id} className="glass-card p-5">

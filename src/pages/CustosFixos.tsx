@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { custosFixos as initialData, formatCurrency, type CustoFixo } from "@/lib/mock-data";
+import { formatCurrency, type CustoFixo } from "@/lib/mock-data";
+import { useData } from "@/contexts/DataContext";
 
 const statusColors: Record<string, string> = {
   'Pago': 'badge-success',
@@ -21,7 +22,7 @@ const emptyForm = { nome: '', categoria: '', valorPrevisto: '', diaVencimento: '
 
 export default function CustosFixos() {
   const [catFilter, setCatFilter] = useState("todos");
-  const [custosList, setCustosList] = useState<CustoFixo[]>(initialData);
+  const { custosList, setCustosList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const { toast } = useToast();
@@ -99,7 +100,6 @@ export default function CustosFixos() {
         </Dialog>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="stat-card"><p className="text-xs text-muted-foreground">Custos Fixos</p><p className="text-xl font-bold text-info mt-1">{formatCurrency(totalFixo)}</p></div>
         <div className="stat-card"><p className="text-xs text-muted-foreground">Custos Variáveis</p><p className="text-xl font-bold text-warning mt-1">{formatCurrency(totalVariavel)}</p></div>
@@ -107,7 +107,6 @@ export default function CustosFixos() {
         <div className="stat-card"><p className="text-xs text-muted-foreground">Total Geral</p><p className="text-xl font-bold text-primary mt-1">{formatCurrency(totalGeral)}</p></div>
       </div>
 
-      {/* Filter */}
       <Select value={catFilter} onValueChange={setCatFilter}>
         <SelectTrigger className="w-full sm:w-56"><SelectValue /></SelectTrigger>
         <SelectContent>
@@ -119,7 +118,6 @@ export default function CustosFixos() {
         </SelectContent>
       </Select>
 
-      {/* Table */}
       <div className="glass-card overflow-hidden">
         <div className="overflow-x-auto">
           <Table>

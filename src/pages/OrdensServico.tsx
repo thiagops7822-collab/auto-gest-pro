@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ordensServico as initialData, formatCurrency, formatDate, getTotalRecebido, getSaldoPendente, getStatusPagamento, getTotalPecas, type OrdemServico, type PagamentoOS } from "@/lib/mock-data";
+import { formatCurrency, formatDate, getTotalRecebido, getSaldoPendente, getStatusPagamento, getTotalPecas, type OrdemServico, type PagamentoOS } from "@/lib/mock-data";
+import { useData } from "@/contexts/DataContext";
 
 const statusColors: Record<string, string> = {
   'Em Andamento': 'badge-info',
@@ -31,7 +32,7 @@ export default function OrdensServico() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [selectedOS, setSelectedOS] = useState<OrdemServico | null>(null);
-  const [osList, setOsList] = useState<OrdemServico[]>(initialData);
+  const { osList, setOsList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [pagForm, setPagForm] = useState({ valor: '', forma: 'PIX', observacao: '' });
@@ -80,7 +81,6 @@ export default function OrdensServico() {
       pecas: valorPecas > 0 ? [{ id: crypto.randomUUID(), descricao: 'Peças diversas', fornecedor: 'Diversos', valor: valorPecas, data: new Date().toISOString().split('T')[0], status: 'Solicitado' }] : [],
       pagamentos: [],
     };
-    // Store valorTerceiros as additional peca entry
     if (valorTerceiros > 0) {
       newOS.pecas.push({ id: crypto.randomUUID(), descricao: 'Serviços de terceiros', fornecedor: 'Terceiros', valor: valorTerceiros, data: new Date().toISOString().split('T')[0], status: 'Solicitado' });
     }
@@ -104,7 +104,6 @@ export default function OrdensServico() {
       observacao: pagForm.observacao || undefined,
     };
     setOsList(prev => prev.map(os => os.id === osId ? { ...os, pagamentos: [...os.pagamentos, novoPag] } : os));
-    // Update selectedOS if viewing
     setSelectedOS(prev => prev && prev.id === osId ? { ...prev, pagamentos: [...prev.pagamentos, novoPag] } : prev);
     setPagForm({ valor: '', forma: 'PIX', observacao: '' });
     setPagDialogOS(null);

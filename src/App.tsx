@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/Layout";
+import { DataProvider } from "@/contexts/DataContext";
 import Index from "./pages/Index";
 import OrdensServico from "./pages/OrdensServico";
 import CustosFixos from "./pages/CustosFixos";
@@ -19,23 +20,25 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/ordens-servico" element={<OrdensServico />} />
-            <Route path="/custos" element={<CustosFixos />} />
-            <Route path="/funcionarios" element={<Funcionarios />} />
-            <Route path="/cartoes" element={<Cartoes />} />
-            <Route path="/terceiros" element={<Terceiros />} />
-            <Route path="/relatorios" element={<Relatorios />} />
-            <Route path="/saidas" element={<SaidasNaoPlanejadas />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
+      <DataProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/ordens-servico" element={<OrdensServico />} />
+              <Route path="/custos" element={<CustosFixos />} />
+              <Route path="/funcionarios" element={<Funcionarios />} />
+              <Route path="/cartoes" element={<Cartoes />} />
+              <Route path="/terceiros" element={<Terceiros />} />
+              <Route path="/relatorios" element={<Relatorios />} />
+              <Route path="/saidas" element={<SaidasNaoPlanejadas />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Layout>
+        </BrowserRouter>
+      </DataProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

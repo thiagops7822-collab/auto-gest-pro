@@ -9,14 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { cartoes as initialCartoes, despesasCartao as initialDespesas, formatCurrency, type CartaoCredito, type DespesaCartao } from "@/lib/mock-data";
+import { formatCurrency, type CartaoCredito, type DespesaCartao } from "@/lib/mock-data";
+import { useData } from "@/contexts/DataContext";
 
 const emptyCartao = { nome: '', limiteTotal: '', diaFechamento: '', diaVencimento: '' };
 const emptyDespesa = { cartaoId: '', descricao: '', categoria: '', valorTotal: '', parcelas: '1', dataCompra: '' };
 
 export default function Cartoes() {
-  const [cartoesList, setCartoesList] = useState<CartaoCredito[]>(initialCartoes);
-  const [despesasList, setDespesasList] = useState<DespesaCartao[]>(initialDespesas);
+  const { cartoesList, setCartoesList, despesasList, setDespesasList } = useData();
   const [cartaoDialog, setCartaoDialog] = useState(false);
   const [despesaDialog, setDespesaDialog] = useState(false);
   const [cartaoForm, setCartaoForm] = useState(emptyCartao);
@@ -130,7 +130,6 @@ export default function Cartoes() {
         </div>
       </div>
 
-      {/* Card panels */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {cartoesList.map(cartao => {
           const despesas = despesasList.filter(d => d.cartaoId === cartao.id);
@@ -181,7 +180,6 @@ export default function Cartoes() {
         })}
       </div>
 
-      {/* Expenses table */}
       <div className="glass-card overflow-hidden">
         <div className="p-4 border-b border-border">
           <h3 className="font-semibold text-foreground">Despesas Recentes</h3>

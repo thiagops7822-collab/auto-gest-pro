@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { funcionarios as initialData, formatCurrency, formatDate, type Funcionario } from "@/lib/mock-data";
+import { formatCurrency, formatDate, type Funcionario } from "@/lib/mock-data";
+import { useData } from "@/contexts/DataContext";
 
 const statusColors: Record<string, string> = {
   'Ativo': 'badge-success',
@@ -19,7 +20,7 @@ const statusColors: Record<string, string> = {
 const emptyForm = { nome: '', cpf: '', cargo: '', tipoContrato: '', salarioBase: '', dataAdmissao: '' };
 
 export default function Funcionarios() {
-  const [funcList, setFuncList] = useState<Funcionario[]>(initialData);
+  const { funcList, setFuncList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const { toast } = useToast();
@@ -82,14 +83,12 @@ export default function Funcionarios() {
         </Dialog>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="stat-card"><p className="text-xs text-muted-foreground">Total da Folha</p><p className="text-xl font-bold text-primary mt-1">{formatCurrency(totalFolha)}</p></div>
         <div className="stat-card"><p className="text-xs text-muted-foreground">Funcionários Ativos</p><p className="text-xl font-bold text-success mt-1">{ativos.length}</p></div>
         <div className="stat-card"><p className="text-xs text-muted-foreground">Média Salarial</p><p className="text-xl font-bold text-info mt-1">{formatCurrency(ativos.length > 0 ? totalFolha / ativos.length : 0)}</p></div>
       </div>
 
-      {/* Table */}
       <div className="glass-card overflow-hidden">
         <div className="overflow-x-auto">
           <Table>

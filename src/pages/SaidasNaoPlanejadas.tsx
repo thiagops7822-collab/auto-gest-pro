@@ -10,30 +10,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate } from "@/lib/mock-data";
-
-interface SaidaNaoPlanejada {
-  id: string;
-  descricao: string;
-  valor: number;
-  formaPagamento: string;
-  data: string;
-  observacao?: string;
-}
-
-const initialSaidas: SaidaNaoPlanejada[] = [
-  { id: 's1', descricao: 'Compra emergencial de lixa', valor: 85, formaPagamento: 'PIX', data: '2025-03-12' },
-  { id: 's2', descricao: 'Pagamento avulso eletricista', valor: 350, formaPagamento: 'Dinheiro', data: '2025-03-15', observacao: 'Reparo urgente na fiação' },
-];
+import { useData, type SaidaNaoPlanejada } from "@/contexts/DataContext";
 
 const emptyForm = { descricao: '', valor: '', formaPagamento: 'PIX', data: '', observacao: '' };
 
 export default function SaidasNaoPlanejadas() {
-  const [saidas, setSaidas] = useState<SaidaNaoPlanejada[]>(initialSaidas);
+  const { saidasList, setSaidasList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const { toast } = useToast();
 
-  const total = saidas.reduce((s, item) => s + item.valor, 0);
+  const total = saidasList.reduce((s, item) => s + item.valor, 0);
 
   const handleCreate = () => {
     if (!form.descricao || !form.valor) {
@@ -48,7 +35,7 @@ export default function SaidasNaoPlanejadas() {
       data: form.data || new Date().toISOString().split('T')[0],
       observacao: form.observacao || undefined,
     };
-    setSaidas(prev => [nova, ...prev]);
+    setSaidasList(prev => [nova, ...prev]);
     setForm(emptyForm);
     setDialogOpen(false);
     toast({ title: "Saída registrada!", description: `${nova.descricao} — ${formatCurrency(nova.valor)}` });
@@ -90,7 +77,6 @@ export default function SaidasNaoPlanejadas() {
         </Dialog>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="stat-card">
           <p className="text-xs text-muted-foreground">Total de Saídas</p>
@@ -98,11 +84,10 @@ export default function SaidasNaoPlanejadas() {
         </div>
         <div className="stat-card">
           <p className="text-xs text-muted-foreground">Quantidade de Registros</p>
-          <p className="text-xl font-bold text-foreground mt-1">{saidas.length}</p>
+          <p className="text-xl font-bold text-foreground mt-1">{saidasList.length}</p>
         </div>
       </div>
 
-      {/* Table */}
       <div className="glass-card overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
@@ -116,7 +101,7 @@ export default function SaidasNaoPlanejadas() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {saidas.map(s => (
+              {saidasList.map(s => (
                 <TableRow key={s.id} className="border-border">
                   <TableCell className="text-muted-foreground text-sm">{formatDate(s.data)}</TableCell>
                   <TableCell className="font-medium">{s.descricao}</TableCell>
