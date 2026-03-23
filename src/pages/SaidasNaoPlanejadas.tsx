@@ -89,7 +89,7 @@ export default function SaidasNaoPlanejadas() {
                     <SelectContent>
                       {osList.map(os => (
                         <SelectItem key={os.id} value={os.id}>
-                          OS #{os.numero} — {os.placa || os.modelo || 'S/ placa'} {os.cliente ? `(${os.cliente})` : ''}
+                          OS #{os.numero} — {os.placa || 'S/ placa'} | {os.modelo} {os.ano} {os.cor} {os.cliente ? `| ${os.cliente}` : ''} | {os.tipoServico}
                         </SelectItem>
                       ))}
                     </SelectContent>
