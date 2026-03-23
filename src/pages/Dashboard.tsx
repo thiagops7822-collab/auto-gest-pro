@@ -120,6 +120,26 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Receitas x Despesas */}
+      <div className="glass-card p-5">
+        <h3 className="text-sm font-semibold text-foreground mb-4">Receitas x Despesas</h3>
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={[
+            { name: 'Receitas', valor: computed.totalRecebido },
+            { name: 'Despesas', valor: computed.totalDespesas },
+          ]}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 18%)" />
+            <XAxis dataKey="name" tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} />
+            <YAxis tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} />
+            <Tooltip contentStyle={{ background: 'hsl(220, 15%, 13%)', border: '1px solid hsl(220, 13%, 20%)', borderRadius: '8px', color: 'hsl(210, 20%, 92%)' }} formatter={(value: number) => formatCurrency(value)} />
+            <Bar dataKey="valor" radius={[4, 4, 0, 0]} name="Valor">
+              <Cell fill="hsl(142, 71%, 45%)" />
+              <Cell fill="hsl(0, 84%, 60%)" />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Expense Categories */}
