@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate } from "@/lib/mock-data";
 import { useData, type SaidaNaoPlanejada } from "@/contexts/DataContext";
 
-const emptyForm = { descricao: '', valor: '', formaPagamento: 'PIX', data: '', observacao: '', tipo: 'Outros' as const, osVinculadaId: '' };
+type TipoSaida = 'Peça' | 'Terceiro' | 'Outros';
+const emptyForm = { descricao: '', valor: '', formaPagamento: 'PIX', data: '', observacao: '', tipo: 'Outros' as TipoSaida, osVinculadaId: '' };
 
 export default function SaidasNaoPlanejadas() {
   const { saidasList, setSaidasList, osList } = useData();
