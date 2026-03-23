@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, AlertTriangle } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -12,19 +12,25 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate } from "@/lib/mock-data";
 import { useData, type SaidaNaoPlanejada } from "@/contexts/DataContext";
 
-const emptyForm = { descricao: '', valor: '', formaPagamento: 'PIX', data: '', observacao: '' };
+type TipoSaida = 'Peça' | 'Terceiro' | 'Outros';
+const emptyForm = { descricao: '', valor: '', formaPagamento: 'PIX', data: '', observacao: '', tipo: 'Outros' as TipoSaida, osVinculadaId: '' };
 
 export default function SaidasNaoPlanejadas() {
-  const { saidasList, setSaidasList } = useData();
+  const { saidasList, setSaidasList, osList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const { toast } = useToast();
 
   const total = saidasList.reduce((s, item) => s + item.valor, 0);
+  const needsOS = form.tipo === 'Peça' || form.tipo === 'Terceiro';
 
   const handleCreate = () => {
     if (!form.descricao || !form.valor) {
       toast({ title: "Campos obrigatórios", description: "Preencha descrição e valor.", variant: "destructive" });
+      return;
+    }
+    if (needsOS && !form.osVinculadaId) {
+      toast({ title: "Veículo obrigatório", description: "Selecione o veículo/OS vinculado.", variant: "destructive" });
       return;
     }
     const nova: SaidaNaoPlanejada = {
@@ -34,11 +40,18 @@ export default function SaidasNaoPlanejadas() {
       formaPagamento: form.formaPagamento,
       data: form.data || new Date().toISOString().split('T')[0],
       observacao: form.observacao || undefined,
+      tipo: form.tipo as SaidaNaoPlanejada['tipo'],
+      osVinculadaId: needsOS ? form.osVinculadaId : undefined,
     };
     setSaidasList(prev => [nova, ...prev]);
     setForm(emptyForm);
     setDialogOpen(false);
     toast({ title: "Saída registrada!", description: `${nova.descricao} — ${formatCurrency(nova.valor)}` });
+  };
+
+  const getOSLabel = (osId: string) => {
+    const os = osList.find(o => o.id === osId);
+    return os ? `OS #${os.numero} — ${os.placa || os.modelo || 'S/ placa'}` : '—';
   };
 
   return (
@@ -55,6 +68,35 @@ export default function SaidasNaoPlanejadas() {
             <div className="grid gap-4 mt-4">
               <div><Label>Descrição *</Label><Input placeholder="Ex: Compra emergencial de peça" value={form.descricao} onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))} /></div>
               <div><Label>Valor (R$) *</Label><Input type="number" placeholder="0,00" value={form.valor} onChange={e => setForm(p => ({ ...p, valor: e.target.value }))} /></div>
+
+              <div>
+                <Label>Tipo de Saída *</Label>
+                <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v as SaidaNaoPlanejada['tipo'], osVinculadaId: '' }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Peça">Peça</SelectItem>
+                    <SelectItem value="Terceiro">Terceiro</SelectItem>
+                    <SelectItem value="Outros">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {needsOS && (
+                <div>
+                  <Label>Veículo / OS vinculada *</Label>
+                  <Select value={form.osVinculadaId} onValueChange={v => setForm(p => ({ ...p, osVinculadaId: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione a OS" /></SelectTrigger>
+                    <SelectContent>
+                      {osList.map(os => (
+                        <SelectItem key={os.id} value={os.id}>
+                          OS #{os.numero} — {os.placa || os.modelo || 'S/ placa'} {os.cliente ? `(${os.cliente})` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div>
                 <Label>Forma de Pagamento</Label>
                 <Select value={form.formaPagamento} onValueChange={v => setForm(p => ({ ...p, formaPagamento: v }))}>
@@ -63,7 +105,6 @@ export default function SaidasNaoPlanejadas() {
                     <SelectItem value="PIX">PIX</SelectItem>
                     <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                     <SelectItem value="Débito">Débito</SelectItem>
-                    <SelectItem value="Crédito">Crédito</SelectItem>
                     <SelectItem value="Transferência">Transferência</SelectItem>
                     <SelectItem value="Boleto">Boleto</SelectItem>
                   </SelectContent>
@@ -77,13 +118,19 @@ export default function SaidasNaoPlanejadas() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="stat-card">
           <p className="text-xs text-muted-foreground">Total de Saídas</p>
           <p className="text-xl font-bold text-destructive mt-1">{formatCurrency(total)}</p>
         </div>
         <div className="stat-card">
-          <p className="text-xs text-muted-foreground">Quantidade de Registros</p>
+          <p className="text-xs text-muted-foreground">Peças + Terceiros</p>
+          <p className="text-xl font-bold text-foreground mt-1">
+            {formatCurrency(saidasList.filter(s => s.tipo === 'Peça' || s.tipo === 'Terceiro').reduce((a, b) => a + b.valor, 0))}
+          </p>
+        </div>
+        <div className="stat-card">
+          <p className="text-xs text-muted-foreground">Registros</p>
           <p className="text-xl font-bold text-foreground mt-1">{saidasList.length}</p>
         </div>
       </div>
@@ -95,6 +142,8 @@ export default function SaidasNaoPlanejadas() {
               <TableRow className="border-border hover:bg-transparent">
                 <TableHead>Data</TableHead>
                 <TableHead>Descrição</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Veículo/OS</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
                 <TableHead>Pagamento</TableHead>
                 <TableHead>Observação</TableHead>
@@ -105,6 +154,12 @@ export default function SaidasNaoPlanejadas() {
                 <TableRow key={s.id} className="border-border">
                   <TableCell className="text-muted-foreground text-sm">{formatDate(s.data)}</TableCell>
                   <TableCell className="font-medium">{s.descricao}</TableCell>
+                  <TableCell>
+                    <Badge variant={s.tipo === 'Peça' ? 'default' : s.tipo === 'Terceiro' ? 'secondary' : 'outline'}>
+                      {s.tipo}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm">{s.osVinculadaId ? getOSLabel(s.osVinculadaId) : '—'}</TableCell>
                   <TableCell className="text-right font-semibold text-destructive">{formatCurrency(s.valor)}</TableCell>
                   <TableCell><Badge variant="outline">{s.formaPagamento}</Badge></TableCell>
                   <TableCell className="text-muted-foreground text-sm">{s.observacao || '—'}</TableCell>

@@ -21,11 +21,13 @@ export interface SaidaNaoPlanejada {
   formaPagamento: string;
   data: string;
   observacao?: string;
+  tipo: 'Peça' | 'Terceiro' | 'Outros';
+  osVinculadaId?: string;
 }
 
 const initialSaidas: SaidaNaoPlanejada[] = [
-  { id: 's1', descricao: 'Compra emergencial de lixa', valor: 85, formaPagamento: 'PIX', data: '2025-03-12' },
-  { id: 's2', descricao: 'Pagamento avulso eletricista', valor: 350, formaPagamento: 'Dinheiro', data: '2025-03-15', observacao: 'Reparo urgente na fiação' },
+  { id: 's1', descricao: 'Compra emergencial de lixa', valor: 85, formaPagamento: 'PIX', data: '2025-03-12', tipo: 'Peça' },
+  { id: 's2', descricao: 'Pagamento avulso eletricista', valor: 350, formaPagamento: 'Dinheiro', data: '2025-03-15', observacao: 'Reparo urgente na fiação', tipo: 'Terceiro' },
 ];
 
 interface DataContextType {
