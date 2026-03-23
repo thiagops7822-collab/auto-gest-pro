@@ -51,7 +51,7 @@ export default function SaidasNaoPlanejadas() {
 
   const getOSLabel = (osId: string) => {
     const os = osList.find(o => o.id === osId);
-    return os ? `OS #${os.numero} — ${os.placa || os.modelo || 'S/ placa'}` : '—';
+    return os ? `OS #${os.numero} — ${os.placa || 'S/ placa'} | ${os.modelo} ${os.ano} ${os.cor} ${os.cliente ? `| ${os.cliente}` : ''} | ${os.tipoServico}` : '—';
   };
 
   return (
