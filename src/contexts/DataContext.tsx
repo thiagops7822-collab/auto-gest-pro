@@ -21,6 +21,8 @@ export interface SaidaNaoPlanejada {
   formaPagamento: string;
   data: string;
   observacao?: string;
+  tipo: 'Peça' | 'Terceiro' | 'Outros';
+  osVinculadaId?: string;
 }
 
 const initialSaidas: SaidaNaoPlanejada[] = [
