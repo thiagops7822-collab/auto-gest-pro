@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Search, Plus, Eye, DollarSign } from "lucide-react";
+import { Search, Plus, Eye, DollarSign, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
@@ -37,6 +38,10 @@ export default function OrdensServico() {
   const [form, setForm] = useState(emptyForm);
   const [pagForm, setPagForm] = useState({ valor: '', forma: 'PIX', observacao: '' });
   const [pagDialogOS, setPagDialogOS] = useState<string | null>(null);
+  const [editingOS, setEditingOS] = useState<OrdemServico | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState(emptyForm);
+  const [deleteOS, setDeleteOS] = useState<OrdemServico | null>(null);
   const { toast } = useToast();
 
   const filtered = osList.filter(os => {
@@ -48,11 +53,19 @@ export default function OrdensServico() {
   });
 
   const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: field === 'tipoServico' ? value : value.toUpperCase() }));
+  const handleEditChange = (field: string, value: string) => setEditForm(prev => ({ ...prev, [field]: field === 'tipoServico' ? value : value.toUpperCase() }));
 
   const getValorTotal = () => {
     const orcado = parseFloat(form.valorOrcado) || 0;
     const pecas = parseFloat(form.valorPecas) || 0;
     const terceiros = parseFloat(form.valorTerceiros) || 0;
+    return orcado + pecas + terceiros;
+  };
+
+  const getEditValorTotal = () => {
+    const orcado = parseFloat(editForm.valorOrcado) || 0;
+    const pecas = parseFloat(editForm.valorPecas) || 0;
+    const terceiros = parseFloat(editForm.valorTerceiros) || 0;
     return orcado + pecas + terceiros;
   };
 
@@ -90,6 +103,76 @@ export default function OrdensServico() {
     toast({ title: "OS criada com sucesso!", description: `Ordem de Serviço #${nextNumero} cadastrada.` });
   };
 
+  const handleStartEdit = (os: OrdemServico) => {
+    setEditingOS(os);
+    const pecasVal = getTotalPecas(os);
+    setEditForm({
+      placa: os.placa,
+      modelo: os.modelo,
+      ano: os.ano,
+      cor: os.cor,
+      cliente: os.cliente,
+      telefone: os.telefone,
+      tipoServico: os.tipoServico,
+      valorOrcado: os.valorOrcado.toString(),
+      valorPecas: pecasVal > 0 ? pecasVal.toString() : '',
+      valorTerceiros: '',
+      descricao: os.descricao,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingOS) return;
+    if (!editForm.modelo || !editForm.valorOrcado) {
+      toast({ title: "Campos obrigatórios", description: "Preencha modelo e valor orçado.", variant: "destructive" });
+      return;
+    }
+    const valorPecas = parseFloat(editForm.valorPecas) || 0;
+    const valorTerceiros = parseFloat(editForm.valorTerceiros) || 0;
+
+    const updatedPecas = [...editingOS.pecas];
+    // Update or rebuild pecas based on new values
+    const existingPecasTotal = updatedPecas.filter(p => p.fornecedor !== 'Terceiros').reduce((s, p) => s + p.valor, 0);
+    const existingTerceirosTotal = updatedPecas.filter(p => p.fornecedor === 'Terceiros').reduce((s, p) => s + p.valor, 0);
+
+    let finalPecas = [...updatedPecas];
+    if (valorPecas !== existingPecasTotal) {
+      finalPecas = finalPecas.filter(p => p.fornecedor === 'Terceiros');
+      if (valorPecas > 0) {
+        finalPecas.push({ id: crypto.randomUUID(), descricao: 'Peças diversas', fornecedor: 'Diversos', valor: valorPecas, data: new Date().toISOString().split('T')[0], status: 'Solicitado' });
+      }
+    }
+    if (valorTerceiros > 0 && valorTerceiros !== existingTerceirosTotal) {
+      finalPecas = finalPecas.filter(p => p.fornecedor !== 'Terceiros');
+      finalPecas.push({ id: crypto.randomUUID(), descricao: 'Serviços de terceiros', fornecedor: 'Terceiros', valor: valorTerceiros, data: new Date().toISOString().split('T')[0], status: 'Solicitado' });
+    }
+
+    setOsList(prev => prev.map(os => os.id === editingOS.id ? {
+      ...os,
+      placa: editForm.placa,
+      modelo: editForm.modelo,
+      ano: editForm.ano,
+      cor: editForm.cor,
+      cliente: editForm.cliente,
+      telefone: editForm.telefone,
+      tipoServico: editForm.tipoServico || os.tipoServico,
+      descricao: editForm.descricao,
+      valorOrcado: parseFloat(editForm.valorOrcado) || 0,
+      pecas: finalPecas,
+    } : os));
+
+    setEditDialogOpen(false);
+    setEditingOS(null);
+    toast({ title: "OS atualizada!", description: `OS #${editingOS.numero} foi editada com sucesso.` });
+  };
+
+  const handleDelete = (os: OrdemServico) => {
+    setOsList(prev => prev.filter(o => o.id !== os.id));
+    setDeleteOS(null);
+    toast({ title: "OS excluída", description: `OS #${os.numero} foi removida do sistema.` });
+  };
+
   const handleAddPagamento = (osId: string) => {
     const valor = parseFloat(pagForm.valor);
     if (!valor || valor <= 0) {
@@ -110,6 +193,37 @@ export default function OrdensServico() {
     toast({ title: "Pagamento registrado!", description: `${formatCurrency(valor)} recebido.` });
   };
 
+  const renderFormFields = (formData: typeof emptyForm, onChange: (field: string, value: string) => void) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+      <div><Label>Placa</Label><Input placeholder="ABC-1234" value={formData.placa} onChange={e => onChange('placa', e.target.value)} /></div>
+      <div><Label>Modelo *</Label><Input placeholder="Ex: Honda Civic" value={formData.modelo} onChange={e => onChange('modelo', e.target.value)} /></div>
+      <div><Label>Ano</Label><Input placeholder="2022" value={formData.ano} onChange={e => onChange('ano', e.target.value)} /></div>
+      <div><Label>Cor</Label><Input placeholder="Prata" value={formData.cor} onChange={e => onChange('cor', e.target.value)} /></div>
+      <div><Label>Cliente</Label><Input placeholder="Nome completo" value={formData.cliente} onChange={e => onChange('cliente', e.target.value)} /></div>
+      <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" value={formData.telefone} onChange={e => onChange('telefone', e.target.value)} /></div>
+      <div>
+        <Label>Tipo de Serviço</Label>
+        <Select value={formData.tipoServico} onValueChange={v => onChange('tipoServico', v)}>
+          <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Funilaria">Funilaria</SelectItem>
+            <SelectItem value="Pintura">Pintura</SelectItem>
+            <SelectItem value="Estética">Estética</SelectItem>
+            <SelectItem value="Martelinho de Ouro">Martelinho de Ouro</SelectItem>
+            <SelectItem value="Higienização">Higienização</SelectItem>
+            <SelectItem value="Polimento">Polimento</SelectItem>
+            <SelectItem value="Reparo Geral">Reparo Geral</SelectItem>
+            <SelectItem value="Funilaria|Pintura|Polimento">Funilaria|Pintura|Polimento</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div><Label>Valor Orçado (R$) *</Label><Input placeholder="0,00" type="number" value={formData.valorOrcado} onChange={e => onChange('valorOrcado', e.target.value)} /></div>
+      <div><Label>Valor de Peças (R$)</Label><Input placeholder="0,00" type="number" value={formData.valorPecas} onChange={e => onChange('valorPecas', e.target.value)} /></div>
+      <div><Label>Valor Serviços Terceiros (R$)</Label><Input placeholder="0,00" type="number" value={formData.valorTerceiros} onChange={e => onChange('valorTerceiros', e.target.value)} /></div>
+      <div className="sm:col-span-2"><Label>Descrição do Serviço</Label><Textarea placeholder="Descreva o serviço..." value={formData.descricao} onChange={e => onChange('descricao', e.target.value)} /></div>
+    </div>
+  );
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -125,36 +239,9 @@ export default function OrdensServico() {
             <DialogHeader>
               <DialogTitle>Nova Ordem de Serviço</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div><Label>Placa</Label><Input placeholder="ABC-1234" value={form.placa} onChange={e => handleChange('placa', e.target.value)} /></div>
-              <div><Label>Modelo *</Label><Input placeholder="Ex: Honda Civic" value={form.modelo} onChange={e => handleChange('modelo', e.target.value)} /></div>
-              <div><Label>Ano</Label><Input placeholder="2022" value={form.ano} onChange={e => handleChange('ano', e.target.value)} /></div>
-              <div><Label>Cor</Label><Input placeholder="Prata" value={form.cor} onChange={e => handleChange('cor', e.target.value)} /></div>
-              <div><Label>Cliente</Label><Input placeholder="Nome completo" value={form.cliente} onChange={e => handleChange('cliente', e.target.value)} /></div>
-              <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" value={form.telefone} onChange={e => handleChange('telefone', e.target.value)} /></div>
-              <div>
-                <Label>Tipo de Serviço</Label>
-                <Select value={form.tipoServico} onValueChange={v => handleChange('tipoServico', v)}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                     <SelectItem value="Funilaria">Funilaria</SelectItem>
-                     <SelectItem value="Pintura">Pintura</SelectItem>
-                     <SelectItem value="Estética">Estética</SelectItem>
-                     <SelectItem value="Martelinho de Ouro">Martelinho de Ouro</SelectItem>
-                     <SelectItem value="Higienização">Higienização</SelectItem>
-                     <SelectItem value="Polimento">Polimento</SelectItem>
-                     <SelectItem value="Reparo Geral">Reparo Geral</SelectItem>
-                     <SelectItem value="Funilaria|Pintura|Polimento">Funilaria|Pintura|Polimento</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div><Label>Valor Orçado (R$) *</Label><Input placeholder="0,00" type="number" value={form.valorOrcado} onChange={e => handleChange('valorOrcado', e.target.value)} /></div>
-              <div><Label>Valor de Peças (R$)</Label><Input placeholder="0,00" type="number" value={form.valorPecas} onChange={e => handleChange('valorPecas', e.target.value)} /></div>
-              <div><Label>Valor Serviços Terceiros (R$)</Label><Input placeholder="0,00" type="number" value={form.valorTerceiros} onChange={e => handleChange('valorTerceiros', e.target.value)} /></div>
-              <div className="sm:col-span-2 p-3 rounded-lg bg-secondary/50">
-                <p className="text-sm text-muted-foreground">Valor Total da OS: <span className="text-lg font-bold text-primary">{formatCurrency(getValorTotal())}</span></p>
-              </div>
-              <div className="sm:col-span-2"><Label>Descrição do Serviço</Label><Textarea placeholder="Descreva o serviço..." value={form.descricao} onChange={e => handleChange('descricao', e.target.value)} /></div>
+            {renderFormFields(form, handleChange)}
+            <div className="p-3 rounded-lg bg-secondary/50 mt-2">
+              <p className="text-sm text-muted-foreground">Valor Total da OS: <span className="text-lg font-bold text-primary">{formatCurrency(getValorTotal())}</span></p>
             </div>
             <Button className="w-full mt-4" onClick={handleCreate}>Criar Ordem de Serviço</Button>
           </DialogContent>
@@ -232,8 +319,10 @@ export default function OrdensServico() {
                     <TableCell><Badge variant="outline" className={pagamentoColors[statusPag]}>{statusPag}</Badge></TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => setSelectedOS(os)}><Eye className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedOS(os)} title="Detalhes"><Eye className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleStartEdit(os)} title="Editar"><Pencil className="w-4 h-4" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => setPagDialogOS(os.id)} title="Registrar pagamento"><DollarSign className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => setDeleteOS(os)} title="Excluir" className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -243,6 +332,38 @@ export default function OrdensServico() {
           </Table>
         </div>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar OS #{editingOS?.numero}</DialogTitle>
+          </DialogHeader>
+          {renderFormFields(editForm, handleEditChange)}
+          <div className="p-3 rounded-lg bg-secondary/50 mt-2">
+            <p className="text-sm text-muted-foreground">Valor Total da OS: <span className="text-lg font-bold text-primary">{formatCurrency(getEditValorTotal())}</span></p>
+          </div>
+          <Button className="w-full mt-4" onClick={handleSaveEdit}>Salvar Alterações</Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteOS} onOpenChange={() => setDeleteOS(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Ordem de Serviço?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a OS #{deleteOS?.numero} ({deleteOS?.modelo} {deleteOS?.placa ? `- ${deleteOS.placa}` : ''})? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteOS && handleDelete(deleteOS)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Payment Dialog */}
       <Dialog open={!!pagDialogOS} onOpenChange={() => setPagDialogOS(null)}>
