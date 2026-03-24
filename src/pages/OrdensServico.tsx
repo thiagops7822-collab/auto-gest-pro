@@ -323,6 +323,7 @@ export default function OrdensServico() {
                         <Button variant="ghost" size="icon" onClick={() => setSelectedOS(os)} title="Detalhes"><Eye className="w-4 h-4" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => handleStartEdit(os)} title="Editar"><Pencil className="w-4 h-4" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => setPagDialogOS(os.id)} title="Registrar pagamento"><DollarSign className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => exportOSIndividualPDF(os)} title="Exportar PDF"><FileDown className="w-4 h-4" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => setDeleteOS(os)} title="Excluir" className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
                       </div>
                     </TableCell>
