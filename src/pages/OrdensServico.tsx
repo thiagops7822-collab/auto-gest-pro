@@ -191,7 +191,7 @@ export default function OrdensServico() {
                 <TableHead>Placa</TableHead>
                 <TableHead className="hidden md:table-cell">Modelo</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-right">Total</TableHead>
                 <TableHead className="text-right hidden sm:table-cell">Recebido</TableHead>
                 <TableHead className="text-right hidden sm:table-cell">Pendente</TableHead>
                 <TableHead>Status</TableHead>
