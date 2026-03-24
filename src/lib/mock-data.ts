@@ -243,8 +243,12 @@ export const getTotalRecebido = (os: OrdemServico): number => {
   return os.pagamentos.reduce((sum, p) => sum + p.valor, 0);
 };
 
+export const getValorTotalOS = (os: OrdemServico): number => {
+  return os.valorOrcado + getTotalPecas(os);
+};
+
 export const getSaldoPendente = (os: OrdemServico): number => {
-  return os.valorOrcado - getTotalRecebido(os);
+  return getValorTotalOS(os) - getTotalRecebido(os);
 };
 
 export const getTotalPecas = (os: OrdemServico): number => {
@@ -253,7 +257,8 @@ export const getTotalPecas = (os: OrdemServico): number => {
 
 export const getStatusPagamento = (os: OrdemServico): string => {
   const recebido = getTotalRecebido(os);
-  if (recebido >= os.valorOrcado) return 'Pago';
+  const total = getValorTotalOS(os);
+  if (recebido >= total) return 'Pago';
   if (recebido > 0) return 'Pago Parcial';
   return 'Pendente';
 };

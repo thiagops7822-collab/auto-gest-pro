@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { formatCurrency, formatDate, getTotalRecebido, getSaldoPendente, getStatusPagamento, getTotalPecas, type OrdemServico, type PagamentoOS } from "@/lib/mock-data";
+import { formatCurrency, formatDate, getTotalRecebido, getSaldoPendente, getStatusPagamento, getTotalPecas, getValorTotalOS, type OrdemServico, type PagamentoOS } from "@/lib/mock-data";
 import { useData } from "@/contexts/DataContext";
 
 const statusColors: Record<string, string> = {
@@ -191,7 +191,7 @@ export default function OrdensServico() {
                 <TableHead>Placa</TableHead>
                 <TableHead className="hidden md:table-cell">Modelo</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-right">Total</TableHead>
                 <TableHead className="text-right hidden sm:table-cell">Recebido</TableHead>
                 <TableHead className="text-right hidden sm:table-cell">Pendente</TableHead>
                 <TableHead>Status</TableHead>
@@ -209,10 +209,26 @@ export default function OrdensServico() {
                     <TableCell className="font-mono">{os.placa}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">{os.modelo}</TableCell>
                     <TableCell>{os.cliente}</TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(os.valorOrcado)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(getValorTotalOS(os))}</TableCell>
                     <TableCell className="text-right hidden sm:table-cell text-success">{formatCurrency(getTotalRecebido(os))}</TableCell>
                     <TableCell className="text-right hidden sm:table-cell text-warning">{formatCurrency(Math.max(0, getSaldoPendente(os)))}</TableCell>
-                    <TableCell><Badge variant="outline" className={statusColors[os.status]}>{os.status}</Badge></TableCell>
+                    <TableCell>
+                      <Select value={os.status} onValueChange={(v) => {
+                        setOsList(prev => prev.map(o => o.id === os.id ? { ...o, status: v as OrdemServico['status'] } : o));
+                        toast({ title: "Status atualizado", description: `OS #${os.numero} → ${v}` });
+                      }}>
+                        <SelectTrigger className="h-7 w-auto min-w-[140px] text-xs">
+                          <Badge variant="outline" className={statusColors[os.status]}>{os.status}</Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                          <SelectItem value="Aguardando Peça">Aguardando Peça</SelectItem>
+                          <SelectItem value="Pronto para Entrega">Pronto para Entrega</SelectItem>
+                          <SelectItem value="Finalizado">Finalizado</SelectItem>
+                          <SelectItem value="Cancelado">Cancelado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell><Badge variant="outline" className={pagamentoColors[statusPag]}>{statusPag}</Badge></TableCell>
                     <TableCell>
                       <div className="flex gap-1">
@@ -240,7 +256,7 @@ export default function OrdensServico() {
               <div className="space-y-4 mt-4">
                 <div className="p-3 rounded-lg bg-secondary/50 text-sm">
                   <p>OS #{os.numero} — {os.modelo} {os.placa && `(${os.placa})`}</p>
-                  <p className="text-muted-foreground">Valor: {formatCurrency(os.valorOrcado)} | Recebido: {formatCurrency(getTotalRecebido(os))} | <span className="text-warning font-semibold">Restante: {formatCurrency(pendente)}</span></p>
+                  <p className="text-muted-foreground">Valor Total: {formatCurrency(getValorTotalOS(os))} | Recebido: {formatCurrency(getTotalRecebido(os))} | <span className="text-warning font-semibold">Restante: {formatCurrency(pendente)}</span></p>
                 </div>
                 <div><Label>Valor (R$)</Label><Input type="number" placeholder="0,00" value={pagForm.valor} onChange={e => setPagForm(p => ({ ...p, valor: e.target.value }))} /></div>
                 <div>
@@ -326,8 +342,9 @@ export default function OrdensServico() {
                 <div className="glass-card p-4">
                   <h4 className="font-semibold text-sm mb-3">Resultado da OS</h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">Valor cobrado:</span><br /><strong>{formatCurrency(selectedOS.valorOrcado)}</strong></div>
+                    <div><span className="text-muted-foreground">Valor orçado:</span><br /><strong>{formatCurrency(selectedOS.valorOrcado)}</strong></div>
                     <div><span className="text-muted-foreground">Custo peças/terceiros:</span><br /><strong className="text-destructive">{formatCurrency(getTotalPecas(selectedOS))}</strong></div>
+                    <div><span className="text-muted-foreground">Valor total da OS:</span><br /><strong className="text-primary">{formatCurrency(getValorTotalOS(selectedOS))}</strong></div>
                     <div><span className="text-muted-foreground">Total recebido:</span><br /><strong className="text-success">{formatCurrency(getTotalRecebido(selectedOS))}</strong></div>
                     <div><span className="text-muted-foreground">Saldo pendente:</span><br /><strong className="text-warning">{formatCurrency(Math.max(0, getSaldoPendente(selectedOS)))}</strong></div>
                   </div>
