@@ -257,7 +257,8 @@ export const getTotalPecas = (os: OrdemServico): number => {
 
 export const getStatusPagamento = (os: OrdemServico): string => {
   const recebido = getTotalRecebido(os);
-  if (recebido >= os.valorOrcado) return 'Pago';
+  const total = getValorTotalOS(os);
+  if (recebido >= total) return 'Pago';
   if (recebido > 0) return 'Pago Parcial';
   return 'Pendente';
 };
