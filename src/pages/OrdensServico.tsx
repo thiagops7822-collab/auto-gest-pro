@@ -209,7 +209,7 @@ export default function OrdensServico() {
                     <TableCell className="font-mono">{os.placa}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">{os.modelo}</TableCell>
                     <TableCell>{os.cliente}</TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(os.valorOrcado)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(getValorTotalOS(os))}</TableCell>
                     <TableCell className="text-right hidden sm:table-cell text-success">{formatCurrency(getTotalRecebido(os))}</TableCell>
                     <TableCell className="text-right hidden sm:table-cell text-warning">{formatCurrency(Math.max(0, getSaldoPendente(os)))}</TableCell>
                     <TableCell><Badge variant="outline" className={statusColors[os.status]}>{os.status}</Badge></TableCell>
