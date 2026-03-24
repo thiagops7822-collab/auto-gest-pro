@@ -256,7 +256,7 @@ export default function OrdensServico() {
               <div className="space-y-4 mt-4">
                 <div className="p-3 rounded-lg bg-secondary/50 text-sm">
                   <p>OS #{os.numero} — {os.modelo} {os.placa && `(${os.placa})`}</p>
-                  <p className="text-muted-foreground">Valor: {formatCurrency(os.valorOrcado)} | Recebido: {formatCurrency(getTotalRecebido(os))} | <span className="text-warning font-semibold">Restante: {formatCurrency(pendente)}</span></p>
+                  <p className="text-muted-foreground">Valor Total: {formatCurrency(getValorTotalOS(os))} | Recebido: {formatCurrency(getTotalRecebido(os))} | <span className="text-warning font-semibold">Restante: {formatCurrency(pendente)}</span></p>
                 </div>
                 <div><Label>Valor (R$)</Label><Input type="number" placeholder="0,00" value={pagForm.valor} onChange={e => setPagForm(p => ({ ...p, valor: e.target.value }))} /></div>
                 <div>
