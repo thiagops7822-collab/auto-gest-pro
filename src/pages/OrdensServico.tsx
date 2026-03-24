@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Eye, DollarSign, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, Eye, DollarSign, Pencil, Trash2, FileDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate, getTotalRecebido, getSaldoPendente, getStatusPagamento, getTotalPecas, getValorTotalOS, type OrdemServico, type PagamentoOS } from "@/lib/mock-data";
 import { useData } from "@/contexts/DataContext";
+import { exportOSIndividualPDF } from "@/lib/pdf-os-individual";
 
 const statusColors: Record<string, string> = {
   'Em Andamento': 'badge-info',
@@ -322,6 +323,7 @@ export default function OrdensServico() {
                         <Button variant="ghost" size="icon" onClick={() => setSelectedOS(os)} title="Detalhes"><Eye className="w-4 h-4" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => handleStartEdit(os)} title="Editar"><Pencil className="w-4 h-4" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => setPagDialogOS(os.id)} title="Registrar pagamento"><DollarSign className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => exportOSIndividualPDF(os)} title="Exportar PDF"><FileDown className="w-4 h-4" /></Button>
                         <Button variant="ghost" size="icon" onClick={() => setDeleteOS(os)} title="Excluir" className="text-destructive hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
                       </div>
                     </TableCell>
@@ -407,7 +409,12 @@ export default function OrdensServico() {
           {selectedOS && (
             <>
               <DialogHeader>
-                <DialogTitle>OS #{selectedOS.numero} — {selectedOS.modelo} {selectedOS.placa && `(${selectedOS.placa})`}</DialogTitle>
+                <DialogTitle className="flex items-center justify-between">
+                  <span>OS #{selectedOS.numero} — {selectedOS.modelo} {selectedOS.placa && `(${selectedOS.placa})`}</span>
+                  <Button size="sm" variant="outline" className="gap-1" onClick={() => exportOSIndividualPDF(selectedOS)}>
+                    <FileDown className="w-4 h-4" /> Exportar PDF
+                  </Button>
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-6 mt-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
