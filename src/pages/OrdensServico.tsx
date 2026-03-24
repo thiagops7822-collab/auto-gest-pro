@@ -409,7 +409,12 @@ export default function OrdensServico() {
           {selectedOS && (
             <>
               <DialogHeader>
-                <DialogTitle>OS #{selectedOS.numero} — {selectedOS.modelo} {selectedOS.placa && `(${selectedOS.placa})`}</DialogTitle>
+                <DialogTitle className="flex items-center justify-between">
+                  <span>OS #{selectedOS.numero} — {selectedOS.modelo} {selectedOS.placa && `(${selectedOS.placa})`}</span>
+                  <Button size="sm" variant="outline" className="gap-1" onClick={() => exportOSIndividualPDF(selectedOS)}>
+                    <FileDown className="w-4 h-4" /> Exportar PDF
+                  </Button>
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-6 mt-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
