@@ -342,8 +342,9 @@ export default function OrdensServico() {
                 <div className="glass-card p-4">
                   <h4 className="font-semibold text-sm mb-3">Resultado da OS</h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="text-muted-foreground">Valor cobrado:</span><br /><strong>{formatCurrency(selectedOS.valorOrcado)}</strong></div>
+                    <div><span className="text-muted-foreground">Valor orçado:</span><br /><strong>{formatCurrency(selectedOS.valorOrcado)}</strong></div>
                     <div><span className="text-muted-foreground">Custo peças/terceiros:</span><br /><strong className="text-destructive">{formatCurrency(getTotalPecas(selectedOS))}</strong></div>
+                    <div><span className="text-muted-foreground">Valor total da OS:</span><br /><strong className="text-primary">{formatCurrency(getValorTotalOS(selectedOS))}</strong></div>
                     <div><span className="text-muted-foreground">Total recebido:</span><br /><strong className="text-success">{formatCurrency(getTotalRecebido(selectedOS))}</strong></div>
                     <div><span className="text-muted-foreground">Saldo pendente:</span><br /><strong className="text-warning">{formatCurrency(Math.max(0, getSaldoPendente(selectedOS)))}</strong></div>
                   </div>
