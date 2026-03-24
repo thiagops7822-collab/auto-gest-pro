@@ -212,7 +212,23 @@ export default function OrdensServico() {
                     <TableCell className="text-right font-medium">{formatCurrency(getValorTotalOS(os))}</TableCell>
                     <TableCell className="text-right hidden sm:table-cell text-success">{formatCurrency(getTotalRecebido(os))}</TableCell>
                     <TableCell className="text-right hidden sm:table-cell text-warning">{formatCurrency(Math.max(0, getSaldoPendente(os)))}</TableCell>
-                    <TableCell><Badge variant="outline" className={statusColors[os.status]}>{os.status}</Badge></TableCell>
+                    <TableCell>
+                      <Select value={os.status} onValueChange={(v) => {
+                        setOsList(prev => prev.map(o => o.id === os.id ? { ...o, status: v as OrdemServico['status'] } : o));
+                        toast({ title: "Status atualizado", description: `OS #${os.numero} → ${v}` });
+                      }}>
+                        <SelectTrigger className="h-7 w-auto min-w-[140px] text-xs">
+                          <Badge variant="outline" className={statusColors[os.status]}>{os.status}</Badge>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                          <SelectItem value="Aguardando Peça">Aguardando Peça</SelectItem>
+                          <SelectItem value="Pronto para Entrega">Pronto para Entrega</SelectItem>
+                          <SelectItem value="Finalizado">Finalizado</SelectItem>
+                          <SelectItem value="Cancelado">Cancelado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell><Badge variant="outline" className={pagamentoColors[statusPag]}>{statusPag}</Badge></TableCell>
                     <TableCell>
                       <div className="flex gap-1">
