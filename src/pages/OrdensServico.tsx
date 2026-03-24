@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate, getTotalRecebido, getSaldoPendente, getStatusPagamento, getTotalPecas, getValorTotalOS, type OrdemServico, type PagamentoOS } from "@/lib/mock-data";
 import { useData } from "@/contexts/DataContext";
+import { exportOSIndividualPDF } from "@/lib/pdf-os-individual";
 
 const statusColors: Record<string, string> = {
   'Em Andamento': 'badge-info',
