@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Eye, Pencil, Trash2, FileDown, ArrowRightLeft } from "lucide-react";
+import { Search, Plus, Eye, Pencil, Trash2, FileDown, ArrowRightLeft, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate, type OrdemServico } from "@/lib/mock-data";
-import { useData, type Orcamento } from "@/contexts/DataContext";
+import { useData, type Orcamento, type OrcamentoItem } from "@/contexts/DataContext";
 import { exportOrcamentoPDF } from "@/lib/pdf-orcamento";
 
 const statusColors: Record<string, string> = {
@@ -21,11 +21,47 @@ const statusColors: Record<string, string> = {
   'Convertido': 'bg-muted text-muted-foreground border-border',
 };
 
-const emptyForm = {
+const operacaoOptions = [
+  'Fun / Pint / Mont',
+  'Pintura',
+  'Polimento',
+  'Lavagem',
+  'Peças / Mont',
+  'Parte Elétrica',
+  'Funilaria',
+  'Estética',
+  'Mecânica',
+  'Vidraceiro',
+  'Tapeçaria',
+];
+
+interface OrcamentoForm {
+  placa: string; modelo: string; ano: string; cor: string;
+  cliente: string; telefone: string; sinistro: string;
+  endereco: string; cpfCnpj: string; orcamentista: string;
+  observacoes: string; validade: string;
+  itens: OrcamentoItem[];
+}
+
+const emptyForm: OrcamentoForm = {
   placa: '', modelo: '', ano: '', cor: '', cliente: '', telefone: '',
-  tipoServico: '', descricao: '', valorServico: '', valorPecas: '',
-  valorTerceiros: '', observacoes: '', validade: '',
+  sinistro: 'Não', endereco: '', cpfCnpj: '', orcamentista: '',
+  observacoes: '', validade: '',
+  itens: [],
 };
+
+const createEmptyItem = (): OrcamentoItem => ({
+  id: crypto.randomUUID(),
+  operacao: '',
+  descricao: '',
+  qtde: 1,
+  valorUnitario: 0,
+  valorTotal: 0,
+});
+
+function getTotal(itens: OrcamentoItem[]) {
+  return itens.reduce((sum, i) => sum + i.valorTotal, 0);
+}
 
 export default function Orcamentos() {
   const [search, setSearch] = useState("");
@@ -33,10 +69,10 @@ export default function Orcamentos() {
   const [selectedOrc, setSelectedOrc] = useState<Orcamento | null>(null);
   const { orcamentosList, setOrcamentosList, osList, setOsList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<OrcamentoForm>(emptyForm);
   const [editingOrc, setEditingOrc] = useState<Orcamento | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editForm, setEditForm] = useState(emptyForm);
+  const [editForm, setEditForm] = useState<OrcamentoForm>(emptyForm);
   const [deleteOrc, setDeleteOrc] = useState<Orcamento | null>(null);
   const [convertOrc, setConvertOrc] = useState<Orcamento | null>(null);
   const { toast } = useToast();
@@ -50,13 +86,36 @@ export default function Orcamentos() {
   });
 
   const handleChange = (field: string, value: string) =>
-    setForm(prev => ({ ...prev, [field]: field === 'tipoServico' ? value : value.toUpperCase() }));
+    setForm(prev => ({ ...prev, [field]: value.toUpperCase() }));
 
   const handleEditChange = (field: string, value: string) =>
-    setEditForm(prev => ({ ...prev, [field]: field === 'tipoServico' ? value : value.toUpperCase() }));
+    setEditForm(prev => ({ ...prev, [field]: value.toUpperCase() }));
 
-  const getValorTotal = (f: typeof form) => {
-    return (parseFloat(f.valorServico) || 0) + (parseFloat(f.valorPecas) || 0) + (parseFloat(f.valorTerceiros) || 0);
+  const addItem = (setter: React.Dispatch<React.SetStateAction<OrcamentoForm>>) => {
+    setter(prev => ({ ...prev, itens: [...prev.itens, createEmptyItem()] }));
+  };
+
+  const removeItem = (setter: React.Dispatch<React.SetStateAction<OrcamentoForm>>, id: string) => {
+    setter(prev => ({ ...prev, itens: prev.itens.filter(i => i.id !== id) }));
+  };
+
+  const updateItem = (setter: React.Dispatch<React.SetStateAction<OrcamentoForm>>, id: string, field: keyof OrcamentoItem, value: string | number) => {
+    setter(prev => ({
+      ...prev,
+      itens: prev.itens.map(item => {
+        if (item.id !== id) return item;
+        const updated = { ...item, [field]: value };
+        if (field === 'qtde' || field === 'valorUnitario') {
+          const qtde = field === 'qtde' ? Number(value) : item.qtde;
+          const unitario = field === 'valorUnitario' ? Number(value) : item.valorUnitario;
+          updated.valorTotal = qtde * unitario;
+        }
+        if (field === 'valorTotal') {
+          updated.valorTotal = Number(value);
+        }
+        return updated;
+      }),
+    }));
   };
 
   const getDefaultValidade = () => {
@@ -66,8 +125,8 @@ export default function Orcamentos() {
   };
 
   const handleCreate = () => {
-    if (!form.modelo || !form.valorServico) {
-      toast({ title: "Campos obrigatórios", description: "Preencha modelo e valor do serviço.", variant: "destructive" });
+    if (!form.modelo) {
+      toast({ title: "Campo obrigatório", description: "Preencha o modelo do veículo.", variant: "destructive" });
       return;
     }
     const nextNumero = Math.max(...orcamentosList.map(o => o.numero), 0) + 1;
@@ -76,17 +135,10 @@ export default function Orcamentos() {
       numero: nextNumero,
       dataCriacao: new Date().toISOString().split('T')[0],
       validade: form.validade || getDefaultValidade(),
-      placa: form.placa,
-      modelo: form.modelo,
-      ano: form.ano,
-      cor: form.cor,
-      cliente: form.cliente,
-      telefone: form.telefone,
-      tipoServico: form.tipoServico || 'Reparo Geral',
-      descricao: form.descricao,
-      valorServico: parseFloat(form.valorServico) || 0,
-      valorPecas: parseFloat(form.valorPecas) || 0,
-      valorTerceiros: parseFloat(form.valorTerceiros) || 0,
+      placa: form.placa, modelo: form.modelo, ano: form.ano, cor: form.cor,
+      cliente: form.cliente, telefone: form.telefone, sinistro: form.sinistro,
+      endereco: form.endereco, cpfCnpj: form.cpfCnpj, orcamentista: form.orcamentista,
+      itens: form.itens,
       observacoes: form.observacoes,
       status: 'Pendente',
     };
@@ -100,28 +152,25 @@ export default function Orcamentos() {
     setEditingOrc(orc);
     setEditForm({
       placa: orc.placa, modelo: orc.modelo, ano: orc.ano, cor: orc.cor,
-      cliente: orc.cliente, telefone: orc.telefone, tipoServico: orc.tipoServico,
-      descricao: orc.descricao, valorServico: orc.valorServico.toString(),
-      valorPecas: orc.valorPecas > 0 ? orc.valorPecas.toString() : '',
-      valorTerceiros: orc.valorTerceiros > 0 ? orc.valorTerceiros.toString() : '',
+      cliente: orc.cliente, telefone: orc.telefone, sinistro: orc.sinistro,
+      endereco: orc.endereco, cpfCnpj: orc.cpfCnpj, orcamentista: orc.orcamentista,
       observacoes: orc.observacoes, validade: orc.validade,
+      itens: orc.itens.map(i => ({ ...i })),
     });
     setEditDialogOpen(true);
   };
 
   const handleSaveEdit = () => {
-    if (!editingOrc || !editForm.modelo || !editForm.valorServico) {
-      toast({ title: "Campos obrigatórios", description: "Preencha modelo e valor do serviço.", variant: "destructive" });
+    if (!editingOrc || !editForm.modelo) {
+      toast({ title: "Campo obrigatório", description: "Preencha o modelo.", variant: "destructive" });
       return;
     }
     setOrcamentosList(prev => prev.map(orc => orc.id === editingOrc.id ? {
       ...orc, placa: editForm.placa, modelo: editForm.modelo, ano: editForm.ano,
       cor: editForm.cor, cliente: editForm.cliente, telefone: editForm.telefone,
-      tipoServico: editForm.tipoServico, descricao: editForm.descricao,
-      valorServico: parseFloat(editForm.valorServico) || 0,
-      valorPecas: parseFloat(editForm.valorPecas) || 0,
-      valorTerceiros: parseFloat(editForm.valorTerceiros) || 0,
-      observacoes: editForm.observacoes,
+      sinistro: editForm.sinistro, endereco: editForm.endereco,
+      cpfCnpj: editForm.cpfCnpj, orcamentista: editForm.orcamentista,
+      itens: editForm.itens, observacoes: editForm.observacoes,
       validade: editForm.validade || orc.validade,
     } : orc));
     setEditDialogOpen(false);
@@ -139,33 +188,35 @@ export default function Orcamentos() {
   const handleConvertToOS = () => {
     if (!convertOrc) return;
     const nextNumero = Math.max(...osList.map(o => o.numero), 1000) + 1;
+    const servicoItens = convertOrc.itens.filter(i => !i.operacao.toLowerCase().includes('peça'));
+    const pecaItens = convertOrc.itens.filter(i => i.operacao.toLowerCase().includes('peça'));
+    const valorServico = servicoItens.reduce((s, i) => s + i.valorTotal, 0);
+
     const newOS: OrdemServico = {
       id: crypto.randomUUID(),
       numero: nextNumero,
       dataEntrada: new Date().toISOString().split('T')[0],
-      placa: convertOrc.placa,
-      modelo: convertOrc.modelo,
-      ano: convertOrc.ano,
-      cor: convertOrc.cor,
-      cliente: convertOrc.cliente,
-      telefone: convertOrc.telefone,
-      tipoServico: convertOrc.tipoServico,
-      descricao: convertOrc.descricao,
-      valorOrcado: convertOrc.valorServico,
+      placa: convertOrc.placa, modelo: convertOrc.modelo,
+      ano: convertOrc.ano, cor: convertOrc.cor,
+      cliente: convertOrc.cliente, telefone: convertOrc.telefone,
+      tipoServico: servicoItens.map(i => i.operacao).filter((v, i, a) => a.indexOf(v) === i).join(', ') || 'Geral',
+      descricao: servicoItens.map(i => i.descricao).join('; '),
+      valorOrcado: valorServico,
       status: 'Em Andamento',
-      pecas: [],
+      pecas: pecaItens.map(i => ({
+        id: crypto.randomUUID(),
+        descricao: i.descricao,
+        fornecedor: 'ORÇAMENTO',
+        valor: i.valorTotal,
+        data: new Date().toISOString().split('T')[0],
+        status: 'Solicitado' as const,
+      })),
       pagamentos: [],
     };
-    if (convertOrc.valorPecas > 0) {
-      newOS.pecas.push({ id: crypto.randomUUID(), descricao: 'PEÇAS (ORÇAMENTO)', fornecedor: 'DIVERSOS', valor: convertOrc.valorPecas, data: new Date().toISOString().split('T')[0], status: 'Solicitado' });
-    }
-    if (convertOrc.valorTerceiros > 0) {
-      newOS.pecas.push({ id: crypto.randomUUID(), descricao: 'SERVIÇOS DE TERCEIROS (ORÇAMENTO)', fornecedor: 'TERCEIROS', valor: convertOrc.valorTerceiros, data: new Date().toISOString().split('T')[0], status: 'Solicitado' });
-    }
     setOsList(prev => [newOS, ...prev]);
     setOrcamentosList(prev => prev.map(o => o.id === convertOrc.id ? { ...o, status: 'Convertido' as const } : o));
     setConvertOrc(null);
-    toast({ title: "Orçamento convertido em OS!", description: `Ordem de Serviço #${nextNumero} criada com sucesso.` });
+    toast({ title: "Orçamento convertido em OS!", description: `OS #${nextNumero} criada.` });
   };
 
   const handleStatusChange = (id: string, newStatus: Orcamento['status']) => {
@@ -173,39 +224,96 @@ export default function Orcamentos() {
     toast({ title: `Status alterado para "${newStatus}"` });
   };
 
-  const tipoServicoOptions = ['Martelinho de Ouro', 'Higienização', 'Polimento', 'Reparo Geral', 'Funilaria', 'Pintura', 'Estética', 'Combinado'];
-
-  const renderFormFields = (f: typeof form, onChange: (field: string, value: string) => void, isEdit = false) => (
-    <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
+  const renderFormFields = (f: OrcamentoForm, onChange: (field: string, value: string) => void, setter: React.Dispatch<React.SetStateAction<OrcamentoForm>>) => (
+    <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+      {/* Vehicle & Client */}
+      <h3 className="font-semibold text-sm text-muted-foreground">Dados do Veículo e Cliente</h3>
       <div className="grid grid-cols-2 gap-3">
         <div><Label>Placa</Label><Input value={f.placa} onChange={e => onChange('placa', e.target.value)} placeholder="ABC-1234" /></div>
-        <div><Label>Modelo *</Label><Input value={f.modelo} onChange={e => onChange('modelo', e.target.value)} placeholder="Ex: Honda Civic" /></div>
+        <div><Label>Modelo *</Label><Input value={f.modelo} onChange={e => onChange('modelo', e.target.value)} placeholder="Ex: Saveiro" /></div>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div><Label>Ano</Label><Input value={f.ano} onChange={e => onChange('ano', e.target.value)} placeholder="2023" /></div>
-        <div><Label>Cor</Label><Input value={f.cor} onChange={e => onChange('cor', e.target.value)} placeholder="Prata" /></div>
+        <div><Label>Cor</Label><Input value={f.cor} onChange={e => onChange('cor', e.target.value)} placeholder="Branco" /></div>
         <div>
-          <Label>Tipo de Serviço</Label>
-          <Select value={f.tipoServico} onValueChange={v => onChange('tipoServico', v)}>
-            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-            <SelectContent>{tipoServicoOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+          <Label>Sinistro</Label>
+          <Select value={f.sinistro} onValueChange={v => setter(prev => ({ ...prev, sinistro: v }))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Não">Não</SelectItem>
+              <SelectItem value="Sim">Sim</SelectItem>
+            </SelectContent>
           </Select>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div><Label>Cliente</Label><Input value={f.cliente} onChange={e => onChange('cliente', e.target.value)} placeholder="Nome do cliente" /></div>
+        <div><Label>Proprietário / Cliente</Label><Input value={f.cliente} onChange={e => onChange('cliente', e.target.value)} placeholder="Nome" /></div>
         <div><Label>Telefone</Label><Input value={f.telefone} onChange={e => onChange('telefone', e.target.value)} placeholder="(11) 99999-9999" /></div>
       </div>
-      <div><Label>Descrição do Serviço</Label><Textarea value={f.descricao} onChange={e => onChange('descricao', e.target.value)} placeholder="Descreva o serviço" /></div>
-      <div className="grid grid-cols-3 gap-3">
-        <div><Label>Valor Serviço *</Label><Input type="number" value={f.valorServico} onChange={e => onChange('valorServico', e.target.value)} placeholder="0,00" /></div>
-        <div><Label>Valor Peças</Label><Input type="number" value={f.valorPecas} onChange={e => onChange('valorPecas', e.target.value)} placeholder="0,00" /></div>
-        <div><Label>Valor Terceiros</Label><Input type="number" value={f.valorTerceiros} onChange={e => onChange('valorTerceiros', e.target.value)} placeholder="0,00" /></div>
+      <div className="grid grid-cols-2 gap-3">
+        <div><Label>CPF/CNPJ</Label><Input value={f.cpfCnpj} onChange={e => onChange('cpfCnpj', e.target.value)} /></div>
+        <div><Label>Endereço</Label><Input value={f.endereco} onChange={e => onChange('endereco', e.target.value)} /></div>
       </div>
-      <div className="text-right text-sm font-semibold text-foreground">
-        Valor Total: {formatCurrency(getValorTotal(f))}
+      <div className="grid grid-cols-2 gap-3">
+        <div><Label>Orçamentista</Label><Input value={f.orcamentista} onChange={e => onChange('orcamentista', e.target.value)} /></div>
+        <div><Label>Validade</Label><Input type="date" value={f.validade} onChange={e => onChange('validade', e.target.value)} /></div>
       </div>
-      <div><Label>Validade</Label><Input type="date" value={f.validade} onChange={e => onChange('validade', e.target.value)} /></div>
+
+      {/* Items */}
+      <div className="border-t pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-sm text-muted-foreground">Itens do Orçamento</h3>
+          <Button type="button" variant="outline" size="sm" onClick={() => addItem(setter)}>
+            <Plus className="h-3 w-3 mr-1" />Adicionar Item
+          </Button>
+        </div>
+        {f.itens.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">Nenhum item adicionado. Clique em "Adicionar Item".</p>
+        )}
+        {f.itens.map((item, idx) => (
+          <div key={item.id} className="border rounded-lg p-3 mb-2 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground">Item {idx + 1}</span>
+              <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeItem(setter, item.id)}>
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs">Operação</Label>
+                <Select value={item.operacao} onValueChange={v => updateItem(setter, item.id, 'operacao', v)}>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>{operacaoOptions.map(op => <SelectItem key={op} value={op}>{op}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Descrição</Label>
+                <Input className="h-8 text-xs" value={item.descricao} onChange={e => updateItem(setter, item.id, 'descricao', e.target.value.toUpperCase())} placeholder="Descrição do serviço/peça" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <Label className="text-xs">Qtde</Label>
+                <Input className="h-8 text-xs" type="number" min="1" value={item.qtde} onChange={e => updateItem(setter, item.id, 'qtde', parseInt(e.target.value) || 1)} />
+              </div>
+              <div>
+                <Label className="text-xs">Valor Unit. (R$)</Label>
+                <Input className="h-8 text-xs" type="number" step="0.01" value={item.valorUnitario || ''} onChange={e => updateItem(setter, item.id, 'valorUnitario', parseFloat(e.target.value) || 0)} placeholder="0,00" />
+              </div>
+              <div>
+                <Label className="text-xs">Valor Total (R$)</Label>
+                <Input className="h-8 text-xs" type="number" step="0.01" value={item.valorTotal || ''} onChange={e => updateItem(setter, item.id, 'valorTotal', parseFloat(e.target.value) || 0)} placeholder="0,00" />
+              </div>
+            </div>
+          </div>
+        ))}
+        {f.itens.length > 0 && (
+          <div className="text-right text-sm font-bold mt-2">
+            Total: {formatCurrency(getTotal(f.itens))}
+          </div>
+        )}
+      </div>
+
       <div><Label>Observações</Label><Textarea value={f.observacoes} onChange={e => onChange('observacoes', e.target.value)} placeholder="Observações adicionais" /></div>
     </div>
   );
@@ -221,9 +329,9 @@ export default function Orcamentos() {
           <DialogTrigger asChild>
             <Button onClick={() => setForm(emptyForm)}><Plus className="mr-2 h-4 w-4" />Novo Orçamento</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-3xl">
             <DialogHeader><DialogTitle>Novo Orçamento</DialogTitle></DialogHeader>
-            {renderFormFields(form, handleChange)}
+            {renderFormFields(form, handleChange, setForm)}
             <Button onClick={handleCreate} className="w-full">Criar Orçamento</Button>
           </DialogContent>
         </Dialog>
@@ -255,7 +363,7 @@ export default function Orcamentos() {
               <TableHead className="w-16">#</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Veículo</TableHead>
-              <TableHead>Serviço</TableHead>
+              <TableHead className="text-center">Itens</TableHead>
               <TableHead className="text-right">Valor Total</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Data</TableHead>
@@ -266,7 +374,7 @@ export default function Orcamentos() {
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhum orçamento encontrado</TableCell></TableRow>
             ) : filtered.map(orc => {
-              const valorTotal = orc.valorServico + orc.valorPecas + orc.valorTerceiros;
+              const valorTotal = getTotal(orc.itens);
               return (
                 <TableRow key={orc.id}>
                   <TableCell className="font-mono font-bold">{orc.numero}</TableCell>
@@ -278,7 +386,7 @@ export default function Orcamentos() {
                     <div>{orc.modelo}</div>
                     <div className="text-xs text-muted-foreground">{orc.placa} • {orc.cor}</div>
                   </TableCell>
-                  <TableCell>{orc.tipoServico}</TableCell>
+                  <TableCell className="text-center">{orc.itens.length}</TableCell>
                   <TableCell className="text-right font-semibold">{formatCurrency(valorTotal)}</TableCell>
                   <TableCell>
                     {orc.status === 'Convertido' ? (
@@ -315,10 +423,10 @@ export default function Orcamentos() {
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedOrc} onOpenChange={() => setSelectedOrc(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Orçamento #{selectedOrc?.numero}</DialogTitle></DialogHeader>
           {selectedOrc && (() => {
-            const valorTotal = selectedOrc.valorServico + selectedOrc.valorPecas + selectedOrc.valorTerceiros;
+            const valorTotal = getTotal(selectedOrc.itens);
             return (
               <div className="space-y-4 max-h-[60vh] overflow-y-auto">
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -328,20 +436,43 @@ export default function Orcamentos() {
                   <div><span className="font-semibold">Placa:</span> {selectedOrc.placa || '—'}</div>
                   <div><span className="font-semibold">Ano:</span> {selectedOrc.ano || '—'}</div>
                   <div><span className="font-semibold">Cor:</span> {selectedOrc.cor || '—'}</div>
-                  <div><span className="font-semibold">Tipo:</span> {selectedOrc.tipoServico}</div>
+                  <div><span className="font-semibold">Sinistro:</span> {selectedOrc.sinistro}</div>
                   <div><span className="font-semibold">Status:</span> <Badge className={statusColors[selectedOrc.status]}>{selectedOrc.status}</Badge></div>
                   <div><span className="font-semibold">Data:</span> {formatDate(selectedOrc.dataCriacao)}</div>
                   <div><span className="font-semibold">Validade:</span> {formatDate(selectedOrc.validade)}</div>
+                  {selectedOrc.orcamentista && <div className="col-span-2"><span className="font-semibold">Orçamentista:</span> {selectedOrc.orcamentista}</div>}
                 </div>
-                {selectedOrc.descricao && (
-                  <div><span className="font-semibold text-sm">Descrição:</span><p className="text-sm text-muted-foreground mt-1">{selectedOrc.descricao}</p></div>
+
+                {selectedOrc.itens.length > 0 && (
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Operação</TableHead>
+                          <TableHead>Descrição</TableHead>
+                          <TableHead className="text-center">Qtde</TableHead>
+                          <TableHead className="text-right">Unit.</TableHead>
+                          <TableHead className="text-right">Total</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedOrc.itens.map(item => (
+                          <TableRow key={item.id}>
+                            <TableCell className="text-xs">{item.operacao}</TableCell>
+                            <TableCell className="text-xs">{item.descricao}</TableCell>
+                            <TableCell className="text-center text-xs">{item.qtde}</TableCell>
+                            <TableCell className="text-right text-xs">{item.valorUnitario > 0 ? formatCurrency(item.valorUnitario) : '—'}</TableCell>
+                            <TableCell className="text-right text-xs font-semibold">{item.valorTotal > 0 ? formatCurrency(item.valorTotal) : '—'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    <div className="bg-muted px-4 py-2 text-right font-bold text-sm">
+                      Total: {formatCurrency(valorTotal)}
+                    </div>
+                  </div>
                 )}
-                <div className="border rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between text-sm"><span>Serviço:</span><span>{formatCurrency(selectedOrc.valorServico)}</span></div>
-                  <div className="flex justify-between text-sm"><span>Peças:</span><span>{formatCurrency(selectedOrc.valorPecas)}</span></div>
-                  <div className="flex justify-between text-sm"><span>Terceiros:</span><span>{formatCurrency(selectedOrc.valorTerceiros)}</span></div>
-                  <div className="border-t pt-2 flex justify-between font-bold"><span>Total:</span><span>{formatCurrency(valorTotal)}</span></div>
-                </div>
+
                 {selectedOrc.observacoes && (
                   <div><span className="font-semibold text-sm">Observações:</span><p className="text-sm text-muted-foreground mt-1">{selectedOrc.observacoes}</p></div>
                 )}
@@ -361,9 +492,9 @@ export default function Orcamentos() {
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl">
           <DialogHeader><DialogTitle>Editar Orçamento #{editingOrc?.numero}</DialogTitle></DialogHeader>
-          {renderFormFields(editForm, handleEditChange, true)}
+          {renderFormFields(editForm, handleEditChange, setEditForm)}
           <Button onClick={handleSaveEdit} className="w-full">Salvar Alterações</Button>
         </DialogContent>
       </Dialog>
