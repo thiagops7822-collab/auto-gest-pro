@@ -61,11 +61,17 @@ const initialSaidas: SaidaNaoPlanejada[] = [
 
 const initialOrcamentos: Orcamento[] = [
   {
-    id: 'orc1', numero: 1, dataCriacao: '2025-03-20', validade: '2025-04-20',
-    placa: 'XYZ-9876', modelo: 'VOLKSWAGEN POLO', ano: '2023', cor: 'BRANCO',
-    cliente: 'FERNANDA SOUZA', telefone: '(11) 94444-1234', tipoServico: 'Funilaria',
-    descricao: 'REPARO NO PARA-CHOQUE DIANTEIRO COM PINTURA', valorServico: 2800,
-    valorPecas: 450, valorTerceiros: 0, observacoes: '', status: 'Pendente',
+    id: 'orc1', numero: 720, dataCriacao: '2026-02-06', validade: '2026-03-06',
+    placa: 'BYI2F19', modelo: 'SAVEIRO', ano: '2019/20', cor: 'BRANCO',
+    cliente: 'HENRIQUE', telefone: '(11) 94744-0501', sinistro: 'Não',
+    endereco: '', cpfCnpj: '', orcamentista: 'VLADIMIR ANDRE COSTA',
+    itens: [
+      { id: 'i1', operacao: 'Fun / Pint / Mont', descricao: 'PARA CHOQUE DIANTEIRO', qtde: 1, valorUnitario: 0, valorTotal: 0 },
+      { id: 'i2', operacao: 'Pintura', descricao: 'GRADE DO TETO', qtde: 1, valorUnitario: 0, valorTotal: 0 },
+      { id: 'i3', operacao: 'Peças / Mont', descricao: 'MOLDURA DO PARA CHOQUE LADO DIREITO', qtde: 1, valorUnitario: 123, valorTotal: 123 },
+      { id: 'i4', operacao: 'Peças / Mont', descricao: 'LANTERNA DE PLACA', qtde: 2, valorUnitario: 38, valorTotal: 76 },
+    ],
+    observacoes: '', status: 'Pendente',
   },
 ];
 
