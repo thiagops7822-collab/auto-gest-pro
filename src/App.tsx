@@ -13,6 +13,7 @@ import Cartoes from "./pages/Cartoes";
 import Terceiros from "./pages/Terceiros";
 import Relatorios from "./pages/Relatorios";
 import SaidasNaoPlanejadas from "./pages/SaidasNaoPlanejadas";
+import Orcamentos from "./pages/Orcamentos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
