@@ -28,7 +28,7 @@ function formatDate(dateStr: string): string {
 
 function addHeader(doc: jsPDF, logo: string | null, numero: number) {
   doc.setFillColor(...ORANGE);
-  doc.rect(0, 0, 210, 32, "F");
+  doc.rect(0, 0, 210, 36, "F");
 
   let logoEndX = 14;
   if (logo) {
@@ -39,11 +39,12 @@ function addHeader(doc: jsPDF, logo: string | null, numero: number) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.setTextColor(255, 255, 255);
-  doc.text("Auto Estufa Lippe", logoEndX, 14);
+  doc.text("AUTO ESTUFA LIPPE", logoEndX, 12);
 
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text("Funilaria • Pintura • Estética Automotiva", logoEndX, 21);
+  doc.text("(11) 94744-0501 • @autoestufalippe", logoEndX, 19);
+  doc.text("Rua Sul América Nº 20 Jd. das Nações - Diadema/SP", logoEndX, 25);
 
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
@@ -51,9 +52,9 @@ function addHeader(doc: jsPDF, logo: string | null, numero: number) {
 
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text(`Emitido em ${new Date().toLocaleDateString("pt-BR")}`, 196, 21, { align: "right" });
+  doc.text(`Emitido em ${new Date().toLocaleDateString("pt-BR")}`, 196, 22, { align: "right" });
 
-  return 40;
+  return 44;
 }
 
 function addFooter(doc: jsPDF) {
@@ -75,85 +76,92 @@ export async function exportOrcamentoPDF(orc: Orcamento) {
   const logo = await loadLogoBase64();
   let y = addHeader(doc, logo, orc.numero);
 
-  // Client & vehicle info
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(50, 50, 50);
-  doc.text("Dados do Veículo e Cliente", 14, y);
-  y += 4;
-
+  // Date & Orcamentista row
   autoTable(doc, {
     startY: y,
     body: [
-      ["Placa", orc.placa || "—", "Modelo", orc.modelo],
-      ["Ano", orc.ano || "—", "Cor", orc.cor || "—"],
-      ["Cliente", orc.cliente || "—", "Telefone", orc.telefone || "—"],
-      ["Tipo de Serviço", orc.tipoServico, "Data", formatDate(orc.dataCriacao)],
-      ["Validade", formatDate(orc.validade), "Status", orc.status],
+      [
+        { content: `Data: ${formatDate(orc.dataCriacao)}`, styles: { fontStyle: "bold" } },
+        { content: `Orçamento: ${orc.numero}`, styles: { fontStyle: "bold", halign: "right" as const } },
+      ],
+      ...(orc.orcamentista ? [
+        [{ content: `Orçamentista: ${orc.orcamentista}`, colSpan: 2, styles: { fontStyle: "bold" as const } }]
+      ] : []),
     ],
     theme: "plain",
-    bodyStyles: { fontSize: 9, textColor: [60, 60, 60], cellPadding: 3 },
-    columnStyles: {
-      0: { fontStyle: "bold", cellWidth: 35 },
-      1: { cellWidth: 55 },
-      2: { fontStyle: "bold", cellWidth: 35 },
-      3: { cellWidth: 55 },
-    },
+    bodyStyles: { fontSize: 9, textColor: [60, 60, 60], cellPadding: 2 },
     margin: { left: 14, right: 14 },
-    alternateRowStyles: { fillColor: [248, 248, 248] },
   });
+  y = (doc as any).lastAutoTable.finalY + 2;
 
-  y = (doc as any).lastAutoTable.finalY + 6;
-
-  // Description
-  if (orc.descricao) {
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(50, 50, 50);
-    doc.text("Descrição do Serviço", 14, y);
-    y += 5;
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
-    const lines = doc.splitTextToSize(orc.descricao, 182);
-    doc.text(lines, 14, y);
-    y += lines.length * 4.5 + 6;
-  }
-
-  // Values breakdown
-  doc.setFontSize(11);
+  // Vehicle & client info
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(50, 50, 50);
-  doc.text("Detalhamento de Valores", 14, y);
-  y += 4;
-
-  const valorTotal = orc.valorServico + orc.valorPecas + orc.valorTerceiros;
 
   autoTable(doc, {
     startY: y,
     body: [
-      ["Serviço (mão de obra)", formatCurrency(orc.valorServico)],
-      ["Peças", formatCurrency(orc.valorPecas)],
-      ["Serviços de Terceiros", formatCurrency(orc.valorTerceiros)],
+      [{ content: "Proprietário:", styles: { fontStyle: "bold" } }, orc.cliente || "—", { content: "Veículo:", styles: { fontStyle: "bold" } }, orc.modelo],
+      [{ content: "CNPJ/CPF:", styles: { fontStyle: "bold" } }, orc.cpfCnpj || "—", { content: "Ano:", styles: { fontStyle: "bold" } }, orc.ano || "—"],
+      [{ content: "Endereço:", styles: { fontStyle: "bold" } }, orc.endereco || "—", { content: "Placa:", styles: { fontStyle: "bold" } }, orc.placa || "—"],
+      [{ content: "Fone:", styles: { fontStyle: "bold" } }, orc.telefone || "—", { content: "Cor/Pint:", styles: { fontStyle: "bold" } }, orc.cor || "—"],
+      [{ content: "", styles: { fontStyle: "bold" } }, "", { content: "Sinistro:", styles: { fontStyle: "bold" } }, orc.sinistro || "Não"],
     ],
-    foot: [
-      [{ content: "VALOR TOTAL", styles: { fontStyle: "bold", fontSize: 11 } },
-       { content: formatCurrency(valorTotal), styles: { fontStyle: "bold", fontSize: 11 } }],
-    ],
-    theme: "grid",
-    bodyStyles: { fontSize: 10, textColor: [60, 60, 60], cellPadding: 4 },
-    columnStyles: { 0: { fontStyle: "bold", cellWidth: 80 } },
-    footStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255] },
-    alternateRowStyles: { fillColor: [248, 248, 248] },
+    theme: "plain",
+    bodyStyles: { fontSize: 9, textColor: [60, 60, 60], cellPadding: 2 },
+    columnStyles: {
+      0: { fontStyle: "bold", cellWidth: 28 },
+      1: { cellWidth: 62 },
+      2: { fontStyle: "bold", cellWidth: 22 },
+      3: { cellWidth: 60 },
+    },
     margin: { left: 14, right: 14 },
-    styles: { lineColor: [220, 220, 220], lineWidth: 0.3 },
+    styles: { lineColor: [220, 220, 220], lineWidth: 0.2 },
+    tableLineColor: [200, 200, 200],
+    tableLineWidth: 0.3,
   });
+  y = (doc as any).lastAutoTable.finalY + 4;
 
-  y = (doc as any).lastAutoTable.finalY + 8;
+  // Items table
+  if (orc.itens.length > 0) {
+    const valorTotal = orc.itens.reduce((s, i) => s + i.valorTotal, 0);
+
+    autoTable(doc, {
+      startY: y,
+      head: [["Operação", "Descrição", "Qtde", "Unid(R$)", "Tot(R$)"]],
+      body: orc.itens.map(item => [
+        item.operacao,
+        item.descricao,
+        item.qtde.toString(),
+        item.valorUnitario > 0 ? formatCurrency(item.valorUnitario) : "",
+        item.valorTotal > 0 ? formatCurrency(item.valorTotal) : "",
+      ]),
+      foot: [[
+        { content: "VALOR TOTAL", colSpan: 4, styles: { halign: "right" as const, fontStyle: "bold" as const, fontSize: 11 } },
+        { content: formatCurrency(valorTotal), styles: { fontStyle: "bold" as const, fontSize: 11 } },
+      ]],
+      theme: "grid",
+      headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontSize: 8, fontStyle: "bold", cellPadding: 3 },
+      bodyStyles: { fontSize: 8, textColor: [60, 60, 60], cellPadding: 3 },
+      footStyles: { fillColor: [240, 240, 240], textColor: [40, 40, 40] },
+      columnStyles: {
+        0: { cellWidth: 32 },
+        1: { cellWidth: 70 },
+        2: { cellWidth: 16, halign: "center" },
+        3: { cellWidth: 28, halign: "right" },
+        4: { cellWidth: 28, halign: "right" },
+      },
+      alternateRowStyles: { fillColor: [250, 250, 250] },
+      margin: { left: 14, right: 14 },
+      styles: { lineColor: [200, 200, 200], lineWidth: 0.3 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 6;
+  }
 
   // Observations
   if (orc.observacoes) {
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(50, 50, 50);
     doc.text("Observações", 14, y);
