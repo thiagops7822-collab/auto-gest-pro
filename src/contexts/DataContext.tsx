@@ -25,9 +25,39 @@ export interface SaidaNaoPlanejada {
   osVinculadaId?: string;
 }
 
+export interface Orcamento {
+  id: string;
+  numero: number;
+  dataCriacao: string;
+  validade: string;
+  placa: string;
+  modelo: string;
+  ano: string;
+  cor: string;
+  cliente: string;
+  telefone: string;
+  tipoServico: string;
+  descricao: string;
+  valorServico: number;
+  valorPecas: number;
+  valorTerceiros: number;
+  observacoes: string;
+  status: 'Pendente' | 'Aprovado' | 'Recusado' | 'Convertido';
+}
+
 const initialSaidas: SaidaNaoPlanejada[] = [
   { id: 's1', descricao: 'Compra emergencial de lixa', valor: 85, formaPagamento: 'PIX', data: '2025-03-12', tipo: 'Peça' },
   { id: 's2', descricao: 'Pagamento avulso eletricista', valor: 350, formaPagamento: 'Dinheiro', data: '2025-03-15', observacao: 'Reparo urgente na fiação', tipo: 'Terceiro' },
+];
+
+const initialOrcamentos: Orcamento[] = [
+  {
+    id: 'orc1', numero: 1, dataCriacao: '2025-03-20', validade: '2025-04-20',
+    placa: 'XYZ-9876', modelo: 'VOLKSWAGEN POLO', ano: '2023', cor: 'BRANCO',
+    cliente: 'FERNANDA SOUZA', telefone: '(11) 94444-1234', tipoServico: 'Funilaria',
+    descricao: 'REPARO NO PARA-CHOQUE DIANTEIRO COM PINTURA', valorServico: 2800,
+    valorPecas: 450, valorTerceiros: 0, observacoes: '', status: 'Pendente',
+  },
 ];
 
 interface DataContextType {
@@ -45,6 +75,8 @@ interface DataContextType {
   setTerceirosList: React.Dispatch<React.SetStateAction<Terceiro[]>>;
   saidasList: SaidaNaoPlanejada[];
   setSaidasList: React.Dispatch<React.SetStateAction<SaidaNaoPlanejada[]>>;
+  orcamentosList: Orcamento[];
+  setOrcamentosList: React.Dispatch<React.SetStateAction<Orcamento[]>>;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -57,6 +89,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [despesasList, setDespesasList] = useState<DespesaCartao[]>(initialDespesas);
   const [terceirosList, setTerceirosList] = useState<Terceiro[]>(initialTerceiros);
   const [saidasList, setSaidasList] = useState<SaidaNaoPlanejada[]>(initialSaidas);
+  const [orcamentosList, setOrcamentosList] = useState<Orcamento[]>(initialOrcamentos);
 
   return (
     <DataContext.Provider value={{
@@ -67,6 +100,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       despesasList, setDespesasList,
       terceirosList, setTerceirosList,
       saidasList, setSaidasList,
+      orcamentosList, setOrcamentosList,
     }}>
       {children}
     </DataContext.Provider>
