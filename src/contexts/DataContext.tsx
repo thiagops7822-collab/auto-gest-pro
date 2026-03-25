@@ -25,6 +25,15 @@ export interface SaidaNaoPlanejada {
   osVinculadaId?: string;
 }
 
+export interface OrcamentoItem {
+  id: string;
+  operacao: string;
+  descricao: string;
+  qtde: number;
+  valorUnitario: number;
+  valorTotal: number;
+}
+
 export interface Orcamento {
   id: string;
   numero: number;
@@ -36,11 +45,11 @@ export interface Orcamento {
   cor: string;
   cliente: string;
   telefone: string;
-  tipoServico: string;
-  descricao: string;
-  valorServico: number;
-  valorPecas: number;
-  valorTerceiros: number;
+  sinistro: string;
+  endereco: string;
+  cpfCnpj: string;
+  orcamentista: string;
+  itens: OrcamentoItem[];
   observacoes: string;
   status: 'Pendente' | 'Aprovado' | 'Recusado' | 'Convertido';
 }
