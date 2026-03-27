@@ -46,8 +46,6 @@ export interface Orcamento {
   cliente: string;
   telefone: string;
   sinistro: string;
-  endereco: string;
-  cpfCnpj: string;
   orcamentista: string;
   itens: OrcamentoItem[];
   observacoes: string;
