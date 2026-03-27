@@ -22,30 +22,32 @@ const statusColors: Record<string, string> = {
 };
 
 const operacaoOptions = [
-  'Fun / Pint / Mont',
-  'Pintura',
-  'Polimento',
-  'Lavagem',
-  'Peças / Mont',
-  'Parte Elétrica',
-  'Funilaria',
-  'Estética',
+  'Peças',
   'Mecânica',
-  'Vidraceiro',
-  'Tapeçaria',
+  'Funilaria',
+  'Pintura',
+  'Montagem',
+  'Funilaria + Pintura',
+  'Funilaria + Montagem',
+  'Pintura + Montagem',
+  'Funilaria + Pintura + Montagem',
 ];
+
+function isPecas(operacao: string) {
+  return operacao === 'Peças';
+}
 
 interface OrcamentoForm {
   placa: string; modelo: string; ano: string; cor: string;
   cliente: string; telefone: string; sinistro: string;
-  endereco: string; cpfCnpj: string; orcamentista: string;
+  orcamentista: string;
   observacoes: string; validade: string;
   itens: OrcamentoItem[];
 }
 
 const emptyForm: OrcamentoForm = {
   placa: '', modelo: '', ano: '', cor: '', cliente: '', telefone: '',
-  sinistro: 'Não', endereco: '', cpfCnpj: '', orcamentista: '',
+  sinistro: 'Não', orcamentista: '',
   observacoes: '', validade: '',
   itens: [],
 };
@@ -105,11 +107,31 @@ export default function Orcamentos() {
       itens: prev.itens.map(item => {
         if (item.id !== id) return item;
         const updated = { ...item, [field]: value };
-        if (field === 'qtde' || field === 'valorUnitario') {
-          const qtde = field === 'qtde' ? Number(value) : item.qtde;
-          const unitario = field === 'valorUnitario' ? Number(value) : item.valorUnitario;
-          updated.valorTotal = qtde * unitario;
+
+        // When changing operation, reset values appropriately
+        if (field === 'operacao') {
+          if (isPecas(value as string)) {
+            updated.qtde = updated.qtde || 1;
+          } else {
+            updated.qtde = 1;
+            updated.valorTotal = updated.valorUnitario;
+          }
         }
+
+        if (isPecas(updated.operacao)) {
+          // Peças: total = qtde * valorUnitario
+          if (field === 'qtde' || field === 'valorUnitario') {
+            const qtde = field === 'qtde' ? Number(value) : item.qtde;
+            const unitario = field === 'valorUnitario' ? Number(value) : item.valorUnitario;
+            updated.valorTotal = qtde * unitario;
+          }
+        } else {
+          // Serviços: total = valorUnitario (valor do serviço)
+          if (field === 'valorUnitario') {
+            updated.valorTotal = Number(value);
+          }
+        }
+
         if (field === 'valorTotal') {
           updated.valorTotal = Number(value);
         }
@@ -137,7 +159,7 @@ export default function Orcamentos() {
       validade: form.validade || getDefaultValidade(),
       placa: form.placa, modelo: form.modelo, ano: form.ano, cor: form.cor,
       cliente: form.cliente, telefone: form.telefone, sinistro: form.sinistro,
-      endereco: form.endereco, cpfCnpj: form.cpfCnpj, orcamentista: form.orcamentista,
+      orcamentista: form.orcamentista,
       itens: form.itens,
       observacoes: form.observacoes,
       status: 'Pendente',
@@ -153,7 +175,7 @@ export default function Orcamentos() {
     setEditForm({
       placa: orc.placa, modelo: orc.modelo, ano: orc.ano, cor: orc.cor,
       cliente: orc.cliente, telefone: orc.telefone, sinistro: orc.sinistro,
-      endereco: orc.endereco, cpfCnpj: orc.cpfCnpj, orcamentista: orc.orcamentista,
+      orcamentista: orc.orcamentista,
       observacoes: orc.observacoes, validade: orc.validade,
       itens: orc.itens.map(i => ({ ...i })),
     });
@@ -168,8 +190,8 @@ export default function Orcamentos() {
     setOrcamentosList(prev => prev.map(orc => orc.id === editingOrc.id ? {
       ...orc, placa: editForm.placa, modelo: editForm.modelo, ano: editForm.ano,
       cor: editForm.cor, cliente: editForm.cliente, telefone: editForm.telefone,
-      sinistro: editForm.sinistro, endereco: editForm.endereco,
-      cpfCnpj: editForm.cpfCnpj, orcamentista: editForm.orcamentista,
+      sinistro: editForm.sinistro,
+      orcamentista: editForm.orcamentista,
       itens: editForm.itens, observacoes: editForm.observacoes,
       validade: editForm.validade || orc.validade,
     } : orc));
@@ -188,8 +210,8 @@ export default function Orcamentos() {
   const handleConvertToOS = () => {
     if (!convertOrc) return;
     const nextNumero = Math.max(...osList.map(o => o.numero), 1000) + 1;
-    const servicoItens = convertOrc.itens.filter(i => !i.operacao.toLowerCase().includes('peça'));
-    const pecaItens = convertOrc.itens.filter(i => i.operacao.toLowerCase().includes('peça'));
+    const servicoItens = convertOrc.itens.filter(i => !isPecas(i.operacao));
+    const pecaItens = convertOrc.itens.filter(i => isPecas(i.operacao));
     const valorServico = servicoItens.reduce((s, i) => s + i.valorTotal, 0);
 
     const newOS: OrdemServico = {
@@ -224,9 +246,62 @@ export default function Orcamentos() {
     toast({ title: `Status alterado para "${newStatus}"` });
   };
 
+  const renderItemFields = (item: OrcamentoItem, idx: number, setter: React.Dispatch<React.SetStateAction<OrcamentoForm>>) => {
+    const isPeca = isPecas(item.operacao);
+    return (
+      <div key={item.id} className="border rounded-lg p-3 mb-2 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-muted-foreground">Item {idx + 1}</span>
+          <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeItem(setter, item.id)}>
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label className="text-xs">Operação</Label>
+            <Select value={item.operacao} onValueChange={v => updateItem(setter, item.id, 'operacao', v)}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>{operacaoOptions.map(op => <SelectItem key={op} value={op}>{op}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Descrição</Label>
+            <Input className="h-8 text-xs" value={item.descricao} onChange={e => updateItem(setter, item.id, 'descricao', e.target.value.toUpperCase())} placeholder={isPeca ? "Nome da peça" : "Descrição do serviço"} />
+          </div>
+        </div>
+        {isPeca ? (
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <Label className="text-xs">Quantidade</Label>
+              <Input className="h-8 text-xs" type="number" min="1" value={item.qtde} onChange={e => updateItem(setter, item.id, 'qtde', parseInt(e.target.value) || 1)} />
+            </div>
+            <div>
+              <Label className="text-xs">Valor Unit. (R$)</Label>
+              <Input className="h-8 text-xs" type="number" step="0.01" value={item.valorUnitario || ''} onChange={e => updateItem(setter, item.id, 'valorUnitario', parseFloat(e.target.value) || 0)} placeholder="0,00" />
+            </div>
+            <div>
+              <Label className="text-xs">Valor Total (R$)</Label>
+              <Input className="h-8 text-xs bg-muted" readOnly value={item.valorTotal > 0 ? item.valorTotal.toFixed(2) : ''} placeholder="0,00" />
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">Valor do Serviço (R$)</Label>
+              <Input className="h-8 text-xs" type="number" step="0.01" value={item.valorUnitario || ''} onChange={e => updateItem(setter, item.id, 'valorUnitario', parseFloat(e.target.value) || 0)} placeholder="0,00" />
+            </div>
+            <div>
+              <Label className="text-xs">Valor Total (R$)</Label>
+              <Input className="h-8 text-xs bg-muted" readOnly value={item.valorTotal > 0 ? item.valorTotal.toFixed(2) : ''} placeholder="0,00" />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderFormFields = (f: OrcamentoForm, onChange: (field: string, value: string) => void, setter: React.Dispatch<React.SetStateAction<OrcamentoForm>>) => (
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
-      {/* Vehicle & Client */}
       <h3 className="font-semibold text-sm text-muted-foreground">Dados do Veículo e Cliente</h3>
       <div className="grid grid-cols-2 gap-3">
         <div><Label>Placa</Label><Input value={f.placa} onChange={e => onChange('placa', e.target.value)} placeholder="ABC-1234" /></div>
@@ -251,12 +326,8 @@ export default function Orcamentos() {
         <div><Label>Telefone</Label><Input value={f.telefone} onChange={e => onChange('telefone', e.target.value)} placeholder="(11) 99999-9999" /></div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div><Label>CPF/CNPJ</Label><Input value={f.cpfCnpj} onChange={e => onChange('cpfCnpj', e.target.value)} /></div>
-        <div><Label>Endereço</Label><Input value={f.endereco} onChange={e => onChange('endereco', e.target.value)} /></div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
         <div><Label>Orçamentista</Label><Input value={f.orcamentista} onChange={e => onChange('orcamentista', e.target.value)} /></div>
-        <div><Label>Validade</Label><Input type="date" value={f.validade} onChange={e => onChange('validade', e.target.value)} /></div>
+        <div><Label>Validade</Label><Input type="date" value={f.validade || getDefaultValidade()} onChange={e => setter(prev => ({ ...prev, validade: e.target.value }))} /></div>
       </div>
 
       {/* Items */}
@@ -270,43 +341,7 @@ export default function Orcamentos() {
         {f.itens.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">Nenhum item adicionado. Clique em "Adicionar Item".</p>
         )}
-        {f.itens.map((item, idx) => (
-          <div key={item.id} className="border rounded-lg p-3 mb-2 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted-foreground">Item {idx + 1}</span>
-              <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeItem(setter, item.id)}>
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs">Operação</Label>
-                <Select value={item.operacao} onValueChange={v => updateItem(setter, item.id, 'operacao', v)}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>{operacaoOptions.map(op => <SelectItem key={op} value={op}>{op}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Descrição</Label>
-                <Input className="h-8 text-xs" value={item.descricao} onChange={e => updateItem(setter, item.id, 'descricao', e.target.value.toUpperCase())} placeholder="Descrição do serviço/peça" />
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <Label className="text-xs">Qtde</Label>
-                <Input className="h-8 text-xs" type="number" min="1" value={item.qtde} onChange={e => updateItem(setter, item.id, 'qtde', parseInt(e.target.value) || 1)} />
-              </div>
-              <div>
-                <Label className="text-xs">Valor Unit. (R$)</Label>
-                <Input className="h-8 text-xs" type="number" step="0.01" value={item.valorUnitario || ''} onChange={e => updateItem(setter, item.id, 'valorUnitario', parseFloat(e.target.value) || 0)} placeholder="0,00" />
-              </div>
-              <div>
-                <Label className="text-xs">Valor Total (R$)</Label>
-                <Input className="h-8 text-xs" type="number" step="0.01" value={item.valorTotal || ''} onChange={e => updateItem(setter, item.id, 'valorTotal', parseFloat(e.target.value) || 0)} placeholder="0,00" />
-              </div>
-            </div>
-          </div>
-        ))}
+        {f.itens.map((item, idx) => renderItemFields(item, idx, setter))}
         {f.itens.length > 0 && (
           <div className="text-right text-sm font-bold mt-2">
             Total: {formatCurrency(getTotal(f.itens))}
@@ -448,10 +483,10 @@ export default function Orcamentos() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Operação</TableHead>
+                          <TableHead>Tipo</TableHead>
                           <TableHead>Descrição</TableHead>
                           <TableHead className="text-center">Qtde</TableHead>
-                          <TableHead className="text-right">Unit.</TableHead>
+                          <TableHead className="text-right">Valor</TableHead>
                           <TableHead className="text-right">Total</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -460,7 +495,7 @@ export default function Orcamentos() {
                           <TableRow key={item.id}>
                             <TableCell className="text-xs">{item.operacao}</TableCell>
                             <TableCell className="text-xs">{item.descricao}</TableCell>
-                            <TableCell className="text-center text-xs">{item.qtde}</TableCell>
+                            <TableCell className="text-center text-xs">{isPecas(item.operacao) ? item.qtde : '—'}</TableCell>
                             <TableCell className="text-right text-xs">{item.valorUnitario > 0 ? formatCurrency(item.valorUnitario) : '—'}</TableCell>
                             <TableCell className="text-right text-xs font-semibold">{item.valorTotal > 0 ? formatCurrency(item.valorTotal) : '—'}</TableCell>
                           </TableRow>
