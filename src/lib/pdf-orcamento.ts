@@ -3,7 +3,7 @@ import autoTable from "jspdf-autotable";
 import { formatCurrency } from "@/lib/mock-data";
 import type { Orcamento } from "@/contexts/DataContext";
 
-const ORANGE = [234, 120, 30] as const;
+const BLACK = [30, 30, 30] as const;
 const LOGO_PATH = "/images/logo-auto-estufa.jpeg";
 
 async function loadLogoBase64(): Promise<string | null> {
@@ -26,8 +26,12 @@ function formatDate(dateStr: string): string {
   return `${day}/${month}/${year}`;
 }
 
+function isPecas(operacao: string) {
+  return operacao === 'Peças';
+}
+
 function addHeader(doc: jsPDF, logo: string | null, numero: number) {
-  doc.setFillColor(...ORANGE);
+  doc.setFillColor(...BLACK);
   doc.rect(0, 0, 210, 36, "F");
 
   let logoEndX = 14;
@@ -94,18 +98,14 @@ export async function exportOrcamentoPDF(orc: Orcamento) {
   });
   y = (doc as any).lastAutoTable.finalY + 2;
 
-  // Vehicle & client info
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(50, 50, 50);
-
+  // Vehicle & client info (no endereco/cpfCnpj)
   autoTable(doc, {
     startY: y,
     body: [
       [{ content: "Proprietário:", styles: { fontStyle: "bold" } }, orc.cliente || "—", { content: "Veículo:", styles: { fontStyle: "bold" } }, orc.modelo],
-      [{ content: "CNPJ/CPF:", styles: { fontStyle: "bold" } }, orc.cpfCnpj || "—", { content: "Ano:", styles: { fontStyle: "bold" } }, orc.ano || "—"],
-      [{ content: "Endereço:", styles: { fontStyle: "bold" } }, orc.endereco || "—", { content: "Placa:", styles: { fontStyle: "bold" } }, orc.placa || "—"],
-      [{ content: "Fone:", styles: { fontStyle: "bold" } }, orc.telefone || "—", { content: "Cor/Pint:", styles: { fontStyle: "bold" } }, orc.cor || "—"],
+      [{ content: "Fone:", styles: { fontStyle: "bold" } }, orc.telefone || "—", { content: "Ano:", styles: { fontStyle: "bold" } }, orc.ano || "—"],
+      [{ content: "", styles: { fontStyle: "bold" } }, "", { content: "Placa:", styles: { fontStyle: "bold" } }, orc.placa || "—"],
+      [{ content: "", styles: { fontStyle: "bold" } }, "", { content: "Cor/Pint:", styles: { fontStyle: "bold" } }, orc.cor || "—"],
       [{ content: "", styles: { fontStyle: "bold" } }, "", { content: "Sinistro:", styles: { fontStyle: "bold" } }, orc.sinistro || "Não"],
     ],
     theme: "plain",
@@ -123,31 +123,34 @@ export async function exportOrcamentoPDF(orc: Orcamento) {
   });
   y = (doc as any).lastAutoTable.finalY + 4;
 
-  // Items table
+  // Items table - separate peças and serviços display
   if (orc.itens.length > 0) {
     const valorTotal = orc.itens.reduce((s, i) => s + i.valorTotal, 0);
 
     autoTable(doc, {
       startY: y,
-      head: [["Operação", "Descrição", "Qtde", "Unid(R$)", "Tot(R$)"]],
-      body: orc.itens.map(item => [
-        item.operacao,
-        item.descricao,
-        item.qtde.toString(),
-        item.valorUnitario > 0 ? formatCurrency(item.valorUnitario) : "",
-        item.valorTotal > 0 ? formatCurrency(item.valorTotal) : "",
-      ]),
+      head: [["Tipo", "Descrição", "Qtde", "Valor (R$)", "Total (R$)"]],
+      body: orc.itens.map(item => {
+        const peca = isPecas(item.operacao);
+        return [
+          item.operacao,
+          item.descricao,
+          peca ? item.qtde.toString() : "—",
+          item.valorUnitario > 0 ? formatCurrency(item.valorUnitario) : "",
+          item.valorTotal > 0 ? formatCurrency(item.valorTotal) : "",
+        ];
+      }),
       foot: [[
         { content: "VALOR TOTAL", colSpan: 4, styles: { halign: "right" as const, fontStyle: "bold" as const, fontSize: 11 } },
         { content: formatCurrency(valorTotal), styles: { fontStyle: "bold" as const, fontSize: 11 } },
       ]],
       theme: "grid",
-      headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontSize: 8, fontStyle: "bold", cellPadding: 3 },
+      headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontSize: 8, fontStyle: "bold", cellPadding: 3 },
       bodyStyles: { fontSize: 8, textColor: [60, 60, 60], cellPadding: 3 },
       footStyles: { fillColor: [240, 240, 240], textColor: [40, 40, 40] },
       columnStyles: {
-        0: { cellWidth: 32 },
-        1: { cellWidth: 70 },
+        0: { cellWidth: 42 },
+        1: { cellWidth: 64 },
         2: { cellWidth: 16, halign: "center" },
         3: { cellWidth: 28, halign: "right" },
         4: { cellWidth: 28, halign: "right" },
