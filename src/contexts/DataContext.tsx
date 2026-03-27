@@ -62,7 +62,7 @@ const initialOrcamentos: Orcamento[] = [
     id: 'orc1', numero: 720, dataCriacao: '2026-02-06', validade: '2026-03-06',
     placa: 'BYI2F19', modelo: 'SAVEIRO', ano: '2019/20', cor: 'BRANCO',
     cliente: 'HENRIQUE', telefone: '(11) 94744-0501', sinistro: 'Não',
-    endereco: '', cpfCnpj: '', orcamentista: 'VLADIMIR ANDRE COSTA',
+    orcamentista: 'VLADIMIR ANDRE COSTA',
     itens: [
       { id: 'i1', operacao: 'Fun / Pint / Mont', descricao: 'PARA CHOQUE DIANTEIRO', qtde: 1, valorUnitario: 0, valorTotal: 0 },
       { id: 'i2', operacao: 'Pintura', descricao: 'GRADE DO TETO', qtde: 1, valorUnitario: 0, valorTotal: 0 },
