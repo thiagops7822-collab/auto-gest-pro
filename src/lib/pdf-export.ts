@@ -81,7 +81,7 @@ function addFooter(doc: jsPDF) {
 export async function exportRelatorioFinanceiro() {
   const doc = new jsPDF();
   const logo = await loadLogoBase64();
-  let y = addHeader(doc, "Relatório Financeiro Completo", "Março / 2025");
+  let y = addHeader(doc, "Relatório Financeiro Completo", "Março / 2025", logo);
 
   const totalRecebido = ordensServico.reduce((s, os) => s + getTotalRecebido(os), 0);
   const totalPecas = ordensServico.reduce((s, os) => s + getTotalPecas(os), 0);
@@ -156,7 +156,7 @@ export async function exportRelatorioFinanceiro() {
 
   // Custos page
   doc.addPage();
-  y = addHeader(doc, "Detalhamento de Custos", "Março / 2025");
+  y = addHeader(doc, "Detalhamento de Custos", "Março / 2025", logo);
 
   autoTable(doc, {
     startY: y,
@@ -196,7 +196,7 @@ export async function exportRelatorioFinanceiro() {
   y = (doc as any).lastAutoTable.finalY + 12;
   if (y > 240) {
     doc.addPage();
-    y = addHeader(doc, "Cartões de Crédito", "Março / 2025");
+    y = addHeader(doc, "Cartões de Crédito", "Março / 2025", logo);
   } else {
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
@@ -227,12 +227,12 @@ export async function exportRelatorioFinanceiro() {
 export async function exportRelatorioOS() {
   const doc = new jsPDF();
   const logo = await loadLogoBase64();
-  let y = addHeader(doc, "Relatório de Ordens de Serviço", "Detalhamento Completo — Março / 2025");
+  let y = addHeader(doc, "Relatório de Ordens de Serviço", "Detalhamento Completo — Março / 2025", logo);
 
   ordensServico.forEach((os, index) => {
     if (y > 230) {
       doc.addPage();
-      y = addHeader(doc, "Relatório de Ordens de Serviço (cont.)", "Março / 2025");
+      y = addHeader(doc, "Relatório de Ordens de Serviço (cont.)", "Março / 2025", logo);
     }
 
     doc.setFillColor(245, 245, 245);
