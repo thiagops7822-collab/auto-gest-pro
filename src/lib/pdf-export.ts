@@ -17,30 +17,50 @@ import {
 const BLACK = [30, 30, 30] as const;
 const LOGO_PATH = "/images/logo-auto-estufa.jpeg";
 
-function addHeader(doc: jsPDF, title: string, subtitle: string) {
-  // Orange bar
+async function loadLogoBase64(): Promise<string | null> {
+  try {
+    const response = await fetch(LOGO_PATH);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function addHeader(doc: jsPDF, title: string, subtitle: string, logo: string | null) {
   doc.setFillColor(...BLACK);
-  doc.rect(0, 0, 210, 28, "F");
+  doc.rect(0, 0, 210, 32, "F");
+
+  let logoEndX = 14;
+  if (logo) {
+    doc.addImage(logo, "JPEG", 10, 3, 26, 26);
+    logoEndX = 40;
+  }
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setTextColor(255, 255, 255);
-  doc.text("AutoGest", 14, 14);
+  doc.text("AUTO ESTUFA LIPPE", logoEndX, 14);
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text("Sistema de Gestão Automotiva", 14, 21);
+  doc.text("Funilaria • Pintura • Estética Automotiva", logoEndX, 21);
 
   // Title area
   doc.setFontSize(14);
   doc.setTextColor(50, 50, 50);
-  doc.text(title, 14, 40);
+  doc.text(title, 14, 42);
 
   doc.setFontSize(9);
   doc.setTextColor(130, 130, 130);
-  doc.text(subtitle, 14, 47);
+  doc.text(subtitle, 14, 49);
 
-  return 55;
+  return 57;
 }
 
 function addFooter(doc: jsPDF) {
