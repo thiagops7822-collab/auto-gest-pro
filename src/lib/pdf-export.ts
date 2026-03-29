@@ -14,7 +14,7 @@ import {
   getStatusPagamento,
 } from "@/lib/mock-data";
 
-const BLACK = [30, 30, 30] as const;
+const BLACK = [0, 0, 0] as const;
 const LOGO_PATH = "/images/logo-auto-estufa.jpeg";
 
 async function loadLogoBase64(): Promise<string | null> {
