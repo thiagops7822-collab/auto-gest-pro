@@ -78,8 +78,9 @@ function addFooter(doc: jsPDF) {
   }
 }
 
-export function exportRelatorioFinanceiro() {
+export async function exportRelatorioFinanceiro() {
   const doc = new jsPDF();
+  const logo = await loadLogoBase64();
   let y = addHeader(doc, "Relatório Financeiro Completo", "Março / 2025");
 
   const totalRecebido = ordensServico.reduce((s, os) => s + getTotalRecebido(os), 0);
@@ -223,8 +224,9 @@ export function exportRelatorioFinanceiro() {
   doc.save("AutoGest_Relatorio_Financeiro_Mar2025.pdf");
 }
 
-export function exportRelatorioOS() {
+export async function exportRelatorioOS() {
   const doc = new jsPDF();
+  const logo = await loadLogoBase64();
   let y = addHeader(doc, "Relatório de Ordens de Serviço", "Detalhamento Completo — Março / 2025");
 
   ordensServico.forEach((os, index) => {
