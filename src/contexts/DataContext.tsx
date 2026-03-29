@@ -91,6 +91,10 @@ interface DataContextType {
   setSaidasList: React.Dispatch<React.SetStateAction<SaidaNaoPlanejada[]>>;
   orcamentosList: Orcamento[];
   setOrcamentosList: React.Dispatch<React.SetStateAction<Orcamento[]>>;
+  saldoAnterior: number;
+  setSaldoAnterior: React.Dispatch<React.SetStateAction<number>>;
+  pagamentosMes: Record<string, boolean>;
+  setPagamentosMes: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
