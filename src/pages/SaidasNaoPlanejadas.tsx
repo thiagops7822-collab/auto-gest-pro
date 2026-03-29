@@ -29,7 +29,7 @@ export default function SaidasNaoPlanejadas() {
 
   const openEdit = (s: SaidaNaoPlanejada) => {
     setEditingId(s.id);
-    setForm({ descricao: s.descricao, valor: String(s.valor), formaPagamento: s.formaPagamento, data: s.data, observacao: s.observacao || '', tipo: s.tipo, osVinculadaId: s.osVinculadaId || '' });
+    setForm({ descricao: s.descricao, valor: String(s.valor), formaPagamento: s.formaPagamento, data: s.data, observacao: s.observacao || '', tipo: s.tipo, osVinculadaId: s.osVinculadaId || '', funcionarioId: s.funcionarioId || '' });
     setDialogOpen(true);
   };
 
