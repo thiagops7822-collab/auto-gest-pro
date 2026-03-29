@@ -21,8 +21,9 @@ export interface SaidaNaoPlanejada {
   formaPagamento: string;
   data: string;
   observacao?: string;
-  tipo: 'Peça' | 'Terceiro' | 'Outros';
+  tipo: 'Peça' | 'Terceiro' | 'Outros' | 'Folha de pagamento';
   osVinculadaId?: string;
+  funcionarioId?: string;
 }
 
 export interface OrcamentoItem {
