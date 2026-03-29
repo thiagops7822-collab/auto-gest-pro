@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, Wallet, Users, CreditCard, Building2, FileBarChart, Wrench, AlertTriangle, FileText } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Wallet, Users, CreditCard, Building2, FileBarChart, Wrench, AlertTriangle, FileText, DollarSign } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -16,6 +16,7 @@ const menuItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Orçamentos", url: "/orcamentos", icon: FileText },
   { title: "Ordens de Serviço", url: "/ordens-servico", icon: ClipboardList },
+  { title: "Financeiro", url: "/financeiro", icon: DollarSign },
   { title: "Custos", url: "/custos", icon: Wallet },
   { title: "Saídas Avulsas", url: "/saidas", icon: AlertTriangle },
   { title: "Funcionários", url: "/funcionarios", icon: Users },

@@ -21,8 +21,9 @@ export interface SaidaNaoPlanejada {
   formaPagamento: string;
   data: string;
   observacao?: string;
-  tipo: 'Peça' | 'Terceiro' | 'Outros';
+  tipo: 'Peça' | 'Terceiro' | 'Outros' | 'Folha de pagamento';
   osVinculadaId?: string;
+  funcionarioId?: string;
 }
 
 export interface OrcamentoItem {
@@ -90,6 +91,10 @@ interface DataContextType {
   setSaidasList: React.Dispatch<React.SetStateAction<SaidaNaoPlanejada[]>>;
   orcamentosList: Orcamento[];
   setOrcamentosList: React.Dispatch<React.SetStateAction<Orcamento[]>>;
+  saldoAnterior: number;
+  setSaldoAnterior: React.Dispatch<React.SetStateAction<number>>;
+  pagamentosMes: Record<string, boolean>;
+  setPagamentosMes: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -103,6 +108,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [terceirosList, setTerceirosList] = useState<Terceiro[]>(initialTerceiros);
   const [saidasList, setSaidasList] = useState<SaidaNaoPlanejada[]>(initialSaidas);
   const [orcamentosList, setOrcamentosList] = useState<Orcamento[]>(initialOrcamentos);
+  const [saldoAnterior, setSaldoAnterior] = useState<number>(0);
+  const [pagamentosMes, setPagamentosMes] = useState<Record<string, boolean>>({});
 
   return (
     <DataContext.Provider value={{
@@ -114,6 +121,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       terceirosList, setTerceirosList,
       saidasList, setSaidasList,
       orcamentosList, setOrcamentosList,
+      saldoAnterior, setSaldoAnterior,
+      pagamentosMes, setPagamentosMes,
     }}>
       {children}
     </DataContext.Provider>
