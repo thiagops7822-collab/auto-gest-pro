@@ -108,6 +108,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [terceirosList, setTerceirosList] = useState<Terceiro[]>(initialTerceiros);
   const [saidasList, setSaidasList] = useState<SaidaNaoPlanejada[]>(initialSaidas);
   const [orcamentosList, setOrcamentosList] = useState<Orcamento[]>(initialOrcamentos);
+  const [saldoAnterior, setSaldoAnterior] = useState<number>(0);
+  const [pagamentosMes, setPagamentosMes] = useState<Record<string, boolean>>({});
 
   return (
     <DataContext.Provider value={{
@@ -119,6 +121,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       terceirosList, setTerceirosList,
       saidasList, setSaidasList,
       orcamentosList, setOrcamentosList,
+      saldoAnterior, setSaldoAnterior,
+      pagamentosMes, setPagamentosMes,
     }}>
       {children}
     </DataContext.Provider>
