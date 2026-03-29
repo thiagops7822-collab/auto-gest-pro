@@ -14,11 +14,8 @@ import {
   getStatusPagamento,
 } from "@/lib/mock-data";
 
-const ORANGE = [234, 120, 30] as const;
-const DARK_BG = [24, 27, 33] as const;
-const CARD_BG = [30, 34, 42] as const;
-const TEXT = [220, 225, 232] as const;
-const MUTED = [140, 148, 165] as const;
+const BLACK = [30, 30, 30] as const;
+const LOGO_PATH = "/images/logo-auto-estufa.jpeg";
 
 function addHeader(doc: jsPDF, title: string, subtitle: string) {
   // Orange bar

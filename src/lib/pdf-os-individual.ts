@@ -11,7 +11,7 @@ import {
   type OrdemServico,
 } from "@/lib/mock-data";
 
-const ORANGE = [234, 120, 30] as const;
+const BLACK = [30, 30, 30] as const;
 const LOGO_PATH = "/images/logo-auto-estufa.jpeg";
 
 async function loadLogoBase64(): Promise<string | null> {
