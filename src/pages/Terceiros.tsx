@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus, Phone, Building2 } from "lucide-react";
+import { Plus, Phone, Building2, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,24 +23,58 @@ export default function Terceiros() {
   const { terceirosList, setTerceirosList, osList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleCreate = () => {
+  const openEdit = (t: Terceiro) => {
+    setEditingId(t.id);
+    setForm({ nome: t.nome, tipo: t.tipo, telefone: t.telefone, especialidade: t.especialidade });
+    setDialogOpen(true);
+  };
+
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setDialogOpen(true);
+  };
+
+  const handleSave = () => {
     if (!form.nome || !form.tipo) {
       toast({ title: "Campos obrigatórios", description: "Preencha nome e tipo.", variant: "destructive" });
       return;
     }
-    const novo: Terceiro = {
-      id: crypto.randomUUID(),
-      nome: form.nome.toUpperCase(),
-      tipo: form.tipo as Terceiro['tipo'],
-      telefone: form.telefone,
-      especialidade: form.especialidade.toUpperCase(),
-    };
-    setTerceirosList(prev => [...prev, novo]);
+    if (editingId) {
+      setTerceirosList(prev => prev.map(t => t.id === editingId ? {
+        ...t,
+        nome: form.nome.toUpperCase(),
+        tipo: form.tipo as Terceiro['tipo'],
+        telefone: form.telefone,
+        especialidade: form.especialidade.toUpperCase(),
+      } : t));
+      toast({ title: "Terceiro atualizado!", description: `${form.nome.toUpperCase()} editado.` });
+    } else {
+      const novo: Terceiro = {
+        id: crypto.randomUUID(),
+        nome: form.nome.toUpperCase(),
+        tipo: form.tipo as Terceiro['tipo'],
+        telefone: form.telefone,
+        especialidade: form.especialidade.toUpperCase(),
+      };
+      setTerceirosList(prev => [...prev, novo]);
+      toast({ title: "Terceiro cadastrado!", description: `${novo.nome} adicionado.` });
+    }
     setForm(emptyForm);
+    setEditingId(null);
     setDialogOpen(false);
-    toast({ title: "Terceiro cadastrado!", description: `${novo.nome} adicionado.` });
+  };
+
+  const handleDelete = () => {
+    if (!deleteId) return;
+    const item = terceirosList.find(t => t.id === deleteId);
+    setTerceirosList(prev => prev.filter(t => t.id !== deleteId));
+    setDeleteId(null);
+    toast({ title: "Terceiro excluído!", description: `${item?.nome} removido.` });
   };
 
   const stats = terceirosList.map(t => {
@@ -56,10 +91,10 @@ export default function Terceiros() {
           <h1 className="text-2xl font-bold text-foreground">Terceiros e Fornecedores</h1>
           <p className="text-muted-foreground text-sm">{terceirosList.length} cadastrados</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild><Button className="gap-2"><Plus className="w-4 h-4" /> Novo Terceiro</Button></DialogTrigger>
+        <Dialog open={dialogOpen} onOpenChange={o => { if (!o) { setEditingId(null); setForm(emptyForm); } setDialogOpen(o); }}>
+          <DialogTrigger asChild><Button className="gap-2" onClick={openCreate}><Plus className="w-4 h-4" /> Novo Terceiro</Button></DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Cadastrar Terceiro/Fornecedor</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{editingId ? 'Editar Terceiro' : 'Cadastrar Terceiro/Fornecedor'}</DialogTitle></DialogHeader>
             <div className="grid gap-4 mt-4">
               <div><Label>Nome *</Label><Input placeholder="Nome da empresa ou pessoa" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} /></div>
               <div>
@@ -76,7 +111,7 @@ export default function Terceiros() {
               <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" value={form.telefone} onChange={e => setForm(p => ({ ...p, telefone: e.target.value }))} /></div>
               <div><Label>Especialidade</Label><Input placeholder="Ex: Vidros automotivos" value={form.especialidade} onChange={e => setForm(p => ({ ...p, especialidade: e.target.value }))} /></div>
             </div>
-            <Button className="w-full mt-4" onClick={handleCreate}>Cadastrar</Button>
+            <Button className="w-full mt-4" onClick={handleSave}>{editingId ? 'Salvar Alterações' : 'Cadastrar'}</Button>
           </DialogContent>
         </Dialog>
       </div>
@@ -94,6 +129,12 @@ export default function Terceiros() {
                   <p className="text-xs text-muted-foreground">{t.especialidade}</p>
                 </div>
               </div>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(t)}><Pencil className="w-3.5 h-3.5" /></Button>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(t.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
               <Badge variant="outline" className={tipoColors[t.tipo]}>{t.tipo.split(' ')[0]}</Badge>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
@@ -116,6 +157,19 @@ export default function Terceiros() {
           </div>
         ))}
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={o => { if (!o) setDeleteId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>Tem certeza que deseja excluir este terceiro? Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
