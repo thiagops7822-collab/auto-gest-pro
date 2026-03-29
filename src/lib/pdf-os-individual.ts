@@ -11,7 +11,7 @@ import {
   type OrdemServico,
 } from "@/lib/mock-data";
 
-const ORANGE = [234, 120, 30] as const;
+const BLACK = [30, 30, 30] as const;
 const LOGO_PATH = "/images/logo-auto-estufa.jpeg";
 
 async function loadLogoBase64(): Promise<string | null> {
@@ -31,7 +31,7 @@ async function loadLogoBase64(): Promise<string | null> {
 
 function addHeader(doc: jsPDF, logo: string | null, osNumero: number) {
   // Orange bar
-  doc.setFillColor(...ORANGE);
+  doc.setFillColor(...BLACK);
   doc.rect(0, 0, 210, 32, "F");
 
   let logoEndX = 14;
@@ -152,7 +152,7 @@ export async function exportOSIndividualPDF(os: OrdemServico) {
           "",
         ],
       ],
-      headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+      headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
       footStyles: { fillColor: [240, 240, 240], textColor: [50, 50, 50] },
       bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
       alternateRowStyles: { fillColor: [248, 248, 248] },
@@ -194,7 +194,7 @@ export async function exportOSIndividualPDF(os: OrdemServico) {
           "",
         ],
       ],
-      headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+      headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
       footStyles: { fillColor: [240, 240, 240], textColor: [50, 50, 50] },
       bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
       alternateRowStyles: { fillColor: [248, 248, 248] },

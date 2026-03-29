@@ -14,36 +14,53 @@ import {
   getStatusPagamento,
 } from "@/lib/mock-data";
 
-const ORANGE = [234, 120, 30] as const;
-const DARK_BG = [24, 27, 33] as const;
-const CARD_BG = [30, 34, 42] as const;
-const TEXT = [220, 225, 232] as const;
-const MUTED = [140, 148, 165] as const;
+const BLACK = [30, 30, 30] as const;
+const LOGO_PATH = "/images/logo-auto-estufa.jpeg";
 
-function addHeader(doc: jsPDF, title: string, subtitle: string) {
-  // Orange bar
-  doc.setFillColor(...ORANGE);
-  doc.rect(0, 0, 210, 28, "F");
+async function loadLogoBase64(): Promise<string | null> {
+  try {
+    const response = await fetch(LOGO_PATH);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function addHeader(doc: jsPDF, title: string, subtitle: string, logo: string | null) {
+  doc.setFillColor(...BLACK);
+  doc.rect(0, 0, 210, 32, "F");
+
+  let logoEndX = 14;
+  if (logo) {
+    doc.addImage(logo, "JPEG", 10, 3, 26, 26);
+    logoEndX = 40;
+  }
 
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setTextColor(255, 255, 255);
-  doc.text("AutoGest", 14, 14);
+  doc.text("AUTO ESTUFA LIPPE", logoEndX, 14);
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text("Sistema de Gestão Automotiva", 14, 21);
+  doc.text("Funilaria • Pintura • Estética Automotiva", logoEndX, 21);
 
   // Title area
   doc.setFontSize(14);
   doc.setTextColor(50, 50, 50);
-  doc.text(title, 14, 40);
+  doc.text(title, 14, 42);
 
   doc.setFontSize(9);
   doc.setTextColor(130, 130, 130);
-  doc.text(subtitle, 14, 47);
+  doc.text(subtitle, 14, 49);
 
-  return 55;
+  return 57;
 }
 
 function addFooter(doc: jsPDF) {
@@ -61,9 +78,10 @@ function addFooter(doc: jsPDF) {
   }
 }
 
-export function exportRelatorioFinanceiro() {
+export async function exportRelatorioFinanceiro() {
   const doc = new jsPDF();
-  let y = addHeader(doc, "Relatório Financeiro Completo", "Março / 2025");
+  const logo = await loadLogoBase64();
+  let y = addHeader(doc, "Relatório Financeiro Completo", "Março / 2025", logo);
 
   const totalRecebido = ordensServico.reduce((s, os) => s + getTotalRecebido(os), 0);
   const totalPecas = ordensServico.reduce((s, os) => s + getTotalPecas(os), 0);
@@ -93,7 +111,7 @@ export function exportRelatorioFinanceiro() {
       ["(-) Fatura Cartão do Mês", formatCurrency(totalCartao)],
     ],
     foot: [[{ content: "(=) LUCRO LÍQUIDO ESTIMADO", styles: { fontStyle: "bold" } }, { content: formatCurrency(lucroLiquido), styles: { fontStyle: "bold", textColor: lucroLiquido >= 0 ? [34, 139, 34] : [220, 50, 50] } }]],
-    headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+    headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
     footStyles: { fillColor: [240, 240, 240], textColor: [50, 50, 50], fontSize: 10 },
     bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
     alternateRowStyles: { fillColor: [248, 248, 248] },
@@ -128,7 +146,7 @@ export function exportRelatorioFinanceiro() {
       os.status,
       getStatusPagamento(os),
     ]),
-    headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8 },
+    headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8 },
     bodyStyles: { fontSize: 8, textColor: [60, 60, 60] },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     margin: { left: 14, right: 14 },
@@ -138,13 +156,13 @@ export function exportRelatorioFinanceiro() {
 
   // Custos page
   doc.addPage();
-  y = addHeader(doc, "Detalhamento de Custos", "Março / 2025");
+  y = addHeader(doc, "Detalhamento de Custos", "Março / 2025", logo);
 
   autoTable(doc, {
     startY: y,
     head: [["Custo", "Categoria", "Valor Previsto", "Valor Pago", "Status"]],
     body: custosFixos.map((c) => [c.nome, c.categoria, formatCurrency(c.valorPrevisto), c.valorPago ? formatCurrency(c.valorPago) : "—", c.statusPagamento]),
-    headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+    headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
     bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     margin: { left: 14, right: 14 },
@@ -165,7 +183,7 @@ export function exportRelatorioFinanceiro() {
     head: [["Funcionário", "Cargo", "Contrato", "Salário Base", "Status"]],
     body: funcionarios.map((f) => [f.nome, f.cargo, f.tipoContrato, formatCurrency(f.salarioBase), f.status]),
     foot: [["", "", "", { content: formatCurrency(funcionarios.filter((f) => f.status === "Ativo").reduce((s, f) => s + f.salarioBase, 0)), styles: { fontStyle: "bold" } }, ""]],
-    headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+    headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
     footStyles: { fillColor: [240, 240, 240], textColor: [50, 50, 50] },
     bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
     alternateRowStyles: { fillColor: [248, 248, 248] },
@@ -178,7 +196,7 @@ export function exportRelatorioFinanceiro() {
   y = (doc as any).lastAutoTable.finalY + 12;
   if (y > 240) {
     doc.addPage();
-    y = addHeader(doc, "Cartões de Crédito", "Março / 2025");
+    y = addHeader(doc, "Cartões de Crédito", "Março / 2025", logo);
   } else {
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
@@ -194,7 +212,7 @@ export function exportRelatorioFinanceiro() {
       const cartaoNome = cartoes.find((c) => c.id === d.cartaoId)?.nome || "";
       return [d.descricao, cartaoNome, d.categoria, formatCurrency(d.valorTotal), `${d.parcelas}x`, formatCurrency(d.valorTotal / d.parcelas)];
     }),
-    headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+    headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
     bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     margin: { left: 14, right: 14 },
@@ -206,21 +224,22 @@ export function exportRelatorioFinanceiro() {
   doc.save("AutoGest_Relatorio_Financeiro_Mar2025.pdf");
 }
 
-export function exportRelatorioOS() {
+export async function exportRelatorioOS() {
   const doc = new jsPDF();
-  let y = addHeader(doc, "Relatório de Ordens de Serviço", "Detalhamento Completo — Março / 2025");
+  const logo = await loadLogoBase64();
+  let y = addHeader(doc, "Relatório de Ordens de Serviço", "Detalhamento Completo — Março / 2025", logo);
 
   ordensServico.forEach((os, index) => {
     if (y > 230) {
       doc.addPage();
-      y = addHeader(doc, "Relatório de Ordens de Serviço (cont.)", "Março / 2025");
+      y = addHeader(doc, "Relatório de Ordens de Serviço (cont.)", "Março / 2025", logo);
     }
 
     doc.setFillColor(245, 245, 245);
     doc.roundedRect(14, y - 4, 182, 8, 1, 1, "F");
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...ORANGE);
+    doc.setTextColor(...BLACK);
     doc.text(`OS #${os.numero}`, 16, y + 1);
     doc.setTextColor(100, 100, 100);
     doc.setFont("helvetica", "normal");
