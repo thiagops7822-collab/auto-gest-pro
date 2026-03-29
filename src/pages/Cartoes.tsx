@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus, CreditCard } from "lucide-react";
+import { Plus, CreditCard, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,27 +22,67 @@ export default function Cartoes() {
   const [despesaDialog, setDespesaDialog] = useState(false);
   const [cartaoForm, setCartaoForm] = useState(emptyCartao);
   const [despesaForm, setDespesaForm] = useState(emptyDespesa);
+  const [editingCartaoId, setEditingCartaoId] = useState<string | null>(null);
+  const [editingDespesaId, setEditingDespesaId] = useState<string | null>(null);
+  const [deleteType, setDeleteType] = useState<'cartao' | 'despesa' | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleCreateCartao = () => {
+  const openEditCartao = (c: CartaoCredito) => {
+    setEditingCartaoId(c.id);
+    setCartaoForm({ nome: c.nome, limiteTotal: String(c.limiteTotal), diaFechamento: String(c.diaFechamento), diaVencimento: String(c.diaVencimento) });
+    setCartaoDialog(true);
+  };
+
+  const openCreateCartao = () => {
+    setEditingCartaoId(null);
+    setCartaoForm(emptyCartao);
+    setCartaoDialog(true);
+  };
+
+  const openEditDespesa = (d: DespesaCartao) => {
+    setEditingDespesaId(d.id);
+    setDespesaForm({ cartaoId: d.cartaoId, descricao: d.descricao, categoria: d.categoria, valorTotal: String(d.valorTotal), parcelas: String(d.parcelas), dataCompra: d.dataCompra });
+    setDespesaDialog(true);
+  };
+
+  const openCreateDespesa = () => {
+    setEditingDespesaId(null);
+    setDespesaForm(emptyDespesa);
+    setDespesaDialog(true);
+  };
+
+  const handleSaveCartao = () => {
     if (!cartaoForm.nome || !cartaoForm.limiteTotal) {
       toast({ title: "Campos obrigatórios", description: "Preencha nome e limite.", variant: "destructive" });
       return;
     }
-    const novo: CartaoCredito = {
-      id: crypto.randomUUID(),
-      nome: cartaoForm.nome.toUpperCase(),
-      limiteTotal: parseFloat(cartaoForm.limiteTotal) || 0,
-      diaFechamento: parseInt(cartaoForm.diaFechamento) || 1,
-      diaVencimento: parseInt(cartaoForm.diaVencimento) || 10,
-    };
-    setCartoesList(prev => [...prev, novo]);
+    if (editingCartaoId) {
+      setCartoesList(prev => prev.map(c => c.id === editingCartaoId ? {
+        ...c,
+        nome: cartaoForm.nome.toUpperCase(),
+        limiteTotal: parseFloat(cartaoForm.limiteTotal) || 0,
+        diaFechamento: parseInt(cartaoForm.diaFechamento) || 1,
+        diaVencimento: parseInt(cartaoForm.diaVencimento) || 10,
+      } : c));
+      toast({ title: "Cartão atualizado!", description: `${cartaoForm.nome.toUpperCase()} editado.` });
+    } else {
+      const novo: CartaoCredito = {
+        id: crypto.randomUUID(),
+        nome: cartaoForm.nome.toUpperCase(),
+        limiteTotal: parseFloat(cartaoForm.limiteTotal) || 0,
+        diaFechamento: parseInt(cartaoForm.diaFechamento) || 1,
+        diaVencimento: parseInt(cartaoForm.diaVencimento) || 10,
+      };
+      setCartoesList(prev => [...prev, novo]);
+      toast({ title: "Cartão cadastrado!", description: `${novo.nome} adicionado.` });
+    }
     setCartaoForm(emptyCartao);
+    setEditingCartaoId(null);
     setCartaoDialog(false);
-    toast({ title: "Cartão cadastrado!", description: `${novo.nome} adicionado.` });
   };
 
-  const handleCreateDespesa = () => {
+  const handleSaveDespesa = () => {
     if (!despesaForm.cartaoId || !despesaForm.descricao || !despesaForm.valorTotal) {
       toast({ title: "Campos obrigatórios", description: "Preencha cartão, descrição e valor.", variant: "destructive" });
       return;
@@ -50,25 +91,62 @@ export default function Cartoes() {
     const parcelas = parseInt(despesaForm.parcelas) || 1;
     const valorParcela = valor / parcelas;
     const hoje = new Date(despesaForm.dataCompra || new Date().toISOString().split('T')[0]);
-    const parcelasGeradas = Array.from({ length: parcelas }, (_, i) => {
-      const d = new Date(hoje);
-      d.setMonth(d.getMonth() + i + 1);
-      return { mes: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, valor: Math.round(valorParcela * 100) / 100, status: 'Aberta' as const };
-    });
-    const nova: DespesaCartao = {
-      id: crypto.randomUUID(),
-      cartaoId: despesaForm.cartaoId,
-      descricao: despesaForm.descricao.toUpperCase(),
-      categoria: despesaForm.categoria || 'Outros',
-      valorTotal: valor,
-      parcelas,
-      dataCompra: despesaForm.dataCompra || new Date().toISOString().split('T')[0],
-      parcelasGeradas,
-    };
-    setDespesasList(prev => [...prev, nova]);
+
+    if (editingDespesaId) {
+      const parcelasGeradas = Array.from({ length: parcelas }, (_, i) => {
+        const d = new Date(hoje);
+        d.setMonth(d.getMonth() + i + 1);
+        return { mes: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, valor: Math.round(valorParcela * 100) / 100, status: 'Aberta' as const };
+      });
+      setDespesasList(prev => prev.map(d => d.id === editingDespesaId ? {
+        ...d,
+        cartaoId: despesaForm.cartaoId,
+        descricao: despesaForm.descricao.toUpperCase(),
+        categoria: despesaForm.categoria || 'Outros',
+        valorTotal: valor,
+        parcelas,
+        dataCompra: despesaForm.dataCompra || d.dataCompra,
+        parcelasGeradas,
+      } : d));
+      toast({ title: "Despesa atualizada!", description: `${despesaForm.descricao.toUpperCase()} editada.` });
+    } else {
+      const parcelasGeradas = Array.from({ length: parcelas }, (_, i) => {
+        const d = new Date(hoje);
+        d.setMonth(d.getMonth() + i + 1);
+        return { mes: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, valor: Math.round(valorParcela * 100) / 100, status: 'Aberta' as const };
+      });
+      const nova: DespesaCartao = {
+        id: crypto.randomUUID(),
+        cartaoId: despesaForm.cartaoId,
+        descricao: despesaForm.descricao.toUpperCase(),
+        categoria: despesaForm.categoria || 'Outros',
+        valorTotal: valor,
+        parcelas,
+        dataCompra: despesaForm.dataCompra || new Date().toISOString().split('T')[0],
+        parcelasGeradas,
+      };
+      setDespesasList(prev => [...prev, nova]);
+      toast({ title: "Despesa lançada!", description: `${nova.descricao} em ${parcelas}x de ${formatCurrency(valorParcela)}.` });
+    }
     setDespesaForm(emptyDespesa);
+    setEditingDespesaId(null);
     setDespesaDialog(false);
-    toast({ title: "Despesa lançada!", description: `${nova.descricao} em ${parcelas}x de ${formatCurrency(valorParcela)}.` });
+  };
+
+  const handleDelete = () => {
+    if (!deleteId || !deleteType) return;
+    if (deleteType === 'cartao') {
+      const item = cartoesList.find(c => c.id === deleteId);
+      setCartoesList(prev => prev.filter(c => c.id !== deleteId));
+      setDespesasList(prev => prev.filter(d => d.cartaoId !== deleteId));
+      toast({ title: "Cartão excluído!", description: `${item?.nome} e suas despesas foram removidos.` });
+    } else {
+      const item = despesasList.find(d => d.id === deleteId);
+      setDespesasList(prev => prev.filter(d => d.id !== deleteId));
+      toast({ title: "Despesa excluída!", description: `${item?.descricao} removida.` });
+    }
+    setDeleteId(null);
+    setDeleteType(null);
   };
 
   return (
@@ -79,10 +157,10 @@ export default function Cartoes() {
           <p className="text-muted-foreground text-sm">Controle de faturas e parcelas</p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={cartaoDialog} onOpenChange={setCartaoDialog}>
-            <DialogTrigger asChild><Button variant="outline" className="gap-2"><Plus className="w-4 h-4" /> Novo Cartão</Button></DialogTrigger>
+          <Dialog open={cartaoDialog} onOpenChange={o => { if (!o) { setEditingCartaoId(null); setCartaoForm(emptyCartao); } setCartaoDialog(o); }}>
+            <DialogTrigger asChild><Button variant="outline" className="gap-2" onClick={openCreateCartao}><Plus className="w-4 h-4" /> Novo Cartão</Button></DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Cadastrar Cartão</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editingCartaoId ? 'Editar Cartão' : 'Cadastrar Cartão'}</DialogTitle></DialogHeader>
               <div className="grid gap-4 mt-4">
                 <div><Label>Nome do Cartão *</Label><Input placeholder="Ex: Nubank PJ" value={cartaoForm.nome} onChange={e => setCartaoForm(p => ({ ...p, nome: e.target.value }))} /></div>
                 <div><Label>Limite Total (R$) *</Label><Input type="number" placeholder="0,00" value={cartaoForm.limiteTotal} onChange={e => setCartaoForm(p => ({ ...p, limiteTotal: e.target.value }))} /></div>
@@ -91,13 +169,13 @@ export default function Cartoes() {
                   <div><Label>Dia Vencimento</Label><Input type="number" placeholder="10" value={cartaoForm.diaVencimento} onChange={e => setCartaoForm(p => ({ ...p, diaVencimento: e.target.value }))} /></div>
                 </div>
               </div>
-              <Button className="w-full mt-4" onClick={handleCreateCartao}>Cadastrar</Button>
+              <Button className="w-full mt-4" onClick={handleSaveCartao}>{editingCartaoId ? 'Salvar Alterações' : 'Cadastrar'}</Button>
             </DialogContent>
           </Dialog>
-          <Dialog open={despesaDialog} onOpenChange={setDespesaDialog}>
-            <DialogTrigger asChild><Button className="gap-2"><Plus className="w-4 h-4" /> Nova Despesa</Button></DialogTrigger>
+          <Dialog open={despesaDialog} onOpenChange={o => { if (!o) { setEditingDespesaId(null); setDespesaForm(emptyDespesa); } setDespesaDialog(o); }}>
+            <DialogTrigger asChild><Button className="gap-2" onClick={openCreateDespesa}><Plus className="w-4 h-4" /> Nova Despesa</Button></DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Lançar Despesa no Cartão</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editingDespesaId ? 'Editar Despesa' : 'Lançar Despesa no Cartão'}</DialogTitle></DialogHeader>
               <div className="grid gap-4 mt-4">
                 <div>
                   <Label>Cartão *</Label>
@@ -124,7 +202,7 @@ export default function Cartoes() {
                 </div>
                 <div><Label>Data da Compra</Label><Input type="date" value={despesaForm.dataCompra} onChange={e => setDespesaForm(p => ({ ...p, dataCompra: e.target.value }))} /></div>
               </div>
-              <Button className="w-full mt-4" onClick={handleCreateDespesa}>Lançar</Button>
+              <Button className="w-full mt-4" onClick={handleSaveDespesa}>{editingDespesaId ? 'Salvar Alterações' : 'Lançar'}</Button>
             </DialogContent>
           </Dialog>
         </div>
@@ -145,9 +223,13 @@ export default function Cartoes() {
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-primary" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold text-foreground">{cartao.nome}</h3>
                   <p className="text-xs text-muted-foreground">Fecha dia {cartao.diaFechamento} • Vence dia {cartao.diaVencimento}</p>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditCartao(cartao)}><Pencil className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => { setDeleteType('cartao'); setDeleteId(cartao.id); }}><Trash2 className="w-4 h-4" /></Button>
                 </div>
               </div>
 
@@ -163,7 +245,6 @@ export default function Cartoes() {
                     <span>Limite: {formatCurrency(cartao.limiteTotal)}</span>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <div className="p-3 bg-secondary/50 rounded-lg">
                     <p className="text-xs text-muted-foreground">Fatura Mar/25</p>
@@ -194,6 +275,7 @@ export default function Cartoes() {
                 <TableHead className="text-right">Valor Total</TableHead>
                 <TableHead>Parcelas</TableHead>
                 <TableHead className="text-right">Valor Parcela</TableHead>
+                <TableHead className="text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -207,6 +289,12 @@ export default function Cartoes() {
                     <TableCell className="text-right">{formatCurrency(d.valorTotal)}</TableCell>
                     <TableCell>{d.parcelas}x</TableCell>
                     <TableCell className="text-right">{formatCurrency(d.valorTotal / d.parcelas)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDespesa(d)}><Pencil className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => { setDeleteType('despesa'); setDeleteId(d.id); }}><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -214,6 +302,23 @@ export default function Cartoes() {
           </Table>
         </div>
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={o => { if (!o) { setDeleteId(null); setDeleteType(null); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteType === 'cartao'
+                ? 'Tem certeza que deseja excluir este cartão? Todas as despesas vinculadas também serão removidas.'
+                : 'Tem certeza que deseja excluir esta despesa? Esta ação não pode ser desfeita.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
