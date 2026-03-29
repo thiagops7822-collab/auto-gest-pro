@@ -19,7 +19,7 @@ const LOGO_PATH = "/images/logo-auto-estufa.jpeg";
 
 function addHeader(doc: jsPDF, title: string, subtitle: string) {
   // Orange bar
-  doc.setFillColor(...ORANGE);
+  doc.setFillColor(...BLACK);
   doc.rect(0, 0, 210, 28, "F");
 
   doc.setFont("helvetica", "bold");
@@ -90,7 +90,7 @@ export function exportRelatorioFinanceiro() {
       ["(-) Fatura Cartão do Mês", formatCurrency(totalCartao)],
     ],
     foot: [[{ content: "(=) LUCRO LÍQUIDO ESTIMADO", styles: { fontStyle: "bold" } }, { content: formatCurrency(lucroLiquido), styles: { fontStyle: "bold", textColor: lucroLiquido >= 0 ? [34, 139, 34] : [220, 50, 50] } }]],
-    headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+    headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
     footStyles: { fillColor: [240, 240, 240], textColor: [50, 50, 50], fontSize: 10 },
     bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
     alternateRowStyles: { fillColor: [248, 248, 248] },
@@ -125,7 +125,7 @@ export function exportRelatorioFinanceiro() {
       os.status,
       getStatusPagamento(os),
     ]),
-    headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8 },
+    headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8 },
     bodyStyles: { fontSize: 8, textColor: [60, 60, 60] },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     margin: { left: 14, right: 14 },
@@ -141,7 +141,7 @@ export function exportRelatorioFinanceiro() {
     startY: y,
     head: [["Custo", "Categoria", "Valor Previsto", "Valor Pago", "Status"]],
     body: custosFixos.map((c) => [c.nome, c.categoria, formatCurrency(c.valorPrevisto), c.valorPago ? formatCurrency(c.valorPago) : "—", c.statusPagamento]),
-    headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+    headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
     bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     margin: { left: 14, right: 14 },
@@ -162,7 +162,7 @@ export function exportRelatorioFinanceiro() {
     head: [["Funcionário", "Cargo", "Contrato", "Salário Base", "Status"]],
     body: funcionarios.map((f) => [f.nome, f.cargo, f.tipoContrato, formatCurrency(f.salarioBase), f.status]),
     foot: [["", "", "", { content: formatCurrency(funcionarios.filter((f) => f.status === "Ativo").reduce((s, f) => s + f.salarioBase, 0)), styles: { fontStyle: "bold" } }, ""]],
-    headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+    headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
     footStyles: { fillColor: [240, 240, 240], textColor: [50, 50, 50] },
     bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
     alternateRowStyles: { fillColor: [248, 248, 248] },
@@ -191,7 +191,7 @@ export function exportRelatorioFinanceiro() {
       const cartaoNome = cartoes.find((c) => c.id === d.cartaoId)?.nome || "";
       return [d.descricao, cartaoNome, d.categoria, formatCurrency(d.valorTotal), `${d.parcelas}x`, formatCurrency(d.valorTotal / d.parcelas)];
     }),
-    headStyles: { fillColor: [...ORANGE], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+    headStyles: { fillColor: [...BLACK], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
     bodyStyles: { fontSize: 9, textColor: [60, 60, 60] },
     alternateRowStyles: { fillColor: [248, 248, 248] },
     margin: { left: 14, right: 14 },
@@ -217,7 +217,7 @@ export function exportRelatorioOS() {
     doc.roundedRect(14, y - 4, 182, 8, 1, 1, "F");
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...ORANGE);
+    doc.setTextColor(...BLACK);
     doc.text(`OS #${os.numero}`, 16, y + 1);
     doc.setTextColor(100, 100, 100);
     doc.setFont("helvetica", "normal");
