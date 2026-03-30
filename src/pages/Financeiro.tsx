@@ -45,7 +45,8 @@ export default function Financeiro() {
   const needsOS = form.tipo === 'Peça' || form.tipo === 'Terceiro';
   const isFolha = form.tipo === 'Folha de pagamento';
   const isDespOp = form.tipo === 'Despesas operacionais';
-  const ativosNaoPagos = funcList.filter(f => f.status === 'Ativo' && !pagamentosMes[f.id]);
+  const mesAtual = new Date().toISOString().slice(0, 7);
+  const ativosNaoPagos = funcList.filter(f => f.status === 'Ativo' && !pagamentosMes[`${f.id}-${mesAtual}`]);
 
   const openEdit = (s: SaidaNaoPlanejada) => {
     setEditingId(s.id);
@@ -134,7 +135,8 @@ export default function Financeiro() {
 
       // Mark employee as paid this month
       if (isFolha && form.funcionarioId) {
-        setPagamentosMes(prev => ({ ...prev, [form.funcionarioId]: true }));
+        const mes = (form.data || new Date().toISOString().split('T')[0]).slice(0, 7);
+        setPagamentosMes(prev => ({ ...prev, [`${form.funcionarioId}-${mes}`]: true }));
       }
 
       // Update custo and mark as paid for Despesas operacionais
@@ -165,9 +167,10 @@ export default function Financeiro() {
     const item = saidasList.find(s => s.id === deleteId);
     // If it was a payroll entry, unmark the employee
     if (item?.tipo === 'Folha de pagamento' && item.funcionarioId) {
+      const mes = item.data.slice(0, 7);
       setPagamentosMes(prev => {
         const next = { ...prev };
-        delete next[item.funcionarioId!];
+        delete next[`${item.funcionarioId}-${mes}`];
         return next;
       });
     }

@@ -56,6 +56,7 @@ export interface Funcionario {
   salarioBase: number;
   dataAdmissao: string;
   status: 'Ativo' | 'Inativo' | 'Afastado';
+  diaPagamento: number;
 }
 
 export interface PagamentoFuncionario {
@@ -172,11 +173,11 @@ export const custosFixos: CustoFixo[] = [
 ];
 
 export const funcionarios: Funcionario[] = [
-  { id: 'f1', nome: 'Roberto Ferreira', cpf: '123.456.789-00', cargo: 'Funileiro', tipoContrato: 'CLT', salarioBase: 3500, dataAdmissao: '2022-03-15', status: 'Ativo' },
-  { id: 'f2', nome: 'Marcos Lima', cpf: '234.567.890-11', cargo: 'Pintor', tipoContrato: 'CLT', salarioBase: 3800, dataAdmissao: '2021-08-01', status: 'Ativo' },
-  { id: 'f3', nome: 'Lucas Souza', cpf: '345.678.901-22', cargo: 'Polidor', tipoContrato: 'Autônomo', salarioBase: 2500, dataAdmissao: '2023-01-10', status: 'Ativo' },
-  { id: 'f4', nome: 'Ana Paula Dias', cpf: '456.789.012-33', cargo: 'Administrativo', tipoContrato: 'CLT', salarioBase: 2800, dataAdmissao: '2023-06-01', status: 'Ativo' },
-  { id: 'f5', nome: 'José Carlos', cpf: '567.890.123-44', cargo: 'Auxiliar', tipoContrato: 'Informal', salarioBase: 1800, dataAdmissao: '2024-02-01', status: 'Ativo' },
+  { id: 'f1', nome: 'Roberto Ferreira', cpf: '123.456.789-00', cargo: 'Funileiro', tipoContrato: 'CLT', salarioBase: 3500, dataAdmissao: '2022-03-15', status: 'Ativo', diaPagamento: 5 },
+  { id: 'f2', nome: 'Marcos Lima', cpf: '234.567.890-11', cargo: 'Pintor', tipoContrato: 'CLT', salarioBase: 3800, dataAdmissao: '2021-08-01', status: 'Ativo', diaPagamento: 5 },
+  { id: 'f3', nome: 'Lucas Souza', cpf: '345.678.901-22', cargo: 'Polidor', tipoContrato: 'Autônomo', salarioBase: 2500, dataAdmissao: '2023-01-10', status: 'Ativo', diaPagamento: 10 },
+  { id: 'f4', nome: 'Ana Paula Dias', cpf: '456.789.012-33', cargo: 'Administrativo', tipoContrato: 'CLT', salarioBase: 2800, dataAdmissao: '2023-06-01', status: 'Ativo', diaPagamento: 5 },
+  { id: 'f5', nome: 'José Carlos', cpf: '567.890.123-44', cargo: 'Auxiliar', tipoContrato: 'Informal', salarioBase: 1800, dataAdmissao: '2024-02-01', status: 'Ativo', diaPagamento: 15 },
 ];
 
 export const cartoes: CartaoCredito[] = [
