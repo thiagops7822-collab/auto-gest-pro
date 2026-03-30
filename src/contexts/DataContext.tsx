@@ -98,7 +98,32 @@ interface DataContextType {
   setPagamentosMes: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
-const DataContext = createContext<DataContextType | null>(null);
+const noopSetter = <T,>(_value: React.SetStateAction<T>) => undefined;
+
+const defaultDataContext: DataContextType = {
+  osList: initialOS,
+  setOsList: noopSetter<OrdemServico[]>,
+  custosList: initialCustos,
+  setCustosList: noopSetter<CustoFixo[]>,
+  funcList: initialFunc,
+  setFuncList: noopSetter<Funcionario[]>,
+  cartoesList: initialCartoes,
+  setCartoesList: noopSetter<CartaoCredito[]>,
+  despesasList: initialDespesas,
+  setDespesasList: noopSetter<DespesaCartao[]>,
+  terceirosList: initialTerceiros,
+  setTerceirosList: noopSetter<Terceiro[]>,
+  saidasList: initialSaidas,
+  setSaidasList: noopSetter<SaidaNaoPlanejada[]>,
+  orcamentosList: initialOrcamentos,
+  setOrcamentosList: noopSetter<Orcamento[]>,
+  saldoAnterior: 0,
+  setSaldoAnterior: noopSetter<number>,
+  pagamentosMes: {},
+  setPagamentosMes: noopSetter<Record<string, boolean>>,
+};
+
+const DataContext = createContext<DataContextType>(defaultDataContext);
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [osList, setOsList] = useState<OrdemServico[]>(initialOS);
@@ -131,7 +156,5 @@ export function DataProvider({ children }: { children: ReactNode }) {
 }
 
 export function useData() {
-  const ctx = useContext(DataContext);
-  if (!ctx) throw new Error("useData must be used within DataProvider");
-  return ctx;
+  return useContext(DataContext);
 }
