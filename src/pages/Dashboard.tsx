@@ -210,7 +210,32 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Lucro Real breakdown */}
+      {/* Margem Peças e Terceiros */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="glass-card p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">🔧 Margem de Peças</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Custo (Saídas)</span><span className="font-bold text-destructive">{formatCurrency(computed.custoPecas)}</span></div>
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Venda (OS)</span><span className="font-bold text-success">{formatCurrency(computed.vendaPecas)}</span></div>
+            <div className={`flex justify-between p-3 rounded-lg font-bold ${computed.lucroPecas >= 0 ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
+              <span>Lucro</span><span>{formatCurrency(computed.lucroPecas)}</span>
+            </div>
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Margem</span><span className="font-bold">{computed.margemPecas.toFixed(1)}%</span></div>
+          </div>
+        </div>
+        <div className="glass-card p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">🤝 Margem de Terceiros</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Custo (Saídas)</span><span className="font-bold text-destructive">{formatCurrency(computed.custoTerceiros)}</span></div>
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Venda (OS)</span><span className="font-bold text-success">{formatCurrency(computed.vendaTerceiros)}</span></div>
+            <div className={`flex justify-between p-3 rounded-lg font-bold ${computed.lucroTerceiros >= 0 ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
+              <span>Lucro</span><span>{formatCurrency(computed.lucroTerceiros)}</span>
+            </div>
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Margem</span><span className="font-bold">{computed.margemTerceiros.toFixed(1)}%</span></div>
+          </div>
+        </div>
+      </div>
+
       <div className="glass-card p-5">
         <h3 className="text-sm font-semibold text-foreground mb-4">💰 Cálculo do Lucro Real</h3>
         <div className="space-y-2 text-sm">
