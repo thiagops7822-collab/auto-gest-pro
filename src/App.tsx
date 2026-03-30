@@ -12,7 +12,7 @@ import Funcionarios from "./pages/Funcionarios";
 import Cartoes from "./pages/Cartoes";
 import Terceiros from "./pages/Terceiros";
 import Relatorios from "./pages/Relatorios";
-import SaidasNaoPlanejadas from "./pages/SaidasNaoPlanejadas";
+
 import Orcamentos from "./pages/Orcamentos";
 import Financeiro from "./pages/Financeiro";
 import NotFound from "./pages/NotFound";
