@@ -56,6 +56,7 @@ export interface Funcionario {
   salarioBase: number;
   dataAdmissao: string;
   status: 'Ativo' | 'Inativo' | 'Afastado';
+  diaPagamento: number;
 }
 
 export interface PagamentoFuncionario {
