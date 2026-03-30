@@ -21,6 +21,20 @@ export default function Dashboard() {
     const totalDespesas = totalCustosFixos + totalFolha + totalCartao + totalSaidas;
     const lucroEstimado = totalRecebido - totalCustosFixos - totalFolha - totalPecas - totalSaidas;
 
+    // Peças margin: cost = saídas tipo Peça, sale = peças nas OS
+    const custoPecas = saidasList.filter(s => s.tipo === 'Peça').reduce((s, item) => s + item.valor, 0);
+    const vendaPecas = osList.reduce((sum, os) => sum + getTotalPecas(os), 0);
+    const lucroPecas = vendaPecas - custoPecas;
+    const margemPecas = vendaPecas > 0 ? (lucroPecas / vendaPecas) * 100 : 0;
+
+    // Terceiros margin: cost = saídas tipo Terceiro vinculadas a OS, sale = valorOrcado das OS vinculadas
+    const saidasTerceiros = saidasList.filter(s => s.tipo === 'Terceiro' && s.osVinculadaId);
+    const custoTerceiros = saidasTerceiros.reduce((s, item) => s + item.valor, 0);
+    const osIdsComTerceiro = [...new Set(saidasTerceiros.map(s => s.osVinculadaId))];
+    const vendaTerceiros = osList.filter(os => osIdsComTerceiro.includes(os.id)).reduce((s, os) => s + os.valorOrcado, 0);
+    const lucroTerceiros = vendaTerceiros - custoTerceiros;
+    const margemTerceiros = vendaTerceiros > 0 ? (lucroTerceiros / vendaTerceiros) * 100 : 0;
+
     // Expense categories from real data
     const expenseCategoryData = [
       { name: 'Fixos', value: custosList.filter(c => c.categoria.startsWith('Fixo')).reduce((s, c) => s + c.valorPrevisto, 0), color: 'hsl(24, 95%, 53%)' },

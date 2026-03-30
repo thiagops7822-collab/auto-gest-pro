@@ -18,6 +18,7 @@ type TipoSaida = SaidaNaoPlanejada['tipo'];
 const emptyForm = {
   descricao: '', valor: '', formaPagamento: 'PIX', data: '',
   observacao: '', tipo: 'Outros' as TipoSaida, osVinculadaId: '', funcionarioId: '',
+  custoVinculadoId: '',
 };
 
 export default function Financeiro() {
@@ -25,7 +26,7 @@ export default function Financeiro() {
     saidasList, setSaidasList, osList,
     funcList, saldoAnterior, setSaldoAnterior,
     pagamentosMes, setPagamentosMes,
-    custosList,
+    custosList, setCustosList,
   } = useData();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -43,6 +44,7 @@ export default function Financeiro() {
 
   const needsOS = form.tipo === 'Peça' || form.tipo === 'Terceiro';
   const isFolha = form.tipo === 'Folha de pagamento';
+  const isDespOp = form.tipo === 'Despesas operacionais';
   const ativosNaoPagos = funcList.filter(f => f.status === 'Ativo' && !pagamentosMes[f.id]);
 
   const openEdit = (s: SaidaNaoPlanejada) => {
@@ -51,6 +53,7 @@ export default function Financeiro() {
       descricao: s.descricao, valor: String(s.valor), formaPagamento: s.formaPagamento,
       data: s.data, observacao: s.observacao || '', tipo: s.tipo,
       osVinculadaId: s.osVinculadaId || '', funcionarioId: s.funcionarioId || '',
+      custoVinculadoId: s.custoVinculadoId || '',
     });
     setDialogOpen(true);
   };
@@ -67,6 +70,19 @@ export default function Financeiro() {
     toast({ title: "Saldo atualizado!", description: `Saldo anterior definido como ${formatCurrency(parseFloat(saldoInput) || 0)}` });
   };
 
+  const handleCustoSelect = (custoId: string) => {
+    const custo = custosList.find(c => c.id === custoId);
+    if (!custo) return;
+
+    const isFixo = custo.categoria === 'Fixo Mensal' || custo.categoria === 'Fixo Anual';
+    setForm(p => ({
+      ...p,
+      custoVinculadoId: custoId,
+      descricao: custo.nome,
+      valor: isFixo ? String(custo.valorPrevisto) : '',
+    }));
+  };
+
   const handleSave = () => {
     if (!form.descricao || !form.valor) {
       toast({ title: "Campos obrigatórios", description: "Preencha descrição e valor.", variant: "destructive" });
@@ -80,37 +96,61 @@ export default function Financeiro() {
       toast({ title: "Colaborador obrigatório", description: "Selecione o colaborador.", variant: "destructive" });
       return;
     }
+    if (isDespOp && !form.custoVinculadoId) {
+      toast({ title: "Custo obrigatório", description: "Selecione o custo vinculado.", variant: "destructive" });
+      return;
+    }
+
+    const valorNum = parseFloat(form.valor) || 0;
 
     if (editingId) {
       setSaidasList(prev => prev.map(s => s.id === editingId ? {
         ...s,
         descricao: form.descricao.toUpperCase(),
-        valor: parseFloat(form.valor) || 0,
+        valor: valorNum,
         formaPagamento: form.formaPagamento,
         data: form.data || s.data,
         observacao: form.observacao || undefined,
         tipo: form.tipo,
         osVinculadaId: needsOS ? form.osVinculadaId : undefined,
         funcionarioId: isFolha ? form.funcionarioId : undefined,
+        custoVinculadoId: isDespOp ? form.custoVinculadoId : undefined,
       } : s));
       toast({ title: "Saída atualizada!", description: `${form.descricao.toUpperCase()} editada.` });
     } else {
       const nova: SaidaNaoPlanejada = {
         id: crypto.randomUUID(),
         descricao: form.descricao.toUpperCase(),
-        valor: parseFloat(form.valor) || 0,
+        valor: valorNum,
         formaPagamento: form.formaPagamento,
         data: form.data || new Date().toISOString().split('T')[0],
         observacao: form.observacao || undefined,
         tipo: form.tipo,
         osVinculadaId: needsOS ? form.osVinculadaId : undefined,
         funcionarioId: isFolha ? form.funcionarioId : undefined,
+        custoVinculadoId: isDespOp ? form.custoVinculadoId : undefined,
       };
       setSaidasList(prev => [nova, ...prev]);
 
       // Mark employee as paid this month
       if (isFolha && form.funcionarioId) {
         setPagamentosMes(prev => ({ ...prev, [form.funcionarioId]: true }));
+      }
+
+      // Update custo and mark as paid for Despesas operacionais
+      if (isDespOp && form.custoVinculadoId) {
+        const custo = custosList.find(c => c.id === form.custoVinculadoId);
+        if (custo) {
+          const isVariavel = custo.categoria === 'Variável';
+          setCustosList(prev => prev.map(c => c.id === form.custoVinculadoId ? {
+            ...c,
+            statusPagamento: 'Pago' as const,
+            valorPago: valorNum,
+            dataPagamento: form.data || new Date().toISOString().split('T')[0],
+            formaPagamento: form.formaPagamento,
+            ...(isVariavel ? { valorPrevisto: valorNum } : {}),
+          } : c));
+        }
       }
 
       toast({ title: "Saída registrada!", description: `${nova.descricao} — ${formatCurrency(nova.valor)}` });
@@ -146,6 +186,11 @@ export default function Financeiro() {
     return f ? f.nome : '—';
   };
 
+  const getCustoLabel = (custoId: string) => {
+    const c = custosList.find(ct => ct.id === custoId);
+    return c ? c.nome : '—';
+  };
+
   const handleFuncionarioSelect = (funcId: string) => {
     const func = funcList.find(f => f.id === funcId);
     setForm(p => ({
@@ -161,8 +206,16 @@ export default function Financeiro() {
       case 'Peça': return 'default';
       case 'Terceiro': return 'secondary';
       case 'Folha de pagamento': return 'destructive' as const;
+      case 'Despesas operacionais': return 'outline';
       default: return 'outline';
     }
+  };
+
+  const getVinculoLabel = (s: SaidaNaoPlanejada) => {
+    if (s.tipo === 'Folha de pagamento' && s.funcionarioId) return getFuncLabel(s.funcionarioId);
+    if (s.tipo === 'Despesas operacionais' && s.custoVinculadoId) return getCustoLabel(s.custoVinculadoId);
+    if (s.osVinculadaId) return getOSLabel(s.osVinculadaId);
+    return '—';
   };
 
   return (
@@ -204,16 +257,43 @@ export default function Financeiro() {
               <div className="grid gap-4 mt-4">
                 <div>
                   <Label>Tipo de Saída *</Label>
-                  <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v as TipoSaida, osVinculadaId: '', funcionarioId: '', descricao: '', valor: '' }))}>
+                  <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v as TipoSaida, osVinculadaId: '', funcionarioId: '', custoVinculadoId: '', descricao: '', valor: '' }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Peça">Peças</SelectItem>
                       <SelectItem value="Terceiro">Terceiros</SelectItem>
-                      <SelectItem value="Outros">Outros</SelectItem>
+                      <SelectItem value="Despesas operacionais">Despesas Operacionais</SelectItem>
                       <SelectItem value="Folha de pagamento">Folha de Pagamento</SelectItem>
+                      <SelectItem value="Outros">Outros</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {isDespOp && (
+                  <div>
+                    <Label>Selecionar Custo *</Label>
+                    <Select value={form.custoVinculadoId} onValueChange={handleCustoSelect}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o custo" /></SelectTrigger>
+                      <SelectContent>
+                        {custosList.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nome} — {c.categoria} — {formatCurrency(c.valorPrevisto)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.custoVinculadoId && (() => {
+                      const custo = custosList.find(c => c.id === form.custoVinculadoId);
+                      if (!custo) return null;
+                      const isVariavel = custo.categoria === 'Variável';
+                      return (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {isVariavel ? '⚠️ Custo variável — informe o valor manualmente.' : '✅ Valor preenchido automaticamente (editável).'}
+                        </p>
+                      );
+                    })()}
+                  </div>
+                )}
 
                 {isFolha && (
                   <div>
@@ -348,13 +428,7 @@ export default function Financeiro() {
                   <TableCell>
                     <Badge variant={tipoBadgeVariant(s.tipo)}>{s.tipo}</Badge>
                   </TableCell>
-                  <TableCell className="text-sm">
-                    {s.tipo === 'Folha de pagamento' && s.funcionarioId
-                      ? getFuncLabel(s.funcionarioId)
-                      : s.osVinculadaId
-                        ? getOSLabel(s.osVinculadaId)
-                        : '—'}
-                  </TableCell>
+                  <TableCell className="text-sm">{getVinculoLabel(s)}</TableCell>
                   <TableCell className="text-right font-semibold text-destructive">{formatCurrency(s.valor)}</TableCell>
                   <TableCell><Badge variant="outline">{s.formaPagamento}</Badge></TableCell>
                   <TableCell className="text-muted-foreground text-sm">{s.observacao || '—'}</TableCell>
