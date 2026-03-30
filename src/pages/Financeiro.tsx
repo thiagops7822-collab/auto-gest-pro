@@ -135,7 +135,8 @@ export default function Financeiro() {
 
       // Mark employee as paid this month
       if (isFolha && form.funcionarioId) {
-        setPagamentosMes(prev => ({ ...prev, [form.funcionarioId]: true }));
+        const mes = (form.data || new Date().toISOString().split('T')[0]).slice(0, 7);
+        setPagamentosMes(prev => ({ ...prev, [`${form.funcionarioId}-${mes}`]: true }));
       }
 
       // Update custo and mark as paid for Despesas operacionais
