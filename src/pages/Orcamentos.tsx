@@ -30,6 +30,7 @@ const operacaoOptions = [
   'Polimento',
   'Higienização',
   'Martelinho de Ouro',
+  'Reparo Geral',
   'Funilaria + Pintura',
   'Funilaria + Montagem',
   'Pintura + Montagem',

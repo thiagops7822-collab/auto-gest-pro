@@ -207,14 +207,18 @@ export default function OrdensServico() {
         <Select value={formData.tipoServico} onValueChange={v => onChange('tipoServico', v)}>
           <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
           <SelectContent>
+            <SelectItem value="Mecânica">Mecânica</SelectItem>
             <SelectItem value="Funilaria">Funilaria</SelectItem>
             <SelectItem value="Pintura">Pintura</SelectItem>
-            <SelectItem value="Estética">Estética</SelectItem>
-            <SelectItem value="Martelinho de Ouro">Martelinho de Ouro</SelectItem>
-            <SelectItem value="Higienização">Higienização</SelectItem>
+            <SelectItem value="Montagem">Montagem</SelectItem>
             <SelectItem value="Polimento">Polimento</SelectItem>
+            <SelectItem value="Higienização">Higienização</SelectItem>
+            <SelectItem value="Martelinho de Ouro">Martelinho de Ouro</SelectItem>
             <SelectItem value="Reparo Geral">Reparo Geral</SelectItem>
-            <SelectItem value="Funilaria|Pintura|Polimento">Funilaria|Pintura|Polimento</SelectItem>
+            <SelectItem value="Funilaria + Pintura">Funilaria + Pintura</SelectItem>
+            <SelectItem value="Funilaria + Montagem">Funilaria + Montagem</SelectItem>
+            <SelectItem value="Pintura + Montagem">Pintura + Montagem</SelectItem>
+            <SelectItem value="Funilaria + Pintura + Montagem">Funilaria + Pintura + Montagem</SelectItem>
           </SelectContent>
         </Select>
       </div>
