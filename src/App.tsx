@@ -17,6 +17,7 @@ import Orcamentos from "./pages/Orcamentos";
 import Financeiro from "./pages/Financeiro";
 import NotFound from "./pages/NotFound";
 
+
 const queryClient = new QueryClient();
 
 const App = () => (
