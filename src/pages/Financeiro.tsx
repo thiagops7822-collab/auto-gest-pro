@@ -45,7 +45,8 @@ export default function Financeiro() {
   const needsOS = form.tipo === 'Peça' || form.tipo === 'Terceiro';
   const isFolha = form.tipo === 'Folha de pagamento';
   const isDespOp = form.tipo === 'Despesas operacionais';
-  const ativosNaoPagos = funcList.filter(f => f.status === 'Ativo' && !pagamentosMes[f.id]);
+  const mesAtual = new Date().toISOString().slice(0, 7);
+  const ativosNaoPagos = funcList.filter(f => f.status === 'Ativo' && !pagamentosMes[`${f.id}-${mesAtual}`]);
 
   const openEdit = (s: SaidaNaoPlanejada) => {
     setEditingId(s.id);
