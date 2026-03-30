@@ -83,6 +83,8 @@ export default function Dashboard() {
     return {
       veiculosAtivos, faturamentoBruto, totalRecebido, totalPendente, totalDespesas, lucroEstimado,
       expenseCategoryData, osStatusData, alerts,
+      custoPecas, vendaPecas, lucroPecas, margemPecas,
+      custoTerceiros, vendaTerceiros, lucroTerceiros, margemTerceiros,
     };
   }, [osList, custosList, funcList, despesasList, saidasList]);
 
