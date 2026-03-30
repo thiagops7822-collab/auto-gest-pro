@@ -167,9 +167,10 @@ export default function Financeiro() {
     const item = saidasList.find(s => s.id === deleteId);
     // If it was a payroll entry, unmark the employee
     if (item?.tipo === 'Folha de pagamento' && item.funcionarioId) {
+      const mes = item.data.slice(0, 7);
       setPagamentosMes(prev => {
         const next = { ...prev };
-        delete next[item.funcionarioId!];
+        delete next[`${item.funcionarioId}-${mes}`];
         return next;
       });
     }

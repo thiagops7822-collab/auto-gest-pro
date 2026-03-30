@@ -18,10 +18,30 @@ const statusColors: Record<string, string> = {
   'Afastado': 'badge-warning',
 };
 
-const emptyForm = { nome: '', cpf: '', cargo: '', tipoContrato: '', salarioBase: '', dataAdmissao: '', status: 'Ativo' };
+const pagamentoColors: Record<string, string> = {
+  'Pago': 'badge-success',
+  'Pendente': 'bg-destructive/10 text-destructive border-destructive/30',
+  '-': 'bg-muted text-muted-foreground border-border',
+};
+
+const emptyForm = { nome: '', cpf: '', cargo: '', tipoContrato: '', salarioBase: '', dataAdmissao: '', status: 'Ativo', diaPagamento: '5' };
+
+function getStatusPagamento(func: Funcionario, pagamentosMes: Record<string, boolean>): string {
+  if (func.status !== 'Ativo') return '-';
+  const now = new Date();
+  const mesAtual = now.toISOString().slice(0, 7);
+  const key = `${func.id}-${mesAtual}`;
+
+  if (pagamentosMes[key]) return 'Pago';
+
+  const diaHoje = now.getDate();
+  if (diaHoje >= func.diaPagamento) return 'Pendente';
+
+  return '-';
+}
 
 export default function Funcionarios() {
-  const { funcList, setFuncList } = useData();
+  const { funcList, setFuncList, pagamentosMes } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -33,7 +53,7 @@ export default function Funcionarios() {
 
   const openEdit = (f: Funcionario) => {
     setEditingId(f.id);
-    setForm({ nome: f.nome, cpf: f.cpf, cargo: f.cargo, tipoContrato: f.tipoContrato, salarioBase: String(f.salarioBase), dataAdmissao: f.dataAdmissao, status: f.status });
+    setForm({ nome: f.nome, cpf: f.cpf, cargo: f.cargo, tipoContrato: f.tipoContrato, salarioBase: String(f.salarioBase), dataAdmissao: f.dataAdmissao, status: f.status, diaPagamento: String(f.diaPagamento) });
     setDialogOpen(true);
   };
 
@@ -58,6 +78,7 @@ export default function Funcionarios() {
         salarioBase: parseFloat(form.salarioBase) || 0,
         dataAdmissao: form.dataAdmissao || f.dataAdmissao,
         status: form.status as Funcionario['status'],
+        diaPagamento: parseInt(form.diaPagamento) || 5,
       } : f));
       toast({ title: "Funcionário atualizado!", description: `${form.nome.toUpperCase()} editado.` });
     } else {
@@ -70,6 +91,7 @@ export default function Funcionarios() {
         salarioBase: parseFloat(form.salarioBase) || 0,
         dataAdmissao: form.dataAdmissao || new Date().toISOString().split('T')[0],
         status: 'Ativo',
+        diaPagamento: parseInt(form.diaPagamento) || 5,
       };
       setFuncList(prev => [novo, ...prev]);
       toast({ title: "Funcionário cadastrado!", description: `${novo.nome} adicionado.` });
@@ -114,6 +136,7 @@ export default function Funcionarios() {
                 </Select>
               </div>
               <div><Label>Salário Base (R$) *</Label><Input type="number" placeholder="0,00" value={form.salarioBase} onChange={e => setForm(p => ({ ...p, salarioBase: e.target.value }))} /></div>
+              <div><Label>Dia de Pagamento *</Label><Input type="number" min="1" max="31" placeholder="5" value={form.diaPagamento} onChange={e => setForm(p => ({ ...p, diaPagamento: e.target.value }))} /></div>
               <div><Label>Data de Admissão</Label><Input type="date" value={form.dataAdmissao} onChange={e => setForm(p => ({ ...p, dataAdmissao: e.target.value }))} /></div>
               {editingId && (
                 <div>
@@ -150,32 +173,41 @@ export default function Funcionarios() {
                 <TableHead>Cargo</TableHead>
                 <TableHead>Contrato</TableHead>
                 <TableHead className="text-right">Salário Base</TableHead>
+                <TableHead className="text-center">Dia Pgto</TableHead>
                 <TableHead>Admissão</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="text-center">Pagamento</TableHead>
                 <TableHead className="text-center">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {funcList.map(f => (
-                <TableRow key={f.id} className="border-border">
-                  <TableCell className="font-medium flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center"><User className="w-3.5 h-3.5 text-muted-foreground" /></div>
-                    {f.nome}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-sm">{f.cpf}</TableCell>
-                  <TableCell>{f.cargo}</TableCell>
-                  <TableCell className="text-muted-foreground">{f.tipoContrato}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(f.salarioBase)}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{formatDate(f.dataAdmissao)}</TableCell>
-                  <TableCell><Badge variant="outline" className={statusColors[f.status]}>{f.status}</Badge></TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-center gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(f)}><Pencil className="w-4 h-4" /></Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(f.id)}><Trash2 className="w-4 h-4" /></Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {funcList.map(f => {
+                const statusPgto = getStatusPagamento(f, pagamentosMes);
+                return (
+                  <TableRow key={f.id} className="border-border">
+                    <TableCell className="font-medium flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center"><User className="w-3.5 h-3.5 text-muted-foreground" /></div>
+                      {f.nome}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground font-mono text-sm">{f.cpf}</TableCell>
+                    <TableCell>{f.cargo}</TableCell>
+                    <TableCell className="text-muted-foreground">{f.tipoContrato}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(f.salarioBase)}</TableCell>
+                    <TableCell className="text-center text-muted-foreground">Dia {f.diaPagamento}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{formatDate(f.dataAdmissao)}</TableCell>
+                    <TableCell><Badge variant="outline" className={statusColors[f.status]}>{f.status}</Badge></TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="outline" className={pagamentoColors[statusPgto]}>{statusPgto === '-' ? 'Aguardando' : statusPgto}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(f)}><Pencil className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(f.id)}><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
