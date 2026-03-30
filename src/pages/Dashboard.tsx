@@ -21,6 +21,20 @@ export default function Dashboard() {
     const totalDespesas = totalCustosFixos + totalFolha + totalCartao + totalSaidas;
     const lucroEstimado = totalRecebido - totalCustosFixos - totalFolha - totalPecas - totalSaidas;
 
+    // Peças margin: cost = saídas tipo Peça, sale = peças nas OS
+    const custoPecas = saidasList.filter(s => s.tipo === 'Peça').reduce((s, item) => s + item.valor, 0);
+    const vendaPecas = osList.reduce((sum, os) => sum + getTotalPecas(os), 0);
+    const lucroPecas = vendaPecas - custoPecas;
+    const margemPecas = vendaPecas > 0 ? (lucroPecas / vendaPecas) * 100 : 0;
+
+    // Terceiros margin: cost = saídas tipo Terceiro vinculadas a OS, sale = valorOrcado das OS vinculadas
+    const saidasTerceiros = saidasList.filter(s => s.tipo === 'Terceiro' && s.osVinculadaId);
+    const custoTerceiros = saidasTerceiros.reduce((s, item) => s + item.valor, 0);
+    const osIdsComTerceiro = [...new Set(saidasTerceiros.map(s => s.osVinculadaId))];
+    const vendaTerceiros = osList.filter(os => osIdsComTerceiro.includes(os.id)).reduce((s, os) => s + os.valorOrcado, 0);
+    const lucroTerceiros = vendaTerceiros - custoTerceiros;
+    const margemTerceiros = vendaTerceiros > 0 ? (lucroTerceiros / vendaTerceiros) * 100 : 0;
+
     // Expense categories from real data
     const expenseCategoryData = [
       { name: 'Fixos', value: custosList.filter(c => c.categoria.startsWith('Fixo')).reduce((s, c) => s + c.valorPrevisto, 0), color: 'hsl(24, 95%, 53%)' },
@@ -69,6 +83,8 @@ export default function Dashboard() {
     return {
       veiculosAtivos, faturamentoBruto, totalRecebido, totalPendente, totalDespesas, lucroEstimado,
       expenseCategoryData, osStatusData, alerts,
+      custoPecas, vendaPecas, lucroPecas, margemPecas,
+      custoTerceiros, vendaTerceiros, lucroTerceiros, margemTerceiros,
     };
   }, [osList, custosList, funcList, despesasList, saidasList]);
 
@@ -194,7 +210,32 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Lucro Real breakdown */}
+      {/* Margem Peças e Terceiros */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="glass-card p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">🔧 Margem de Peças</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Custo (Saídas)</span><span className="font-bold text-destructive">{formatCurrency(computed.custoPecas)}</span></div>
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Venda (OS)</span><span className="font-bold text-success">{formatCurrency(computed.vendaPecas)}</span></div>
+            <div className={`flex justify-between p-3 rounded-lg font-bold ${computed.lucroPecas >= 0 ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
+              <span>Lucro</span><span>{formatCurrency(computed.lucroPecas)}</span>
+            </div>
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Margem</span><span className="font-bold">{computed.margemPecas.toFixed(1)}%</span></div>
+          </div>
+        </div>
+        <div className="glass-card p-5">
+          <h3 className="text-sm font-semibold text-foreground mb-4">🤝 Margem de Terceiros</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Custo (Saídas)</span><span className="font-bold text-destructive">{formatCurrency(computed.custoTerceiros)}</span></div>
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Venda (OS)</span><span className="font-bold text-success">{formatCurrency(computed.vendaTerceiros)}</span></div>
+            <div className={`flex justify-between p-3 rounded-lg font-bold ${computed.lucroTerceiros >= 0 ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
+              <span>Lucro</span><span>{formatCurrency(computed.lucroTerceiros)}</span>
+            </div>
+            <div className="flex justify-between p-2 rounded bg-muted/30"><span className="text-muted-foreground">Margem</span><span className="font-bold">{computed.margemTerceiros.toFixed(1)}%</span></div>
+          </div>
+        </div>
+      </div>
+
       <div className="glass-card p-5">
         <h3 className="text-sm font-semibold text-foreground mb-4">💰 Cálculo do Lucro Real</h3>
         <div className="space-y-2 text-sm">
