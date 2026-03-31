@@ -90,7 +90,8 @@ export default function Orcamentos() {
       orc.cliente.toLowerCase().includes(search.toLowerCase()) ||
       orc.numero.toString().includes(search);
     const matchStatus = statusFilter === "todos" || orc.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchMonth = orc.dataCriacao.startsWith(mesFiltro);
+    return matchSearch && matchStatus && matchMonth;
   });
 
   const handleChange = (field: string, value: string) =>
