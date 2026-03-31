@@ -428,8 +428,8 @@ export default function Financeiro() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {saidasList.map(s => (
-                <TableRow key={s.id} className="border-border">
+              {saidasFiltradas.map(s => (
+                 <TableRow key={s.id} className="border-border">
                   <TableCell className="text-muted-foreground text-sm">{formatDate(s.data)}</TableCell>
                   <TableCell className="font-medium">{s.descricao}</TableCell>
                   <TableCell>
