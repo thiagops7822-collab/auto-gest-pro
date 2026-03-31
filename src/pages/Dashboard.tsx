@@ -109,9 +109,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">Visão geral do seu negócio — dados em tempo real</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Visão geral do seu negócio — dados em tempo real</p>
+        </div>
+        <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
       </div>
 
       {/* Health indicator */}

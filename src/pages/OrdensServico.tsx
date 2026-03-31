@@ -262,6 +262,7 @@ export default function OrdensServico() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Buscar por placa, cliente ou nº OS..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
