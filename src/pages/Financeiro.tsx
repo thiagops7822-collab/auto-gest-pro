@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2, DollarSign, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import MonthFilter, { getCurrentMonth, filterByMonth } from "@/components/MonthFilter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";

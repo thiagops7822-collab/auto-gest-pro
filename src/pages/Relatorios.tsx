@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { FileBarChart, TrendingUp, TrendingDown, DollarSign, Users, CreditCard, Building2, AlertTriangle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import MonthFilter, { getCurrentMonth, filterByMonth } from "@/components/MonthFilter";
 import { formatCurrency, getTotalRecebido, getTotalPecas } from "@/lib/mock-data";
 import { exportRelatorioFinanceiro, exportRelatorioOS } from "@/lib/pdf-export";
 import { useData } from "@/contexts/DataContext";
