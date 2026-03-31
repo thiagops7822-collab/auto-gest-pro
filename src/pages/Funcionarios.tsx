@@ -191,7 +191,7 @@ export default function Funcionarios() {
             </TableHeader>
             <TableBody>
               {funcList.map(f => {
-                const statusPgto = getStatusPagamento(f, pagamentosMes);
+                const statusPgto = getStatusPagamento(f, pagamentosMes, mesFiltro);
                 return (
                   <TableRow key={f.id} className="border-border">
                     <TableCell className="font-medium flex items-center gap-2">
