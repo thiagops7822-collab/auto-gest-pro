@@ -8,14 +8,18 @@ import { useData } from "@/contexts/DataContext";
 
 export default function Relatorios() {
   const { osList, custosList, funcList, despesasList, saidasList } = useData();
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
 
-  const totalRecebido = osList.reduce((s, os) => s + getTotalRecebido(os), 0);
-  const totalPecas = osList.reduce((s, os) => s + getTotalPecas(os), 0);
+  const osFiltered = filterByMonth(osList, 'dataEntrada', mesFiltro);
+  const saidasFiltered = filterByMonth(saidasList, 'data', mesFiltro);
+
+  const totalRecebido = osFiltered.reduce((s, os) => s + getTotalRecebido(os), 0);
+  const totalPecas = osFiltered.reduce((s, os) => s + getTotalPecas(os), 0);
   const totalFolha = funcList.filter(f => f.status === 'Ativo').reduce((s, f) => s + f.salarioBase, 0);
   const totalFixos = custosList.filter(c => c.categoria.startsWith('Fixo')).reduce((s, c) => s + c.valorPrevisto, 0);
   const totalVariaveis = custosList.filter(c => c.categoria === 'Variável').reduce((s, c) => s + c.valorPrevisto, 0);
-  const totalCartao = despesasList.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta')).reduce((s, p) => s + p.valor, 0);
-  const totalSaidas = saidasList.reduce((s, item) => s + item.valor, 0);
+  const totalCartao = despesasList.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta' && p.mes === mesFiltro)).reduce((s, p) => s + p.valor, 0);
+  const totalSaidas = saidasFiltered.reduce((s, item) => s + item.valor, 0);
   const lucroLiquido = totalRecebido - totalPecas - totalFolha - totalFixos - totalVariaveis - totalCartao - totalSaidas;
   const margemPct = totalRecebido > 0 ? (lucroLiquido / totalRecebido) * 100 : 0;
 
