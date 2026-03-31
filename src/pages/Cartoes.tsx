@@ -214,7 +214,7 @@ export default function Cartoes() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {cartoesList.map(cartao => {
           const despesas = despesasList.filter(d => d.cartaoId === cartao.id);
-          const parcelasMes = despesas.flatMap(d => d.parcelasGeradas.filter(p => p.mes === '2025-03'));
+          const parcelasMes = despesas.flatMap(d => d.parcelasGeradas.filter(p => p.mes === mesFiltro));
           const faturaMes = parcelasMes.reduce((s, p) => s + p.valor, 0);
           const totalFuturo = despesas.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta')).reduce((s, p) => s + p.valor, 0);
           const usado = totalFuturo;

@@ -32,10 +32,10 @@ export default function Dashboard() {
     const margemPecas = vendaPecas > 0 ? (lucroPecas / vendaPecas) * 100 : 0;
 
     // Terceiros margin: cost = saídas tipo Terceiro vinculadas a OS, sale = valorOrcado das OS vinculadas
-    const saidasTerceiros = saidasList.filter(s => s.tipo === 'Terceiro' && s.osVinculadaId);
+    const saidasTerceiros = saidasFiltered.filter(s => s.tipo === 'Terceiro' && s.osVinculadaId);
     const custoTerceiros = saidasTerceiros.reduce((s, item) => s + item.valor, 0);
     const osIdsComTerceiro = [...new Set(saidasTerceiros.map(s => s.osVinculadaId))];
-    const vendaTerceiros = osList.filter(os => osIdsComTerceiro.includes(os.id)).reduce((s, os) => s + os.valorOrcado, 0);
+    const vendaTerceiros = osFiltered.filter(os => osIdsComTerceiro.includes(os.id)).reduce((s, os) => s + os.valorOrcado, 0);
     const lucroTerceiros = vendaTerceiros - custoTerceiros;
     const margemTerceiros = vendaTerceiros > 0 ? (lucroTerceiros / vendaTerceiros) * 100 : 0;
 

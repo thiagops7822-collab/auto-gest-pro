@@ -95,7 +95,7 @@ export default function Relatorios() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="stat-card">
           <p className="text-xs text-muted-foreground">OS Finalizadas</p>
-          <p className="text-2xl font-bold text-success mt-1">{osList.filter(os => os.status === 'Finalizado').length}</p>
+          <p className="text-2xl font-bold text-success mt-1">{osFiltered.filter(os => os.status === 'Finalizado').length}</p>
         </div>
         <div className="stat-card">
           <p className="text-xs text-muted-foreground">OS com Saldo Pendente</p>
