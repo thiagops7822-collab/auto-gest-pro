@@ -11,15 +11,17 @@ export default function Dashboard() {
   const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
 
   const computed = useMemo(() => {
-    const veiculosAtivos = osList.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').length;
-    const faturamentoBruto = osList.reduce((sum, os) => sum + os.valorOrcado, 0);
-    const totalRecebido = osList.reduce((sum, os) => sum + getTotalRecebido(os), 0);
-    const totalPendente = osList.reduce((sum, os) => sum + Math.max(0, getSaldoPendente(os)), 0);
+    const osFiltered = filterByMonth(osList, 'dataEntrada', mesFiltro);
+    const saidasFiltered = filterByMonth(saidasList, 'data', mesFiltro);
+    const veiculosAtivos = osFiltered.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').length;
+    const faturamentoBruto = osFiltered.reduce((sum, os) => sum + os.valorOrcado, 0);
+    const totalRecebido = osFiltered.reduce((sum, os) => sum + getTotalRecebido(os), 0);
+    const totalPendente = osFiltered.reduce((sum, os) => sum + Math.max(0, getSaldoPendente(os)), 0);
     const totalCustosFixos = custosList.reduce((sum, c) => sum + c.valorPrevisto, 0);
     const totalFolha = funcList.filter(f => f.status === 'Ativo').reduce((sum, f) => sum + f.salarioBase, 0);
-    const totalPecas = osList.reduce((sum, os) => sum + getTotalPecas(os), 0);
-    const totalCartao = despesasList.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta')).reduce((s, p) => s + p.valor, 0);
-    const totalSaidas = saidasList.reduce((s, item) => s + item.valor, 0);
+    const totalPecas = osFiltered.reduce((sum, os) => sum + getTotalPecas(os), 0);
+    const totalCartao = despesasList.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta' && p.mes === mesFiltro)).reduce((s, p) => s + p.valor, 0);
+    const totalSaidas = saidasFiltered.reduce((s, item) => s + item.valor, 0);
     const totalDespesas = totalCustosFixos + totalFolha + totalCartao + totalSaidas;
     const lucroEstimado = totalRecebido - totalCustosFixos - totalFolha - totalPecas - totalSaidas;
 
