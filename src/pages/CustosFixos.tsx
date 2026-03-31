@@ -26,6 +26,7 @@ export default function CustosFixos() {
   const [catFilter, setCatFilter] = useState("todos");
   const { custosList, setCustosList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
