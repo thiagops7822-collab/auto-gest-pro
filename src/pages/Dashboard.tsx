@@ -77,7 +77,7 @@ export default function Dashboard() {
       }
     });
 
-    osList.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').forEach(os => {
+    osFiltered.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').forEach(os => {
       const pendente = Math.max(0, getSaldoPendente(os));
       if (pendente > 0) {
         alerts.push({ type: 'info', text: `OS #${os.numero} com saldo pendente de ${formatCurrency(pendente)}`, icon: Clock });
