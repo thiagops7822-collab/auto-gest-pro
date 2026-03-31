@@ -73,6 +73,7 @@ function getTotal(itens: OrcamentoItem[]) {
 export default function Orcamentos() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [selectedOrc, setSelectedOrc] = useState<Orcamento | null>(null);
   const { orcamentosList, setOrcamentosList, osList, setOsList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
