@@ -8,6 +8,7 @@ import { useData } from "@/contexts/DataContext";
 
 export default function Dashboard() {
   const { osList, custosList, funcList, despesasList, saidasList } = useData();
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
 
   const computed = useMemo(() => {
     const veiculosAtivos = osList.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').length;
