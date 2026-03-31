@@ -26,8 +26,8 @@ export default function Dashboard() {
     const lucroEstimado = totalRecebido - totalCustosFixos - totalFolha - totalPecas - totalSaidas;
 
     // Peças margin: cost = saídas tipo Peça, sale = peças nas OS
-    const custoPecas = saidasList.filter(s => s.tipo === 'Peça').reduce((s, item) => s + item.valor, 0);
-    const vendaPecas = osList.reduce((sum, os) => sum + getTotalPecas(os), 0);
+    const custoPecas = saidasFiltered.filter(s => s.tipo === 'Peça').reduce((s, item) => s + item.valor, 0);
+    const vendaPecas = osFiltered.reduce((sum, os) => sum + getTotalPecas(os), 0);
     const lucroPecas = vendaPecas - custoPecas;
     const margemPecas = vendaPecas > 0 ? (lucroPecas / vendaPecas) * 100 : 0;
 
