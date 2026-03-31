@@ -383,7 +383,7 @@ export default function Financeiro() {
             <p className="text-xs text-muted-foreground">Folha do Mês</p>
           </div>
           <p className="text-xl font-bold text-foreground mt-1">
-            {formatCurrency(saidasList.filter(s => s.tipo === 'Folha de pagamento').reduce((a, b) => a + b.valor, 0))}
+             {formatCurrency(saidasFiltradas.filter(s => s.tipo === 'Folha de pagamento').reduce((a, b) => a + b.valor, 0))}
           </p>
         </div>
         <div className="stat-card">
