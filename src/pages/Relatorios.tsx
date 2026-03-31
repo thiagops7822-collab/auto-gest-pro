@@ -46,11 +46,12 @@ export default function Relatorios() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Relatórios e Análise de Lucro</h1>
-          <p className="text-muted-foreground text-sm">Visão financeira completa do período</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
+         <div>
+           <h1 className="text-2xl font-bold text-foreground">Relatórios e Análise de Lucro</h1>
+           <p className="text-muted-foreground text-sm">Visão financeira completa do período</p>
+         </div>
+         <div className="flex gap-2 flex-wrap items-center">
+           <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
           <Button onClick={exportRelatorioFinanceiro} className="gap-2">
             <Download className="w-4 h-4" /> Relatório Financeiro
           </Button>
