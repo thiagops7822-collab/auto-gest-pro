@@ -158,7 +158,8 @@ export default function Cartoes() {
           <h1 className="text-2xl font-bold text-foreground">Cartões de Crédito</h1>
           <p className="text-muted-foreground text-sm">Controle de faturas e parcelas</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
           <Dialog open={cartaoDialog} onOpenChange={o => { if (!o) { setEditingCartaoId(null); setCartaoForm(emptyCartao); } setCartaoDialog(o); }}>
             <DialogTrigger asChild><Button variant="outline" className="gap-2" onClick={openCreateCartao}><Plus className="w-4 h-4" /> Novo Cartão</Button></DialogTrigger>
             <DialogContent>
