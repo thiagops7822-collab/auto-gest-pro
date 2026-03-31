@@ -362,21 +362,24 @@ export default function Orcamentos() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Orçamentos</h2>
           <p className="text-muted-foreground">Gerencie seus orçamentos e converta em OS</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setForm(emptyForm)}><Plus className="mr-2 h-4 w-4" />Novo Orçamento</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader><DialogTitle>Novo Orçamento</DialogTitle></DialogHeader>
-            {renderFormFields(form, handleChange, setForm)}
-            <Button onClick={handleCreate} className="w-full">Criar Orçamento</Button>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2 flex-wrap">
+          <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setForm(emptyForm)}><Plus className="mr-2 h-4 w-4" />Novo Orçamento</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader><DialogTitle>Novo Orçamento</DialogTitle></DialogHeader>
+              {renderFormFields(form, handleChange, setForm)}
+              <Button onClick={handleCreate} className="w-full">Criar Orçamento</Button>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
