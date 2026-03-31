@@ -37,8 +37,8 @@ export default function Relatorios() {
     { label: '(-) Saídas Avulsas', value: -totalSaidas, color: 'text-destructive', icon: AlertTriangle },
   ];
 
-  const osComPrejuizo = osList.filter(os => os.valorOrcado < getTotalPecas(os));
-  const osPendentes = osList.filter(os => {
+  const osComPrejuizo = osFiltered.filter(os => os.valorOrcado < getTotalPecas(os));
+  const osPendentes = osFiltered.filter(os => {
     const pendente = os.valorOrcado - getTotalRecebido(os);
     return pendente > 0 && os.status !== 'Cancelado';
   });
