@@ -122,6 +122,8 @@ export default function Funcionarios() {
           <h1 className="text-2xl font-bold text-foreground">Funcionários</h1>
           <p className="text-muted-foreground text-sm">{funcList.length} funcionários cadastrados</p>
         </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
         <Dialog open={dialogOpen} onOpenChange={o => { if (!o) { setEditingId(null); setForm(emptyForm); } setDialogOpen(o); }}>
           <DialogTrigger asChild><Button className="gap-2" onClick={openCreate}><Plus className="w-4 h-4" /> Novo Funcionário</Button></DialogTrigger>
           <DialogContent>
