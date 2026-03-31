@@ -27,16 +27,20 @@ const pagamentoColors: Record<string, string> = {
 
 const emptyForm = { nome: '', cpf: '', cargo: '', tipoContrato: '', salarioBase: '', dataAdmissao: '', status: 'Ativo', diaPagamento: '5' };
 
-function getStatusPagamento(func: Funcionario, pagamentosMes: Record<string, boolean>): string {
+function getStatusPagamento(func: Funcionario, pagamentosMes: Record<string, boolean>, mesFiltro: string): string {
   if (func.status !== 'Ativo') return '-';
-  const now = new Date();
-  const mesAtual = now.toISOString().slice(0, 7);
-  const key = `${func.id}-${mesAtual}`;
+  const key = `${func.id}-${mesFiltro}`;
 
   if (pagamentosMes[key]) return 'Pago';
 
-  const diaHoje = now.getDate();
-  if (diaHoje >= func.diaPagamento) return 'Pendente';
+  const now = new Date();
+  const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  if (mesFiltro === mesAtual) {
+    const diaHoje = now.getDate();
+    if (diaHoje >= func.diaPagamento) return 'Pendente';
+  } else if (mesFiltro < mesAtual) {
+    return 'Pendente';
+  }
 
   return '-';
 }
