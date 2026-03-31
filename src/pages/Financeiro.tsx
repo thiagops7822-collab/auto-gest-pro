@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2, DollarSign, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import MonthFilter, { getCurrentMonth, filterByMonth } from "@/components/MonthFilter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -30,6 +31,7 @@ export default function Financeiro() {
   } = useData();
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [saldoDialogOpen, setSaldoDialogOpen] = useState(false);
   const [saldoInput, setSaldoInput] = useState(String(saldoAnterior));
   const [form, setForm] = useState(emptyForm);
@@ -37,7 +39,8 @@ export default function Financeiro() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const totalSaidas = saidasList.reduce((s, item) => s + item.valor, 0);
+  const saidasFiltradas = filterByMonth(saidasList, 'data', mesFiltro);
+  const totalSaidas = saidasFiltradas.reduce((s, item) => s + item.valor, 0);
   const totalCustos = custosList.reduce((s, c) => s + c.valorPrevisto, 0);
   const totalDespesas = totalSaidas + totalCustos;
   const saldoAtual = saldoAnterior - totalSaidas;
@@ -45,7 +48,7 @@ export default function Financeiro() {
   const needsOS = form.tipo === 'Peça' || form.tipo === 'Terceiro';
   const isFolha = form.tipo === 'Folha de pagamento';
   const isDespOp = form.tipo === 'Despesas operacionais';
-  const mesAtual = new Date().toISOString().slice(0, 7);
+  const mesAtual = mesFiltro;
   const ativosNaoPagos = funcList.filter(f => f.status === 'Ativo' && !pagamentosMes[`${f.id}-${mesAtual}`]);
 
   const openEdit = (s: SaidaNaoPlanejada) => {
@@ -224,11 +227,12 @@ export default function Financeiro() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
-          <p className="text-muted-foreground text-sm">Controle de saldo, saídas e folha de pagamento</p>
-        </div>
-        <div className="flex gap-2">
+         <div>
+           <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
+           <p className="text-muted-foreground text-sm">Controle de saldo, saídas e folha de pagamento</p>
+         </div>
+         <div className="flex items-center gap-2 flex-wrap">
+           <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
           <Dialog open={saldoDialogOpen} onOpenChange={setSaldoDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2" onClick={() => setSaldoInput(String(saldoAnterior))}>
@@ -379,7 +383,7 @@ export default function Financeiro() {
             <p className="text-xs text-muted-foreground">Folha do Mês</p>
           </div>
           <p className="text-xl font-bold text-foreground mt-1">
-            {formatCurrency(saidasList.filter(s => s.tipo === 'Folha de pagamento').reduce((a, b) => a + b.valor, 0))}
+             {formatCurrency(saidasFiltradas.filter(s => s.tipo === 'Folha de pagamento').reduce((a, b) => a + b.valor, 0))}
           </p>
         </div>
         <div className="stat-card">
@@ -424,8 +428,8 @@ export default function Financeiro() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {saidasList.map(s => (
-                <TableRow key={s.id} className="border-border">
+              {saidasFiltradas.map(s => (
+                 <TableRow key={s.id} className="border-border">
                   <TableCell className="text-muted-foreground text-sm">{formatDate(s.data)}</TableCell>
                   <TableCell className="font-medium">{s.descricao}</TableCell>
                   <TableCell>

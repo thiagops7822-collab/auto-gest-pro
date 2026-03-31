@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Car, DollarSign, TrendingUp, TrendingDown, AlertTriangle, Clock } from "lucide-react";
+import MonthFilter, { getCurrentMonth, filterByMonth } from "@/components/MonthFilter";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { formatCurrency, getTotalRecebido, getSaldoPendente, getTotalPecas } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
@@ -7,31 +8,34 @@ import { useData } from "@/contexts/DataContext";
 
 export default function Dashboard() {
   const { osList, custosList, funcList, despesasList, saidasList } = useData();
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
 
   const computed = useMemo(() => {
-    const veiculosAtivos = osList.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').length;
-    const faturamentoBruto = osList.reduce((sum, os) => sum + os.valorOrcado, 0);
-    const totalRecebido = osList.reduce((sum, os) => sum + getTotalRecebido(os), 0);
-    const totalPendente = osList.reduce((sum, os) => sum + Math.max(0, getSaldoPendente(os)), 0);
+    const osFiltered = filterByMonth(osList, 'dataEntrada', mesFiltro);
+    const saidasFiltered = filterByMonth(saidasList, 'data', mesFiltro);
+    const veiculosAtivos = osFiltered.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').length;
+    const faturamentoBruto = osFiltered.reduce((sum, os) => sum + os.valorOrcado, 0);
+    const totalRecebido = osFiltered.reduce((sum, os) => sum + getTotalRecebido(os), 0);
+    const totalPendente = osFiltered.reduce((sum, os) => sum + Math.max(0, getSaldoPendente(os)), 0);
     const totalCustosFixos = custosList.reduce((sum, c) => sum + c.valorPrevisto, 0);
     const totalFolha = funcList.filter(f => f.status === 'Ativo').reduce((sum, f) => sum + f.salarioBase, 0);
-    const totalPecas = osList.reduce((sum, os) => sum + getTotalPecas(os), 0);
-    const totalCartao = despesasList.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta')).reduce((s, p) => s + p.valor, 0);
-    const totalSaidas = saidasList.reduce((s, item) => s + item.valor, 0);
+    const totalPecas = osFiltered.reduce((sum, os) => sum + getTotalPecas(os), 0);
+    const totalCartao = despesasList.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta' && p.mes === mesFiltro)).reduce((s, p) => s + p.valor, 0);
+    const totalSaidas = saidasFiltered.reduce((s, item) => s + item.valor, 0);
     const totalDespesas = totalCustosFixos + totalFolha + totalCartao + totalSaidas;
     const lucroEstimado = totalRecebido - totalCustosFixos - totalFolha - totalPecas - totalSaidas;
 
     // Peças margin: cost = saídas tipo Peça, sale = peças nas OS
-    const custoPecas = saidasList.filter(s => s.tipo === 'Peça').reduce((s, item) => s + item.valor, 0);
-    const vendaPecas = osList.reduce((sum, os) => sum + getTotalPecas(os), 0);
+    const custoPecas = saidasFiltered.filter(s => s.tipo === 'Peça').reduce((s, item) => s + item.valor, 0);
+    const vendaPecas = osFiltered.reduce((sum, os) => sum + getTotalPecas(os), 0);
     const lucroPecas = vendaPecas - custoPecas;
     const margemPecas = vendaPecas > 0 ? (lucroPecas / vendaPecas) * 100 : 0;
 
     // Terceiros margin: cost = saídas tipo Terceiro vinculadas a OS, sale = valorOrcado das OS vinculadas
-    const saidasTerceiros = saidasList.filter(s => s.tipo === 'Terceiro' && s.osVinculadaId);
+    const saidasTerceiros = saidasFiltered.filter(s => s.tipo === 'Terceiro' && s.osVinculadaId);
     const custoTerceiros = saidasTerceiros.reduce((s, item) => s + item.valor, 0);
     const osIdsComTerceiro = [...new Set(saidasTerceiros.map(s => s.osVinculadaId))];
-    const vendaTerceiros = osList.filter(os => osIdsComTerceiro.includes(os.id)).reduce((s, os) => s + os.valorOrcado, 0);
+    const vendaTerceiros = osFiltered.filter(os => osIdsComTerceiro.includes(os.id)).reduce((s, os) => s + os.valorOrcado, 0);
     const lucroTerceiros = vendaTerceiros - custoTerceiros;
     const margemTerceiros = vendaTerceiros > 0 ? (lucroTerceiros / vendaTerceiros) * 100 : 0;
 
@@ -47,7 +51,7 @@ export default function Dashboard() {
 
     // OS by status from real data
     const statusCounts: Record<string, number> = {};
-    osList.forEach(os => { statusCounts[os.status] = (statusCounts[os.status] || 0) + 1; });
+    osFiltered.forEach(os => { statusCounts[os.status] = (statusCounts[os.status] || 0) + 1; });
     const statusColorMap: Record<string, string> = {
       'Em Andamento': 'hsl(210, 80%, 55%)',
       'Aguardando Peça': 'hsl(38, 92%, 50%)',
@@ -73,7 +77,7 @@ export default function Dashboard() {
       }
     });
 
-    osList.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').forEach(os => {
+    osFiltered.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').forEach(os => {
       const pendente = Math.max(0, getSaldoPendente(os));
       if (pendente > 0) {
         alerts.push({ type: 'info', text: `OS #${os.numero} com saldo pendente de ${formatCurrency(pendente)}`, icon: Clock });
@@ -86,7 +90,7 @@ export default function Dashboard() {
       custoPecas, vendaPecas, lucroPecas, margemPecas,
       custoTerceiros, vendaTerceiros, lucroTerceiros, margemTerceiros,
     };
-  }, [osList, custosList, funcList, despesasList, saidasList]);
+  }, [osList, custosList, funcList, despesasList, saidasList, mesFiltro]);
 
   const stats = [
     { label: 'Veículos em Atendimento', value: computed.veiculosAtivos, icon: Car, color: 'text-info' },
@@ -105,9 +109,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">Visão geral do seu negócio — dados em tempo real</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Visão geral do seu negócio — dados em tempo real</p>
+        </div>
+        <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
       </div>
 
       {/* Health indicator */}

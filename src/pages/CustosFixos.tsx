@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import MonthFilter, { getCurrentMonth } from "@/components/MonthFilter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ export default function CustosFixos() {
   const [catFilter, setCatFilter] = useState("todos");
   const { custosList, setCustosList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -130,6 +132,8 @@ export default function CustosFixos() {
           <h1 className="text-2xl font-bold text-foreground">Custos Fixos e Variáveis</h1>
           <p className="text-muted-foreground text-sm">Controle de despesas operacionais</p>
         </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
         <Dialog open={dialogOpen} onOpenChange={o => { if (!o) { setEditingId(null); setForm(emptyForm); } setDialogOpen(o); }}>
           <DialogTrigger asChild><Button className="gap-2" onClick={openCreate}><Plus className="w-4 h-4" /> Novo Custo</Button></DialogTrigger>
           <DialogContent>
@@ -138,6 +142,7 @@ export default function CustosFixos() {
             <Button className="w-full mt-4" onClick={handleSave}>{editingId ? 'Salvar Alterações' : 'Cadastrar'}</Button>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

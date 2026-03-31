@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, User, Pencil, Trash2 } from "lucide-react";
+import MonthFilter, { getCurrentMonth } from "@/components/MonthFilter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -26,16 +27,20 @@ const pagamentoColors: Record<string, string> = {
 
 const emptyForm = { nome: '', cpf: '', cargo: '', tipoContrato: '', salarioBase: '', dataAdmissao: '', status: 'Ativo', diaPagamento: '5' };
 
-function getStatusPagamento(func: Funcionario, pagamentosMes: Record<string, boolean>): string {
+function getStatusPagamento(func: Funcionario, pagamentosMes: Record<string, boolean>, mesFiltro: string): string {
   if (func.status !== 'Ativo') return '-';
-  const now = new Date();
-  const mesAtual = now.toISOString().slice(0, 7);
-  const key = `${func.id}-${mesAtual}`;
+  const key = `${func.id}-${mesFiltro}`;
 
   if (pagamentosMes[key]) return 'Pago';
 
-  const diaHoje = now.getDate();
-  if (diaHoje >= func.diaPagamento) return 'Pendente';
+  const now = new Date();
+  const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  if (mesFiltro === mesAtual) {
+    const diaHoje = now.getDate();
+    if (diaHoje >= func.diaPagamento) return 'Pendente';
+  } else if (mesFiltro < mesAtual) {
+    return 'Pendente';
+  }
 
   return '-';
 }
@@ -43,6 +48,7 @@ function getStatusPagamento(func: Funcionario, pagamentosMes: Record<string, boo
 export default function Funcionarios() {
   const { funcList, setFuncList, pagamentosMes } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -116,6 +122,8 @@ export default function Funcionarios() {
           <h1 className="text-2xl font-bold text-foreground">Funcionários</h1>
           <p className="text-muted-foreground text-sm">{funcList.length} funcionários cadastrados</p>
         </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
         <Dialog open={dialogOpen} onOpenChange={o => { if (!o) { setEditingId(null); setForm(emptyForm); } setDialogOpen(o); }}>
           <DialogTrigger asChild><Button className="gap-2" onClick={openCreate}><Plus className="w-4 h-4" /> Novo Funcionário</Button></DialogTrigger>
           <DialogContent>
@@ -155,6 +163,7 @@ export default function Funcionarios() {
             <Button className="w-full mt-4" onClick={handleSave}>{editingId ? 'Salvar Alterações' : 'Cadastrar'}</Button>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -182,7 +191,7 @@ export default function Funcionarios() {
             </TableHeader>
             <TableBody>
               {funcList.map(f => {
-                const statusPgto = getStatusPagamento(f, pagamentosMes);
+                const statusPgto = getStatusPagamento(f, pagamentosMes, mesFiltro);
                 return (
                   <TableRow key={f.id} className="border-border">
                     <TableCell className="font-medium flex items-center gap-2">

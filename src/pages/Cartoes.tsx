@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, CreditCard, Pencil, Trash2 } from "lucide-react";
+import MonthFilter, { getCurrentMonth } from "@/components/MonthFilter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -18,6 +19,7 @@ const emptyDespesa = { cartaoId: '', descricao: '', categoria: '', valorTotal: '
 
 export default function Cartoes() {
   const { cartoesList, setCartoesList, despesasList, setDespesasList } = useData();
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [cartaoDialog, setCartaoDialog] = useState(false);
   const [despesaDialog, setDespesaDialog] = useState(false);
   const [cartaoForm, setCartaoForm] = useState(emptyCartao);
@@ -156,7 +158,8 @@ export default function Cartoes() {
           <h1 className="text-2xl font-bold text-foreground">Cartões de Crédito</h1>
           <p className="text-muted-foreground text-sm">Controle de faturas e parcelas</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
           <Dialog open={cartaoDialog} onOpenChange={o => { if (!o) { setEditingCartaoId(null); setCartaoForm(emptyCartao); } setCartaoDialog(o); }}>
             <DialogTrigger asChild><Button variant="outline" className="gap-2" onClick={openCreateCartao}><Plus className="w-4 h-4" /> Novo Cartão</Button></DialogTrigger>
             <DialogContent>
@@ -211,7 +214,7 @@ export default function Cartoes() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {cartoesList.map(cartao => {
           const despesas = despesasList.filter(d => d.cartaoId === cartao.id);
-          const parcelasMes = despesas.flatMap(d => d.parcelasGeradas.filter(p => p.mes === '2025-03'));
+          const parcelasMes = despesas.flatMap(d => d.parcelasGeradas.filter(p => p.mes === mesFiltro));
           const faturaMes = parcelasMes.reduce((s, p) => s + p.valor, 0);
           const totalFuturo = despesas.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta')).reduce((s, p) => s + p.valor, 0);
           const usado = totalFuturo;

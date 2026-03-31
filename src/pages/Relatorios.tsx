@@ -1,19 +1,25 @@
+import { useState } from "react";
 import { FileBarChart, TrendingUp, TrendingDown, DollarSign, Users, CreditCard, Building2, AlertTriangle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import MonthFilter, { getCurrentMonth, filterByMonth } from "@/components/MonthFilter";
 import { formatCurrency, getTotalRecebido, getTotalPecas } from "@/lib/mock-data";
 import { exportRelatorioFinanceiro, exportRelatorioOS } from "@/lib/pdf-export";
 import { useData } from "@/contexts/DataContext";
 
 export default function Relatorios() {
   const { osList, custosList, funcList, despesasList, saidasList } = useData();
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
 
-  const totalRecebido = osList.reduce((s, os) => s + getTotalRecebido(os), 0);
-  const totalPecas = osList.reduce((s, os) => s + getTotalPecas(os), 0);
+  const osFiltered = filterByMonth(osList, 'dataEntrada', mesFiltro);
+  const saidasFiltered = filterByMonth(saidasList, 'data', mesFiltro);
+
+  const totalRecebido = osFiltered.reduce((s, os) => s + getTotalRecebido(os), 0);
+  const totalPecas = osFiltered.reduce((s, os) => s + getTotalPecas(os), 0);
   const totalFolha = funcList.filter(f => f.status === 'Ativo').reduce((s, f) => s + f.salarioBase, 0);
   const totalFixos = custosList.filter(c => c.categoria.startsWith('Fixo')).reduce((s, c) => s + c.valorPrevisto, 0);
   const totalVariaveis = custosList.filter(c => c.categoria === 'Variável').reduce((s, c) => s + c.valorPrevisto, 0);
-  const totalCartao = despesasList.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta')).reduce((s, p) => s + p.valor, 0);
-  const totalSaidas = saidasList.reduce((s, item) => s + item.valor, 0);
+  const totalCartao = despesasList.flatMap(d => d.parcelasGeradas.filter(p => p.status === 'Aberta' && p.mes === mesFiltro)).reduce((s, p) => s + p.valor, 0);
+  const totalSaidas = saidasFiltered.reduce((s, item) => s + item.valor, 0);
   const lucroLiquido = totalRecebido - totalPecas - totalFolha - totalFixos - totalVariaveis - totalCartao - totalSaidas;
   const margemPct = totalRecebido > 0 ? (lucroLiquido / totalRecebido) * 100 : 0;
 
@@ -31,8 +37,8 @@ export default function Relatorios() {
     { label: '(-) Saídas Avulsas', value: -totalSaidas, color: 'text-destructive', icon: AlertTriangle },
   ];
 
-  const osComPrejuizo = osList.filter(os => os.valorOrcado < getTotalPecas(os));
-  const osPendentes = osList.filter(os => {
+  const osComPrejuizo = osFiltered.filter(os => os.valorOrcado < getTotalPecas(os));
+  const osPendentes = osFiltered.filter(os => {
     const pendente = os.valorOrcado - getTotalRecebido(os);
     return pendente > 0 && os.status !== 'Cancelado';
   });
@@ -40,11 +46,12 @@ export default function Relatorios() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Relatórios e Análise de Lucro</h1>
-          <p className="text-muted-foreground text-sm">Visão financeira completa do período</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
+         <div>
+           <h1 className="text-2xl font-bold text-foreground">Relatórios e Análise de Lucro</h1>
+           <p className="text-muted-foreground text-sm">Visão financeira completa do período</p>
+         </div>
+         <div className="flex gap-2 flex-wrap items-center">
+           <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
           <Button onClick={exportRelatorioFinanceiro} className="gap-2">
             <Download className="w-4 h-4" /> Relatório Financeiro
           </Button>
@@ -88,7 +95,7 @@ export default function Relatorios() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="stat-card">
           <p className="text-xs text-muted-foreground">OS Finalizadas</p>
-          <p className="text-2xl font-bold text-success mt-1">{osList.filter(os => os.status === 'Finalizado').length}</p>
+          <p className="text-2xl font-bold text-success mt-1">{osFiltered.filter(os => os.status === 'Finalizado').length}</p>
         </div>
         <div className="stat-card">
           <p className="text-xs text-muted-foreground">OS com Saldo Pendente</p>

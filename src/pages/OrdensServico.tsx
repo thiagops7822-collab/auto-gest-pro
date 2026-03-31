@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Plus, Eye, DollarSign, Pencil, Trash2, FileDown } from "lucide-react";
+import MonthFilter, { getCurrentMonth, filterByMonth } from "@/components/MonthFilter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,7 @@ const emptyForm = { placa: '', modelo: '', ano: '', cor: '', cliente: '', telefo
 export default function OrdensServico() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [selectedOS, setSelectedOS] = useState<OrdemServico | null>(null);
   const { osList, setOsList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -50,7 +52,8 @@ export default function OrdensServico() {
       os.cliente.toLowerCase().includes(search.toLowerCase()) ||
       os.numero.toString().includes(search);
     const matchStatus = statusFilter === "todos" || os.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchMonth = os.dataEntrada.startsWith(mesFiltro);
+    return matchSearch && matchStatus && matchMonth;
   });
 
   const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: field === 'tipoServico' ? value : value.toUpperCase() }));
@@ -259,6 +262,7 @@ export default function OrdensServico() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input className="pl-9" placeholder="Buscar por placa, cliente ou nº OS..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
