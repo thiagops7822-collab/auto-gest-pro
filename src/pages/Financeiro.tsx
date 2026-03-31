@@ -227,11 +227,12 @@ export default function Financeiro() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
-          <p className="text-muted-foreground text-sm">Controle de saldo, saídas e folha de pagamento</p>
-        </div>
-        <div className="flex gap-2">
+         <div>
+           <h1 className="text-2xl font-bold text-foreground">Financeiro</h1>
+           <p className="text-muted-foreground text-sm">Controle de saldo, saídas e folha de pagamento</p>
+         </div>
+         <div className="flex items-center gap-2 flex-wrap">
+           <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
           <Dialog open={saldoDialogOpen} onOpenChange={setSaldoDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2" onClick={() => setSaldoInput(String(saldoAnterior))}>
