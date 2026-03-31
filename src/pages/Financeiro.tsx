@@ -39,7 +39,8 @@ export default function Financeiro() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const totalSaidas = saidasList.reduce((s, item) => s + item.valor, 0);
+  const saidasFiltradas = filterByMonth(saidasList, 'data', mesFiltro);
+  const totalSaidas = saidasFiltradas.reduce((s, item) => s + item.valor, 0);
   const totalCustos = custosList.reduce((s, c) => s + c.valorPrevisto, 0);
   const totalDespesas = totalSaidas + totalCustos;
   const saldoAtual = saldoAnterior - totalSaidas;
