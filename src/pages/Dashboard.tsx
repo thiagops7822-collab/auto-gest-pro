@@ -90,7 +90,7 @@ export default function Dashboard() {
       custoPecas, vendaPecas, lucroPecas, margemPecas,
       custoTerceiros, vendaTerceiros, lucroTerceiros, margemTerceiros,
     };
-  }, [osList, custosList, funcList, despesasList, saidasList]);
+  }, [osList, custosList, funcList, despesasList, saidasList, mesFiltro]);
 
   const stats = [
     { label: 'Veículos em Atendimento', value: computed.veiculosAtivos, icon: Car, color: 'text-info' },
