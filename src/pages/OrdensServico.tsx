@@ -52,7 +52,8 @@ export default function OrdensServico() {
       os.cliente.toLowerCase().includes(search.toLowerCase()) ||
       os.numero.toString().includes(search);
     const matchStatus = statusFilter === "todos" || os.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchMonth = os.dataEntrada.startsWith(mesFiltro);
+    return matchSearch && matchStatus && matchMonth;
   });
 
   const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: field === 'tipoServico' ? value : value.toUpperCase() }));
