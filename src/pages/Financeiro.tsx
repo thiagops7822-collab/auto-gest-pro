@@ -31,6 +31,7 @@ export default function Financeiro() {
   } = useData();
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [saldoDialogOpen, setSaldoDialogOpen] = useState(false);
   const [saldoInput, setSaldoInput] = useState(String(saldoAnterior));
   const [form, setForm] = useState(emptyForm);
