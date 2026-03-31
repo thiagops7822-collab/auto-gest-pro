@@ -34,6 +34,7 @@ const emptyForm = { placa: '', modelo: '', ano: '', cor: '', cliente: '', telefo
 export default function OrdensServico() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [selectedOS, setSelectedOS] = useState<OrdemServico | null>(null);
   const { osList, setOsList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
