@@ -44,6 +44,7 @@ function getStatusPagamento(func: Funcionario, pagamentosMes: Record<string, boo
 export default function Funcionarios() {
   const { funcList, setFuncList, pagamentosMes } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
