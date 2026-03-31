@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Plus, Eye, Pencil, Trash2, FileDown, ArrowRightLeft, X } from "lucide-react";
+import MonthFilter, { getCurrentMonth } from "@/components/MonthFilter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +73,7 @@ function getTotal(itens: OrcamentoItem[]) {
 export default function Orcamentos() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [selectedOrc, setSelectedOrc] = useState<Orcamento | null>(null);
   const { orcamentosList, setOrcamentosList, osList, setOsList } = useData();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -88,7 +90,8 @@ export default function Orcamentos() {
       orc.cliente.toLowerCase().includes(search.toLowerCase()) ||
       orc.numero.toString().includes(search);
     const matchStatus = statusFilter === "todos" || orc.status === statusFilter;
-    return matchSearch && matchStatus;
+    const matchMonth = orc.dataCriacao.startsWith(mesFiltro);
+    return matchSearch && matchStatus && matchMonth;
   });
 
   const handleChange = (field: string, value: string) =>
@@ -359,21 +362,24 @@ export default function Orcamentos() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Orçamentos</h2>
           <p className="text-muted-foreground">Gerencie seus orçamentos e converta em OS</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setForm(emptyForm)}><Plus className="mr-2 h-4 w-4" />Novo Orçamento</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader><DialogTitle>Novo Orçamento</DialogTitle></DialogHeader>
-            {renderFormFields(form, handleChange, setForm)}
-            <Button onClick={handleCreate} className="w-full">Criar Orçamento</Button>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2 flex-wrap">
+          <MonthFilter value={mesFiltro} onChange={setMesFiltro} />
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setForm(emptyForm)}><Plus className="mr-2 h-4 w-4" />Novo Orçamento</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader><DialogTitle>Novo Orçamento</DialogTitle></DialogHeader>
+              {renderFormFields(form, handleChange, setForm)}
+              <Button onClick={handleCreate} className="w-full">Criar Orçamento</Button>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
