@@ -51,7 +51,7 @@ export default function Dashboard() {
 
     // OS by status from real data
     const statusCounts: Record<string, number> = {};
-    osList.forEach(os => { statusCounts[os.status] = (statusCounts[os.status] || 0) + 1; });
+    osFiltered.forEach(os => { statusCounts[os.status] = (statusCounts[os.status] || 0) + 1; });
     const statusColorMap: Record<string, string> = {
       'Em Andamento': 'hsl(210, 80%, 55%)',
       'Aguardando Peça': 'hsl(38, 92%, 50%)',
