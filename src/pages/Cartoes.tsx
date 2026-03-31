@@ -19,6 +19,7 @@ const emptyDespesa = { cartaoId: '', descricao: '', categoria: '', valorTotal: '
 
 export default function Cartoes() {
   const { cartoesList, setCartoesList, despesasList, setDespesasList } = useData();
+  const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [cartaoDialog, setCartaoDialog] = useState(false);
   const [despesaDialog, setDespesaDialog] = useState(false);
   const [cartaoForm, setCartaoForm] = useState(emptyCartao);
