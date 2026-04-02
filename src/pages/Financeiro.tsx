@@ -307,17 +307,43 @@ export default function Financeiro() {
               <div className="grid gap-4 mt-4">
                 <div>
                   <Label>Tipo de Saída *</Label>
-                  <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v as TipoSaida, osVinculadaId: '', funcionarioId: '', custoVinculadoId: '', descricao: '', valor: '' }))}>
+                  <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v as TipoSaida, osVinculadaId: '', funcionarioId: '', custoVinculadoId: '', cartaoVinculadoId: '', descricao: '', valor: '' }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Peça">Peças</SelectItem>
                       <SelectItem value="Terceiro">Terceiros</SelectItem>
                       <SelectItem value="Despesas operacionais">Despesas Operacionais</SelectItem>
                       <SelectItem value="Folha de pagamento">Folha de Pagamento</SelectItem>
+                      <SelectItem value="Cartão de crédito">Cartão de Crédito</SelectItem>
                       <SelectItem value="Outros">Outros</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {isCartao && (
+                  <div>
+                    <Label>Selecionar Cartão *</Label>
+                    <Select value={form.cartaoVinculadoId} onValueChange={handleCartaoSelect}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o cartão" /></SelectTrigger>
+                      <SelectContent>
+                        {cartoesList.map(c => {
+                          const despesas = despesasList.filter(d => d.cartaoId === c.id);
+                          const fatura = despesas.flatMap(d => d.parcelasGeradas.filter(p => p.mes === mesAtual && p.status !== 'Paga')).reduce((s, p) => s + p.valor, 0);
+                          return (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.nome} — Fatura: {formatCurrency(fatura)}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    {form.cartaoVinculadoId && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ✅ Valor da fatura de {getMonthLabel(mesAtual)} preenchido automaticamente. Ao salvar, as parcelas serão marcadas como pagas.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {isDespOp && (
                   <div>
