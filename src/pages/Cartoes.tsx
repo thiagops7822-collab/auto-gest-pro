@@ -331,10 +331,10 @@ export default function Cartoes() {
               const items = faturaMode === 'mes'
                 ? despesas.flatMap(d => d.parcelasGeradas
                     .filter(p => p.mes === mesFiltro)
-                    .map(p => ({ despesaId: d.id, descricao: d.descricao, categoria: d.categoria, parcelas: d.parcelas, valor: p.valor, mes: p.mes, status: p.status })))
+                    .map(p => ({ despesaId: d.id, descricao: d.descricao, categoria: d.categoria, parcelas: d.parcelas, parcelaAtual: d.parcelasGeradas.findIndex(pg => pg.mes === p.mes) + 1, valor: p.valor, mes: p.mes, status: p.status })))
                 : despesas.flatMap(d => d.parcelasGeradas
                     .filter(p => p.status === 'Aberta' || p.status === 'Vencida')
-                    .map(p => ({ despesaId: d.id, descricao: d.descricao, categoria: d.categoria, parcelas: d.parcelas, valor: p.valor, mes: p.mes, status: p.status })));
+                    .map(p => ({ despesaId: d.id, descricao: d.descricao, categoria: d.categoria, parcelas: d.parcelas, parcelaAtual: d.parcelasGeradas.findIndex(pg => pg.mes === p.mes) + 1, valor: p.valor, mes: p.mes, status: p.status })));
               const total = items.filter(i => i.status !== 'Paga').reduce((s, i) => s + i.valor, 0);
               const totalPago = items.filter(i => i.status === 'Paga').reduce((s, i) => s + i.valor, 0);
 
