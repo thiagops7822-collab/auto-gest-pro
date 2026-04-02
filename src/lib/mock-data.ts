@@ -102,74 +102,74 @@ export interface Terceiro {
 // Sample Data
 export const ordensServico: OrdemServico[] = [
   {
-    id: '1', numero: 1001, dataEntrada: '2025-03-01', placa: 'ABC-1234', modelo: 'Honda Civic', ano: '2022', cor: 'Prata',
+    id: '1', numero: 1001, dataEntrada: '2026-03-01', placa: 'ABC-1234', modelo: 'Honda Civic', ano: '2022', cor: 'Prata',
     cliente: 'Carlos Silva', telefone: '(11) 99999-1234', tipoServico: 'Funilaria',
     descricao: 'Reparo no para-lama dianteiro direito com pintura', valorOrcado: 3500,
     status: 'Em Andamento',
     pecas: [
-      { id: 'p1', descricao: 'Para-lama dianteiro direito', fornecedor: 'Auto Peças Central', valor: 450, data: '2025-03-02', status: 'Instalado' },
-      { id: 'p2', descricao: 'Tinta prata metálico', fornecedor: 'Tintas Express', valor: 180, data: '2025-03-03', status: 'Recebido' },
+      { id: 'p1', descricao: 'Para-lama dianteiro direito', fornecedor: 'Auto Peças Central', valor: 450, data: '2026-03-02', status: 'Instalado' },
+      { id: 'p2', descricao: 'Tinta prata metálico', fornecedor: 'Tintas Express', valor: 180, data: '2026-03-03', status: 'Recebido' },
     ],
     pagamentos: [
-      { id: 'pg1', data: '2025-03-01', valor: 1500, forma: 'PIX', observacao: 'Entrada' },
+      { id: 'pg1', data: '2026-03-01', valor: 1500, forma: 'PIX', observacao: 'Entrada' },
     ],
   },
   {
-    id: '2', numero: 1002, dataEntrada: '2025-03-05', placa: 'DEF-5678', modelo: 'Toyota Corolla', ano: '2021', cor: 'Branco',
+    id: '2', numero: 1002, dataEntrada: '2026-03-05', placa: 'DEF-5678', modelo: 'Toyota Corolla', ano: '2021', cor: 'Branco',
     cliente: 'Ana Oliveira', telefone: '(11) 98888-5678', tipoServico: 'Pintura',
     descricao: 'Pintura completa capô e teto', valorOrcado: 4200,
     status: 'Pronto para Entrega',
     pecas: [
-      { id: 'p3', descricao: 'Tinta branco perolizado', fornecedor: 'Tintas Express', valor: 320, data: '2025-03-06', status: 'Instalado' },
+      { id: 'p3', descricao: 'Tinta branco perolizado', fornecedor: 'Tintas Express', valor: 320, data: '2026-03-06', status: 'Instalado' },
     ],
     pagamentos: [
-      { id: 'pg2', data: '2025-03-05', valor: 2000, forma: 'Crédito' },
-      { id: 'pg3', data: '2025-03-12', valor: 2200, forma: 'PIX' },
+      { id: 'pg2', data: '2026-03-05', valor: 2000, forma: 'Crédito' },
+      { id: 'pg3', data: '2026-03-12', valor: 2200, forma: 'PIX' },
     ],
   },
   {
-    id: '3', numero: 1003, dataEntrada: '2025-03-08', placa: 'GHI-9012', modelo: 'VW Gol', ano: '2019', cor: 'Preto',
+    id: '3', numero: 1003, dataEntrada: '2026-03-08', placa: 'GHI-9012', modelo: 'VW Gol', ano: '2019', cor: 'Preto',
     cliente: 'João Santos', telefone: '(11) 97777-9012', tipoServico: 'Estética',
     descricao: 'Polimento cristalizado + higienização interna completa', valorOrcado: 800,
     status: 'Finalizado',
     pecas: [],
     pagamentos: [
-      { id: 'pg4', data: '2025-03-10', valor: 800, forma: 'Dinheiro' },
+      { id: 'pg4', data: '2026-03-10', valor: 800, forma: 'Dinheiro' },
     ],
   },
   {
-    id: '4', numero: 1004, dataEntrada: '2025-03-10', placa: 'JKL-3456', modelo: 'Fiat Argo', ano: '2023', cor: 'Vermelho',
+    id: '4', numero: 1004, dataEntrada: '2026-03-10', placa: 'JKL-3456', modelo: 'Fiat Argo', ano: '2023', cor: 'Vermelho',
     cliente: 'Maria Costa', telefone: '(11) 96666-3456', tipoServico: 'Combinado',
     descricao: 'Reparo lateral esquerda + pintura + polimento', valorOrcado: 5800,
     status: 'Aguardando Peça',
     pecas: [
-      { id: 'p4', descricao: 'Porta traseira esquerda', fornecedor: 'Fiat Peças', valor: 1200, data: '2025-03-11', status: 'Solicitado' },
+      { id: 'p4', descricao: 'Porta traseira esquerda', fornecedor: 'Fiat Peças', valor: 1200, data: '2026-03-11', status: 'Solicitado' },
     ],
     pagamentos: [
-      { id: 'pg5', data: '2025-03-10', valor: 2000, forma: 'PIX' },
+      { id: 'pg5', data: '2026-03-10', valor: 2000, forma: 'PIX' },
     ],
   },
   {
-    id: '5', numero: 1005, dataEntrada: '2025-03-14', placa: 'MNO-7890', modelo: 'Hyundai HB20', ano: '2020', cor: 'Azul',
+    id: '5', numero: 1005, dataEntrada: '2026-03-14', placa: 'MNO-7890', modelo: 'Hyundai HB20', ano: '2020', cor: 'Azul',
     cliente: 'Pedro Almeida', telefone: '(11) 95555-7890', tipoServico: 'Funilaria',
     descricao: 'Desamassar porta dianteira e pintar', valorOrcado: 2200,
     status: 'Em Andamento',
     pecas: [
-      { id: 'p5', descricao: 'Massa plástica', fornecedor: 'Auto Peças Central', valor: 45, data: '2025-03-14', status: 'Instalado' },
+      { id: 'p5', descricao: 'Massa plástica', fornecedor: 'Auto Peças Central', valor: 45, data: '2026-03-14', status: 'Instalado' },
     ],
     pagamentos: [],
   },
 ];
 
 export const custosFixos: CustoFixo[] = [
-  { id: 'c1', nome: 'Aluguel do galpão', categoria: 'Fixo Mensal', valorPrevisto: 4500, diaVencimento: 10, recorrencia: 'Mensal', statusPagamento: 'Pago', valorPago: 4500, dataPagamento: '2025-03-10', formaPagamento: 'Boleto' },
+  { id: 'c1', nome: 'Aluguel do galpão', categoria: 'Fixo Mensal', valorPrevisto: 4500, diaVencimento: 10, recorrencia: 'Mensal', statusPagamento: 'Pago', valorPago: 4500, dataPagamento: '2026-03-10', formaPagamento: 'Boleto' },
   { id: 'c2', nome: 'Conta de Luz', categoria: 'Fixo Mensal', valorPrevisto: 1200, diaVencimento: 15, recorrencia: 'Mensal', statusPagamento: 'Pendente' },
   { id: 'c3', nome: 'Conta de Água', categoria: 'Fixo Mensal', valorPrevisto: 350, diaVencimento: 20, recorrencia: 'Mensal', statusPagamento: 'Pendente' },
-  { id: 'c4', nome: 'Internet', categoria: 'Fixo Mensal', valorPrevisto: 250, diaVencimento: 5, recorrencia: 'Mensal', statusPagamento: 'Pago', valorPago: 250, dataPagamento: '2025-03-05', formaPagamento: 'PIX' },
-  { id: 'c5', nome: 'Contador', categoria: 'Fixo Mensal', valorPrevisto: 800, diaVencimento: 10, recorrencia: 'Mensal', statusPagamento: 'Pago', valorPago: 800, dataPagamento: '2025-03-10', formaPagamento: 'Transferência' },
-  { id: 'c6', nome: 'IPTU', categoria: 'Imposto', valorPrevisto: 3600, diaVencimento: 15, recorrencia: 'Anual', statusPagamento: 'Pago', valorPago: 3600, dataPagamento: '2025-01-15', formaPagamento: 'Boleto' },
+  { id: 'c4', nome: 'Internet', categoria: 'Fixo Mensal', valorPrevisto: 250, diaVencimento: 5, recorrencia: 'Mensal', statusPagamento: 'Pago', valorPago: 250, dataPagamento: '2026-03-05', formaPagamento: 'PIX' },
+  { id: 'c5', nome: 'Contador', categoria: 'Fixo Mensal', valorPrevisto: 800, diaVencimento: 10, recorrencia: 'Mensal', statusPagamento: 'Pago', valorPago: 800, dataPagamento: '2026-03-10', formaPagamento: 'Transferência' },
+  { id: 'c6', nome: 'IPTU', categoria: 'Imposto', valorPrevisto: 3600, diaVencimento: 15, recorrencia: 'Anual', statusPagamento: 'Pago', valorPago: 3600, dataPagamento: '2026-01-15', formaPagamento: 'Boleto' },
   { id: 'c7', nome: 'Material de limpeza', categoria: 'Variável', valorPrevisto: 400, diaVencimento: 25, recorrencia: 'Mensal', statusPagamento: 'Pendente' },
-  { id: 'c8', nome: 'Seguro do galpão', categoria: 'Fixo Anual', valorPrevisto: 2400, diaVencimento: 1, recorrencia: 'Anual', statusPagamento: 'Pago', valorPago: 2400, dataPagamento: '2025-02-01', formaPagamento: 'Boleto' },
+  { id: 'c8', nome: 'Seguro do galpão', categoria: 'Fixo Anual', valorPrevisto: 2400, diaVencimento: 1, recorrencia: 'Anual', statusPagamento: 'Pago', valorPago: 2400, dataPagamento: '2026-02-01', formaPagamento: 'Boleto' },
 ];
 
 export const funcionarios: Funcionario[] = [
@@ -187,37 +187,37 @@ export const cartoes: CartaoCredito[] = [
 
 export const despesasCartao: DespesaCartao[] = [
   {
-    id: 'd1', cartaoId: 'cc1', descricao: 'Compressor de ar', categoria: 'Ferramentas', valorTotal: 3600, parcelas: 6, dataCompra: '2025-01-15',
+    id: 'd1', cartaoId: 'cc1', descricao: 'Compressor de ar', categoria: 'Ferramentas', valorTotal: 3600, parcelas: 6, dataCompra: '2026-01-15',
     parcelasGeradas: [
-      { mes: '2025-02', valor: 600, status: 'Paga' },
-      { mes: '2025-03', valor: 600, status: 'Aberta' },
-      { mes: '2025-04', valor: 600, status: 'Aberta' },
-      { mes: '2025-05', valor: 600, status: 'Aberta' },
-      { mes: '2025-06', valor: 600, status: 'Aberta' },
-      { mes: '2025-07', valor: 600, status: 'Aberta' },
+      { mes: '2026-02', valor: 600, status: 'Paga' },
+      { mes: '2026-03', valor: 600, status: 'Aberta' },
+      { mes: '2026-04', valor: 600, status: 'Aberta' },
+      { mes: '2026-05', valor: 600, status: 'Aberta' },
+      { mes: '2026-06', valor: 600, status: 'Aberta' },
+      { mes: '2026-07', valor: 600, status: 'Aberta' },
     ],
   },
   {
-    id: 'd2', cartaoId: 'cc1', descricao: 'Lixas e abrasivos', categoria: 'Material', valorTotal: 450, parcelas: 1, dataCompra: '2025-03-05',
-    parcelasGeradas: [{ mes: '2025-04', valor: 450, status: 'Aberta' }],
+    id: 'd2', cartaoId: 'cc1', descricao: 'Lixas e abrasivos', categoria: 'Material', valorTotal: 450, parcelas: 1, dataCompra: '2026-03-05',
+    parcelasGeradas: [{ mes: '2026-04', valor: 450, status: 'Aberta' }],
   },
   {
-    id: 'd3', cartaoId: 'cc2', descricao: 'Combustível frota', categoria: 'Combustível', valorTotal: 800, parcelas: 1, dataCompra: '2025-03-10',
-    parcelasGeradas: [{ mes: '2025-04', valor: 800, status: 'Aberta' }],
+    id: 'd3', cartaoId: 'cc2', descricao: 'Combustível frota', categoria: 'Combustível', valorTotal: 800, parcelas: 1, dataCompra: '2026-03-10',
+    parcelasGeradas: [{ mes: '2026-04', valor: 800, status: 'Aberta' }],
   },
   {
-    id: 'd4', cartaoId: 'cc2', descricao: 'Pistola de pintura profissional', categoria: 'Ferramentas', valorTotal: 4800, parcelas: 10, dataCompra: '2025-02-01',
+    id: 'd4', cartaoId: 'cc2', descricao: 'Pistola de pintura profissional', categoria: 'Ferramentas', valorTotal: 4800, parcelas: 10, dataCompra: '2026-02-01',
     parcelasGeradas: [
-      { mes: '2025-03', valor: 480, status: 'Aberta' },
-      { mes: '2025-04', valor: 480, status: 'Aberta' },
-      { mes: '2025-05', valor: 480, status: 'Aberta' },
-      { mes: '2025-06', valor: 480, status: 'Aberta' },
-      { mes: '2025-07', valor: 480, status: 'Aberta' },
-      { mes: '2025-08', valor: 480, status: 'Aberta' },
-      { mes: '2025-09', valor: 480, status: 'Aberta' },
-      { mes: '2025-10', valor: 480, status: 'Aberta' },
-      { mes: '2025-11', valor: 480, status: 'Aberta' },
-      { mes: '2025-12', valor: 480, status: 'Aberta' },
+      { mes: '2026-03', valor: 480, status: 'Aberta' },
+      { mes: '2026-04', valor: 480, status: 'Aberta' },
+      { mes: '2026-05', valor: 480, status: 'Aberta' },
+      { mes: '2026-06', valor: 480, status: 'Aberta' },
+      { mes: '2026-07', valor: 480, status: 'Aberta' },
+      { mes: '2026-08', valor: 480, status: 'Aberta' },
+      { mes: '2026-09', valor: 480, status: 'Aberta' },
+      { mes: '2026-10', valor: 480, status: 'Aberta' },
+      { mes: '2026-11', valor: 480, status: 'Aberta' },
+      { mes: '2026-12', valor: 480, status: 'Aberta' },
     ],
   },
 ];
