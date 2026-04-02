@@ -13,13 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate } from "@/lib/mock-data";
 import { useData, type SaidaNaoPlanejada } from "@/contexts/DataContext";
+import { getMonthLabel } from "@/components/MonthFilter";
 
 type TipoSaida = SaidaNaoPlanejada['tipo'];
 
 const emptyForm = {
   descricao: '', valor: '', formaPagamento: 'PIX', data: '',
   observacao: '', tipo: 'Outros' as TipoSaida, osVinculadaId: '', funcionarioId: '',
-  custoVinculadoId: '',
+  custoVinculadoId: '', cartaoVinculadoId: '',
 };
 
 export default function Financeiro() {
@@ -28,6 +29,7 @@ export default function Financeiro() {
     funcList, saldoAnterior, setSaldoAnterior,
     pagamentosMes, setPagamentosMes,
     custosList, setCustosList,
+    cartoesList, despesasList, setDespesasList,
   } = useData();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -51,13 +53,15 @@ export default function Financeiro() {
   const mesAtual = mesFiltro;
   const ativosNaoPagos = funcList.filter(f => f.status === 'Ativo' && !pagamentosMes[`${f.id}-${mesAtual}`]);
 
+  const isCartao = form.tipo === 'Cartão de crédito';
+
   const openEdit = (s: SaidaNaoPlanejada) => {
     setEditingId(s.id);
     setForm({
       descricao: s.descricao, valor: String(s.valor), formaPagamento: s.formaPagamento,
       data: s.data, observacao: s.observacao || '', tipo: s.tipo,
       osVinculadaId: s.osVinculadaId || '', funcionarioId: s.funcionarioId || '',
-      custoVinculadoId: s.custoVinculadoId || '',
+      custoVinculadoId: s.custoVinculadoId || '', cartaoVinculadoId: s.cartaoVinculadoId || '',
     });
     setDialogOpen(true);
   };
@@ -87,6 +91,19 @@ export default function Financeiro() {
     }));
   };
 
+  const handleCartaoSelect = (cartaoId: string) => {
+    const cartao = cartoesList.find(c => c.id === cartaoId);
+    if (!cartao) return;
+    const despesas = despesasList.filter(d => d.cartaoId === cartaoId);
+    const faturaMes = despesas.flatMap(d => d.parcelasGeradas.filter(p => p.mes === mesAtual && p.status !== 'Paga')).reduce((s, p) => s + p.valor, 0);
+    setForm(p => ({
+      ...p,
+      cartaoVinculadoId: cartaoId,
+      descricao: `FATURA ${getMonthLabel(mesAtual).toUpperCase()} - ${cartao.nome}`,
+      valor: String(faturaMes),
+    }));
+  };
+
   const handleSave = () => {
     if (!form.descricao || !form.valor) {
       toast({ title: "Campos obrigatórios", description: "Preencha descrição e valor.", variant: "destructive" });
@@ -104,6 +121,10 @@ export default function Financeiro() {
       toast({ title: "Custo obrigatório", description: "Selecione o custo vinculado.", variant: "destructive" });
       return;
     }
+    if (isCartao && !form.cartaoVinculadoId) {
+      toast({ title: "Cartão obrigatório", description: "Selecione o cartão.", variant: "destructive" });
+      return;
+    }
 
     const valorNum = parseFloat(form.valor) || 0;
 
@@ -119,6 +140,7 @@ export default function Financeiro() {
         osVinculadaId: needsOS ? form.osVinculadaId : undefined,
         funcionarioId: isFolha ? form.funcionarioId : undefined,
         custoVinculadoId: isDespOp ? form.custoVinculadoId : undefined,
+        cartaoVinculadoId: isCartao ? form.cartaoVinculadoId : undefined,
       } : s));
       toast({ title: "Saída atualizada!", description: `${form.descricao.toUpperCase()} editada.` });
     } else {
@@ -133,6 +155,7 @@ export default function Financeiro() {
         osVinculadaId: needsOS ? form.osVinculadaId : undefined,
         funcionarioId: isFolha ? form.funcionarioId : undefined,
         custoVinculadoId: isDespOp ? form.custoVinculadoId : undefined,
+        cartaoVinculadoId: isCartao ? form.cartaoVinculadoId : undefined,
       };
       setSaidasList(prev => [nova, ...prev]);
 
@@ -156,6 +179,19 @@ export default function Financeiro() {
             ...(isVariavel ? { valorPrevisto: valorNum } : {}),
           } : c));
         }
+      }
+
+      // Mark card parcels as paid
+      if (isCartao && form.cartaoVinculadoId) {
+        setDespesasList(prev => prev.map(d => {
+          if (d.cartaoId !== form.cartaoVinculadoId) return d;
+          return {
+            ...d,
+            parcelasGeradas: d.parcelasGeradas.map(p =>
+              p.mes === mesAtual && p.status !== 'Paga' ? { ...p, status: 'Paga' as const } : p
+            ),
+          };
+        }));
       }
 
       toast({ title: "Saída registrada!", description: `${nova.descricao} — ${formatCurrency(nova.valor)}` });
@@ -212,14 +248,21 @@ export default function Financeiro() {
       case 'Peça': return 'default';
       case 'Terceiro': return 'secondary';
       case 'Folha de pagamento': return 'destructive' as const;
+      case 'Cartão de crédito': return 'default';
       case 'Despesas operacionais': return 'outline';
       default: return 'outline';
     }
   };
 
+  const getCartaoLabel = (cartaoId: string) => {
+    const c = cartoesList.find(ct => ct.id === cartaoId);
+    return c ? c.nome : '—';
+  };
+
   const getVinculoLabel = (s: SaidaNaoPlanejada) => {
     if (s.tipo === 'Folha de pagamento' && s.funcionarioId) return getFuncLabel(s.funcionarioId);
     if (s.tipo === 'Despesas operacionais' && s.custoVinculadoId) return getCustoLabel(s.custoVinculadoId);
+    if (s.tipo === 'Cartão de crédito' && s.cartaoVinculadoId) return getCartaoLabel(s.cartaoVinculadoId);
     if (s.osVinculadaId) return getOSLabel(s.osVinculadaId);
     return '—';
   };
@@ -264,17 +307,43 @@ export default function Financeiro() {
               <div className="grid gap-4 mt-4">
                 <div>
                   <Label>Tipo de Saída *</Label>
-                  <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v as TipoSaida, osVinculadaId: '', funcionarioId: '', custoVinculadoId: '', descricao: '', valor: '' }))}>
+                  <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v as TipoSaida, osVinculadaId: '', funcionarioId: '', custoVinculadoId: '', cartaoVinculadoId: '', descricao: '', valor: '' }))}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Peça">Peças</SelectItem>
                       <SelectItem value="Terceiro">Terceiros</SelectItem>
                       <SelectItem value="Despesas operacionais">Despesas Operacionais</SelectItem>
                       <SelectItem value="Folha de pagamento">Folha de Pagamento</SelectItem>
+                      <SelectItem value="Cartão de crédito">Cartão de Crédito</SelectItem>
                       <SelectItem value="Outros">Outros</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {isCartao && (
+                  <div>
+                    <Label>Selecionar Cartão *</Label>
+                    <Select value={form.cartaoVinculadoId} onValueChange={handleCartaoSelect}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o cartão" /></SelectTrigger>
+                      <SelectContent>
+                        {cartoesList.map(c => {
+                          const despesas = despesasList.filter(d => d.cartaoId === c.id);
+                          const fatura = despesas.flatMap(d => d.parcelasGeradas.filter(p => p.mes === mesAtual && p.status !== 'Paga')).reduce((s, p) => s + p.valor, 0);
+                          return (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.nome} — Fatura: {formatCurrency(fatura)}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    {form.cartaoVinculadoId && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ✅ Valor da fatura de {getMonthLabel(mesAtual)} preenchido automaticamente. Ao salvar, as parcelas serão marcadas como pagas.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {isDespOp && (
                   <div>
