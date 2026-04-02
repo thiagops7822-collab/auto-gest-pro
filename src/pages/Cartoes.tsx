@@ -314,6 +314,63 @@ export default function Cartoes() {
         </div>
       </div>
 
+      {/* Fatura Detail Dialog */}
+      <Dialog open={!!faturaCartaoId} onOpenChange={o => { if (!o) setFaturaCartaoId(null); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {faturaMode === 'mes'
+                ? `Fatura ${getMonthLabel(mesFiltro)} — ${cartoesList.find(c => c.id === faturaCartaoId)?.nome || ''}`
+                : `Dívida Total — ${cartoesList.find(c => c.id === faturaCartaoId)?.nome || ''}`}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 space-y-2 max-h-[60vh] overflow-y-auto">
+            {(() => {
+              const despesas = despesasList.filter(d => d.cartaoId === faturaCartaoId);
+              const items = faturaMode === 'mes'
+                ? despesas.flatMap(d => d.parcelasGeradas
+                    .filter(p => p.mes === mesFiltro)
+                    .map(p => ({ descricao: d.descricao, categoria: d.categoria, parcelas: d.parcelas, valor: p.valor, mes: p.mes, status: p.status })))
+                : despesas.flatMap(d => d.parcelasGeradas
+                    .filter(p => p.status === 'Aberta')
+                    .map(p => ({ descricao: d.descricao, categoria: d.categoria, parcelas: d.parcelas, valor: p.valor, mes: p.mes, status: p.status })));
+              const total = items.reduce((s, i) => s + i.valor, 0);
+
+              if (items.length === 0) return <p className="text-muted-foreground text-sm py-4 text-center">Nenhuma parcela encontrada.</p>;
+
+              return (
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border hover:bg-transparent">
+                        <TableHead>Descrição</TableHead>
+                        <TableHead>Categoria</TableHead>
+                        {faturaMode === 'total' && <TableHead>Mês</TableHead>}
+                        <TableHead className="text-right">Valor</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {items.map((item, i) => (
+                        <TableRow key={i} className="border-border">
+                          <TableCell className="font-medium">{item.descricao}</TableCell>
+                          <TableCell><Badge variant="outline">{item.categoria}</Badge></TableCell>
+                          {faturaMode === 'total' && <TableCell className="text-muted-foreground">{item.mes}</TableCell>}
+                          <TableCell className="text-right">{formatCurrency(item.valor)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <div className="flex justify-between items-center pt-3 border-t border-border font-semibold">
+                    <span>Total</span>
+                    <span className={faturaMode === 'mes' ? 'text-primary' : 'text-warning'}>{formatCurrency(total)}</span>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={!!deleteId} onOpenChange={o => { if (!o) { setDeleteId(null); setDeleteType(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
