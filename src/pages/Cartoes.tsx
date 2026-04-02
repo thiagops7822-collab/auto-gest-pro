@@ -28,6 +28,8 @@ export default function Cartoes() {
   const [editingDespesaId, setEditingDespesaId] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<'cartao' | 'despesa' | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [faturaCartaoId, setFaturaCartaoId] = useState<string | null>(null);
+  const [faturaMode, setFaturaMode] = useState<'mes' | 'total'>('mes');
   const { toast } = useToast();
 
   const openEditCartao = (c: CartaoCredito) => {
