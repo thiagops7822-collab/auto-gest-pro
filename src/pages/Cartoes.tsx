@@ -282,7 +282,7 @@ export default function Cartoes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {despesasList.map(d => {
+              {despesasList.filter(d => d.parcelasGeradas.some(p => p.mes === mesFiltro)).map(d => {
                 const cartao = cartoesList.find(c => c.id === d.cartaoId);
                 return (
                   <TableRow key={d.id} className="border-border">
