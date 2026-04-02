@@ -29,6 +29,7 @@ export default function Financeiro() {
     funcList, saldoAnterior, setSaldoAnterior,
     pagamentosMes, setPagamentosMes,
     custosList, setCustosList,
+    cartoesList, despesasList, setDespesasList,
   } = useData();
 
   const [dialogOpen, setDialogOpen] = useState(false);
