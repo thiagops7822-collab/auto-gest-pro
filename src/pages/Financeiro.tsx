@@ -91,6 +91,19 @@ export default function Financeiro() {
     }));
   };
 
+  const handleCartaoSelect = (cartaoId: string) => {
+    const cartao = cartoesList.find(c => c.id === cartaoId);
+    if (!cartao) return;
+    const despesas = despesasList.filter(d => d.cartaoId === cartaoId);
+    const faturaMes = despesas.flatMap(d => d.parcelasGeradas.filter(p => p.mes === mesAtual && p.status !== 'Paga')).reduce((s, p) => s + p.valor, 0);
+    setForm(p => ({
+      ...p,
+      cartaoVinculadoId: cartaoId,
+      descricao: `FATURA ${getMonthLabel(mesAtual).toUpperCase()} - ${cartao.nome}`,
+      valor: String(faturaMes),
+    }));
+  };
+
   const handleSave = () => {
     if (!form.descricao || !form.valor) {
       toast({ title: "Campos obrigatórios", description: "Preencha descrição e valor.", variant: "destructive" });
