@@ -248,6 +248,7 @@ export default function Financeiro() {
       case 'Peça': return 'default';
       case 'Terceiro': return 'secondary';
       case 'Folha de pagamento': return 'destructive' as const;
+      case 'Cartão de crédito': return 'default';
       case 'Despesas operacionais': return 'outline';
       default: return 'outline';
     }
