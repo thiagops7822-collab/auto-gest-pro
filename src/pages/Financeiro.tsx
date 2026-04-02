@@ -140,6 +140,7 @@ export default function Financeiro() {
         osVinculadaId: needsOS ? form.osVinculadaId : undefined,
         funcionarioId: isFolha ? form.funcionarioId : undefined,
         custoVinculadoId: isDespOp ? form.custoVinculadoId : undefined,
+        cartaoVinculadoId: isCartao ? form.cartaoVinculadoId : undefined,
       } : s));
       toast({ title: "Saída atualizada!", description: `${form.descricao.toUpperCase()} editada.` });
     } else {
