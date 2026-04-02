@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus, CreditCard, Pencil, Trash2 } from "lucide-react";
-import MonthFilter, { getCurrentMonth } from "@/components/MonthFilter";
+import MonthFilter, { getCurrentMonth, getMonthLabel } from "@/components/MonthFilter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -250,7 +250,7 @@ export default function Cartoes() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <div className="p-3 bg-secondary/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Fatura Mar/25</p>
+                    <p className="text-xs text-muted-foreground">Fatura {getMonthLabel(mesFiltro)}</p>
                     <p className="text-lg font-bold text-primary">{formatCurrency(faturaMes)}</p>
                   </div>
                   <div className="p-3 bg-secondary/50 rounded-lg">
@@ -282,7 +282,7 @@ export default function Cartoes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {despesasList.map(d => {
+              {despesasList.filter(d => d.parcelasGeradas.some(p => p.mes === mesFiltro)).map(d => {
                 const cartao = cartoesList.find(c => c.id === d.cartaoId);
                 return (
                   <TableRow key={d.id} className="border-border">
