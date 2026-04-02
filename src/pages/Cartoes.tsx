@@ -292,13 +292,14 @@ export default function Cartoes() {
             <TableBody>
               {despesasList.filter(d => d.parcelasGeradas.some(p => p.mes === mesFiltro)).map(d => {
                 const cartao = cartoesList.find(c => c.id === d.cartaoId);
+                const parcelaAtual = d.parcelasGeradas.findIndex(p => p.mes === mesFiltro) + 1;
                 return (
                   <TableRow key={d.id} className="border-border">
                     <TableCell className="font-medium">{d.descricao}</TableCell>
                     <TableCell className="text-muted-foreground">{cartao?.nome}</TableCell>
                     <TableCell><Badge variant="outline">{d.categoria}</Badge></TableCell>
                     <TableCell className="text-right">{formatCurrency(d.valorTotal)}</TableCell>
-                    <TableCell>{d.parcelas}x</TableCell>
+                    <TableCell>{parcelaAtual}/{d.parcelas}</TableCell>
                     <TableCell className="text-right">{formatCurrency(d.valorTotal / d.parcelas)}</TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-1">
