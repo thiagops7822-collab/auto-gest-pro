@@ -250,7 +250,7 @@ export default function Cartoes() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-2">
                   <div className="p-3 bg-secondary/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Fatura Mar/25</p>
+                    <p className="text-xs text-muted-foreground">Fatura {mesFiltro.split('-').reverse().join('/')}</p>
                     <p className="text-lg font-bold text-primary">{formatCurrency(faturaMes)}</p>
                   </div>
                   <div className="p-3 bg-secondary/50 rounded-lg">
