@@ -53,13 +53,15 @@ export default function Financeiro() {
   const mesAtual = mesFiltro;
   const ativosNaoPagos = funcList.filter(f => f.status === 'Ativo' && !pagamentosMes[`${f.id}-${mesAtual}`]);
 
+  const isCartao = form.tipo === 'Cartão de crédito';
+
   const openEdit = (s: SaidaNaoPlanejada) => {
     setEditingId(s.id);
     setForm({
       descricao: s.descricao, valor: String(s.valor), formaPagamento: s.formaPagamento,
       data: s.data, observacao: s.observacao || '', tipo: s.tipo,
       osVinculadaId: s.osVinculadaId || '', funcionarioId: s.funcionarioId || '',
-      custoVinculadoId: s.custoVinculadoId || '',
+      custoVinculadoId: s.custoVinculadoId || '', cartaoVinculadoId: s.cartaoVinculadoId || '',
     });
     setDialogOpen(true);
   };
