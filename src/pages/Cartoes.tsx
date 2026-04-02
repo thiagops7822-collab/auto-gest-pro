@@ -389,6 +389,7 @@ export default function Cartoes() {
                       {items.map((item, i) => (
                         <TableRow key={i} className={`border-border cursor-pointer hover:bg-muted/50 ${item.status === 'Paga' ? 'opacity-50' : ''}`} onClick={() => toggleParcela(item.despesaId, item.mes)}>
                           <TableCell className="font-medium">{item.descricao}</TableCell>
+                          <TableCell className="text-muted-foreground">{item.parcelaAtual}/{item.parcelas}</TableCell>
                           <TableCell><Badge variant="outline">{item.categoria}</Badge></TableCell>
                           {faturaMode === 'total' && <TableCell className="text-muted-foreground">{getMonthLabel(item.mes)}</TableCell>}
                           <TableCell>
