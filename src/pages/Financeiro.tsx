@@ -19,7 +19,7 @@ type TipoSaida = SaidaNaoPlanejada['tipo'];
 const emptyForm = {
   descricao: '', valor: '', formaPagamento: 'PIX', data: '',
   observacao: '', tipo: 'Outros' as TipoSaida, osVinculadaId: '', funcionarioId: '',
-  custoVinculadoId: '',
+  custoVinculadoId: '', cartaoVinculadoId: '',
 };
 
 export default function Financeiro() {

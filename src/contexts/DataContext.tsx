@@ -21,10 +21,11 @@ export interface SaidaNaoPlanejada {
   formaPagamento: string;
   data: string;
   observacao?: string;
-  tipo: 'Peça' | 'Terceiro' | 'Outros' | 'Folha de pagamento' | 'Despesas operacionais';
+  tipo: 'Peça' | 'Terceiro' | 'Outros' | 'Folha de pagamento' | 'Despesas operacionais' | 'Cartão de crédito';
   osVinculadaId?: string;
   funcionarioId?: string;
   custoVinculadoId?: string;
+  cartaoVinculadoId?: string;
 }
 
 export interface OrcamentoItem {
