@@ -155,6 +155,7 @@ export default function Financeiro() {
         osVinculadaId: needsOS ? form.osVinculadaId : undefined,
         funcionarioId: isFolha ? form.funcionarioId : undefined,
         custoVinculadoId: isDespOp ? form.custoVinculadoId : undefined,
+        cartaoVinculadoId: isCartao ? form.cartaoVinculadoId : undefined,
       };
       setSaidasList(prev => [nova, ...prev]);
 
