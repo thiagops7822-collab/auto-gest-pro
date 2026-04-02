@@ -254,9 +254,15 @@ export default function Financeiro() {
     }
   };
 
+  const getCartaoLabel = (cartaoId: string) => {
+    const c = cartoesList.find(ct => ct.id === cartaoId);
+    return c ? c.nome : '—';
+  };
+
   const getVinculoLabel = (s: SaidaNaoPlanejada) => {
     if (s.tipo === 'Folha de pagamento' && s.funcionarioId) return getFuncLabel(s.funcionarioId);
     if (s.tipo === 'Despesas operacionais' && s.custoVinculadoId) return getCustoLabel(s.custoVinculadoId);
+    if (s.tipo === 'Cartão de crédito' && s.cartaoVinculadoId) return getCartaoLabel(s.cartaoVinculadoId);
     if (s.osVinculadaId) return getOSLabel(s.osVinculadaId);
     return '—';
   };
