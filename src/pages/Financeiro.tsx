@@ -121,6 +121,10 @@ export default function Financeiro() {
       toast({ title: "Custo obrigatório", description: "Selecione o custo vinculado.", variant: "destructive" });
       return;
     }
+    if (isCartao && !form.cartaoVinculadoId) {
+      toast({ title: "Cartão obrigatório", description: "Selecione o cartão.", variant: "destructive" });
+      return;
+    }
 
     const valorNum = parseFloat(form.valor) || 0;
 
