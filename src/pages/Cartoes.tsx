@@ -330,39 +330,86 @@ export default function Cartoes() {
               const items = faturaMode === 'mes'
                 ? despesas.flatMap(d => d.parcelasGeradas
                     .filter(p => p.mes === mesFiltro)
-                    .map(p => ({ descricao: d.descricao, categoria: d.categoria, parcelas: d.parcelas, valor: p.valor, mes: p.mes, status: p.status })))
+                    .map(p => ({ despesaId: d.id, descricao: d.descricao, categoria: d.categoria, parcelas: d.parcelas, valor: p.valor, mes: p.mes, status: p.status })))
                 : despesas.flatMap(d => d.parcelasGeradas
-                    .filter(p => p.status === 'Aberta')
-                    .map(p => ({ descricao: d.descricao, categoria: d.categoria, parcelas: d.parcelas, valor: p.valor, mes: p.mes, status: p.status })));
-              const total = items.reduce((s, i) => s + i.valor, 0);
+                    .filter(p => p.status === 'Aberta' || p.status === 'Vencida')
+                    .map(p => ({ despesaId: d.id, descricao: d.descricao, categoria: d.categoria, parcelas: d.parcelas, valor: p.valor, mes: p.mes, status: p.status })));
+              const total = items.filter(i => i.status !== 'Paga').reduce((s, i) => s + i.valor, 0);
+              const totalPago = items.filter(i => i.status === 'Paga').reduce((s, i) => s + i.valor, 0);
 
               if (items.length === 0) return <p className="text-muted-foreground text-sm py-4 text-center">Nenhuma parcela encontrada.</p>;
 
+              const toggleParcela = (despesaId: string, mes: string) => {
+                setDespesasList(prev => prev.map(d => {
+                  if (d.id !== despesaId) return d;
+                  return {
+                    ...d,
+                    parcelasGeradas: d.parcelasGeradas.map(p =>
+                      p.mes === mes ? { ...p, status: p.status === 'Paga' ? 'Aberta' as const : 'Paga' as const } : p
+                    ),
+                  };
+                }));
+              };
+
+              const marcarTodasMes = () => {
+                const allPaid = items.every(i => i.status === 'Paga');
+                setDespesasList(prev => prev.map(d => {
+                  if (d.cartaoId !== faturaCartaoId) return d;
+                  return {
+                    ...d,
+                    parcelasGeradas: d.parcelasGeradas.map(p =>
+                      p.mes === mesFiltro ? { ...p, status: allPaid ? 'Aberta' as const : 'Paga' as const } : p
+                    ),
+                  };
+                }));
+              };
+
               return (
                 <>
+                  {faturaMode === 'mes' && (
+                    <div className="flex justify-end">
+                      <Button variant="outline" size="sm" onClick={marcarTodasMes}>
+                        {items.every(i => i.status === 'Paga') ? 'Desmarcar todas' : 'Pagar fatura'}
+                      </Button>
+                    </div>
+                  )}
                   <Table>
                     <TableHeader>
                       <TableRow className="border-border hover:bg-transparent">
                         <TableHead>Descrição</TableHead>
                         <TableHead>Categoria</TableHead>
                         {faturaMode === 'total' && <TableHead>Mês</TableHead>}
+                        <TableHead>Status</TableHead>
                         <TableHead className="text-right">Valor</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {items.map((item, i) => (
-                        <TableRow key={i} className="border-border">
+                        <TableRow key={i} className={`border-border cursor-pointer hover:bg-muted/50 ${item.status === 'Paga' ? 'opacity-50' : ''}`} onClick={() => toggleParcela(item.despesaId, item.mes)}>
                           <TableCell className="font-medium">{item.descricao}</TableCell>
                           <TableCell><Badge variant="outline">{item.categoria}</Badge></TableCell>
-                          {faturaMode === 'total' && <TableCell className="text-muted-foreground">{item.mes}</TableCell>}
+                          {faturaMode === 'total' && <TableCell className="text-muted-foreground">{getMonthLabel(item.mes)}</TableCell>}
+                          <TableCell>
+                            <Badge variant={item.status === 'Paga' ? 'default' : 'secondary'}>
+                              {item.status}
+                            </Badge>
+                          </TableCell>
                           <TableCell className="text-right">{formatCurrency(item.valor)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
-                  <div className="flex justify-between items-center pt-3 border-t border-border font-semibold">
-                    <span>Total</span>
-                    <span className={faturaMode === 'mes' ? 'text-primary' : 'text-warning'}>{formatCurrency(total)}</span>
+                  <div className="space-y-1 pt-3 border-t border-border">
+                    {faturaMode === 'mes' && totalPago > 0 && (
+                      <div className="flex justify-between items-center text-sm text-muted-foreground">
+                        <span>Pago</span>
+                        <span>{formatCurrency(totalPago)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center font-semibold">
+                      <span>{faturaMode === 'mes' ? 'A pagar' : 'Dívida Total'}</span>
+                      <span className={faturaMode === 'mes' ? 'text-primary' : 'text-warning'}>{formatCurrency(total)}</span>
+                    </div>
                   </div>
                 </>
               );
