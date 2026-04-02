@@ -378,6 +378,7 @@ export default function Cartoes() {
                     <TableHeader>
                       <TableRow className="border-border hover:bg-transparent">
                         <TableHead>Descrição</TableHead>
+                        <TableHead>Parcela</TableHead>
                         <TableHead>Categoria</TableHead>
                         {faturaMode === 'total' && <TableHead>Mês</TableHead>}
                         <TableHead>Status</TableHead>
