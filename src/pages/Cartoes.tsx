@@ -251,14 +251,20 @@ export default function Cartoes() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-2">
-                  <div className="p-3 bg-secondary/50 rounded-lg">
+                  <button
+                    className="p-3 bg-secondary/50 rounded-lg text-left hover:bg-secondary/80 transition-colors cursor-pointer"
+                    onClick={() => { setFaturaCartaoId(cartao.id); setFaturaMode('mes'); }}
+                  >
                     <p className="text-xs text-muted-foreground">Fatura {getMonthLabel(mesFiltro)}</p>
                     <p className="text-lg font-bold text-primary">{formatCurrency(faturaMes)}</p>
-                  </div>
-                  <div className="p-3 bg-secondary/50 rounded-lg">
+                  </button>
+                  <button
+                    className="p-3 bg-secondary/50 rounded-lg text-left hover:bg-secondary/80 transition-colors cursor-pointer"
+                    onClick={() => { setFaturaCartaoId(cartao.id); setFaturaMode('total'); }}
+                  >
                     <p className="text-xs text-muted-foreground">Dívida Total</p>
                     <p className="text-lg font-bold text-warning">{formatCurrency(totalFuturo)}</p>
-                  </div>
+                  </button>
                 </div>
               </div>
             </div>
