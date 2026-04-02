@@ -181,6 +181,19 @@ export default function Financeiro() {
         }
       }
 
+      // Mark card parcels as paid
+      if (isCartao && form.cartaoVinculadoId) {
+        setDespesasList(prev => prev.map(d => {
+          if (d.cartaoId !== form.cartaoVinculadoId) return d;
+          return {
+            ...d,
+            parcelasGeradas: d.parcelasGeradas.map(p =>
+              p.mes === mesAtual && p.status !== 'Paga' ? { ...p, status: 'Paga' as const } : p
+            ),
+          };
+        }));
+      }
+
       toast({ title: "Saída registrada!", description: `${nova.descricao} — ${formatCurrency(nova.valor)}` });
     }
     setForm(emptyForm);
