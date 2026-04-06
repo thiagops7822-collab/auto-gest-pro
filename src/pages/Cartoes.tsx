@@ -312,7 +312,13 @@ export default function Cartoes() {
                 const parcelaAtual = d.parcelasGeradas.findIndex(p => p.mes === mesFiltro) + 1;
                 return (
                   <TableRow key={d.id} className="border-border">
-                    <TableCell className="font-medium">{d.descricao}</TableCell>
+                    <TableCell className="font-medium">
+                      {d.descricao}
+                      {d.osVinculadaId && (() => {
+                        const os = osList.find(o => o.id === d.osVinculadaId);
+                        return os ? <Badge variant="outline" className="ml-2 text-xs">OS #{os.numero}</Badge> : null;
+                      })()}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{cartao?.nome}</TableCell>
                     <TableCell><Badge variant="outline">{d.categoria}</Badge></TableCell>
                     <TableCell className="text-right">{formatCurrency(d.valorTotal)}</TableCell>
