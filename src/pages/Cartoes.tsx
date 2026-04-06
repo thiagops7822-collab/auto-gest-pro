@@ -92,7 +92,7 @@ export default function Cartoes() {
       toast({ title: "Campos obrigatórios", description: "Preencha cartão, descrição e valor.", variant: "destructive" });
       return;
     }
-    const valor = parseFloat(despesaForm.valorTotal) || 0;
+    const valor = parseCurrencyToNumber(despesaForm.valorTotal);
     const parcelas = parseInt(despesaForm.parcelas) || 1;
     const valorParcela = valor / parcelas;
     const hoje = new Date(despesaForm.dataCompra || new Date().toISOString().split('T')[0]);
