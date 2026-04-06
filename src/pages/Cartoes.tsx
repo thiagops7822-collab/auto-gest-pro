@@ -75,7 +75,7 @@ export default function Cartoes() {
       const novo: CartaoCredito = {
         id: crypto.randomUUID(),
         nome: cartaoForm.nome.toUpperCase(),
-        limiteTotal: parseFloat(cartaoForm.limiteTotal) || 0,
+        limiteTotal: parseCurrencyToNumber(cartaoForm.limiteTotal),
         diaFechamento: parseInt(cartaoForm.diaFechamento) || 1,
         diaVencimento: parseInt(cartaoForm.diaVencimento) || 10,
       };
