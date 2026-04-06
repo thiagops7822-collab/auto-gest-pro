@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, type CartaoCredito, type DespesaCartao } from "@/lib/mock-data";
 import { useData } from "@/contexts/DataContext";
+import { CurrencyInput, parseCurrencyToNumber } from "@/components/CurrencyInput";
 
 const emptyCartao = { nome: '', limiteTotal: '', diaFechamento: '', diaVencimento: '' };
 const emptyDespesa = { cartaoId: '', descricao: '', categoria: '', valorTotal: '', parcelas: '1', dataCompra: '', osVinculadaId: '' };
@@ -65,7 +66,7 @@ export default function Cartoes() {
       setCartoesList(prev => prev.map(c => c.id === editingCartaoId ? {
         ...c,
         nome: cartaoForm.nome.toUpperCase(),
-        limiteTotal: parseFloat(cartaoForm.limiteTotal) || 0,
+        limiteTotal: parseCurrencyToNumber(cartaoForm.limiteTotal),
         diaFechamento: parseInt(cartaoForm.diaFechamento) || 1,
         diaVencimento: parseInt(cartaoForm.diaVencimento) || 10,
       } : c));
@@ -74,7 +75,7 @@ export default function Cartoes() {
       const novo: CartaoCredito = {
         id: crypto.randomUUID(),
         nome: cartaoForm.nome.toUpperCase(),
-        limiteTotal: parseFloat(cartaoForm.limiteTotal) || 0,
+        limiteTotal: parseCurrencyToNumber(cartaoForm.limiteTotal),
         diaFechamento: parseInt(cartaoForm.diaFechamento) || 1,
         diaVencimento: parseInt(cartaoForm.diaVencimento) || 10,
       };
@@ -91,7 +92,7 @@ export default function Cartoes() {
       toast({ title: "Campos obrigatórios", description: "Preencha cartão, descrição e valor.", variant: "destructive" });
       return;
     }
-    const valor = parseFloat(despesaForm.valorTotal) || 0;
+    const valor = parseCurrencyToNumber(despesaForm.valorTotal);
     const parcelas = parseInt(despesaForm.parcelas) || 1;
     const valorParcela = valor / parcelas;
     const hoje = new Date(despesaForm.dataCompra || new Date().toISOString().split('T')[0]);
@@ -170,7 +171,7 @@ export default function Cartoes() {
               <DialogHeader><DialogTitle>{editingCartaoId ? 'Editar Cartão' : 'Cadastrar Cartão'}</DialogTitle></DialogHeader>
               <div className="grid gap-4 mt-4">
                 <div><Label>Nome do Cartão *</Label><Input placeholder="Ex: Nubank PJ" value={cartaoForm.nome} onChange={e => setCartaoForm(p => ({ ...p, nome: e.target.value }))} /></div>
-                <div><Label>Limite Total (R$) *</Label><Input type="number" placeholder="0,00" value={cartaoForm.limiteTotal} onChange={e => setCartaoForm(p => ({ ...p, limiteTotal: e.target.value }))} /></div>
+                <div><Label>Limite Total (R$) *</Label><CurrencyInput value={cartaoForm.limiteTotal} onChange={v => setCartaoForm(p => ({ ...p, limiteTotal: v }))} /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><Label>Dia Fechamento</Label><Input type="number" placeholder="3" value={cartaoForm.diaFechamento} onChange={e => setCartaoForm(p => ({ ...p, diaFechamento: e.target.value }))} /></div>
                   <div><Label>Dia Vencimento</Label><Input type="number" placeholder="10" value={cartaoForm.diaVencimento} onChange={e => setCartaoForm(p => ({ ...p, diaVencimento: e.target.value }))} /></div>
@@ -219,7 +220,7 @@ export default function Cartoes() {
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Valor Total (R$) *</Label><Input type="number" placeholder="0,00" value={despesaForm.valorTotal} onChange={e => setDespesaForm(p => ({ ...p, valorTotal: e.target.value }))} /></div>
+                  <div><Label>Valor Total (R$) *</Label><CurrencyInput value={despesaForm.valorTotal} onChange={v => setDespesaForm(p => ({ ...p, valorTotal: v }))} /></div>
                   <div><Label>Parcelas</Label><Input type="number" placeholder="1" value={despesaForm.parcelas} onChange={e => setDespesaForm(p => ({ ...p, parcelas: e.target.value }))} /></div>
                 </div>
                 <div><Label>Data da Compra</Label><Input type="date" value={despesaForm.dataCompra} onChange={e => setDespesaForm(p => ({ ...p, dataCompra: e.target.value }))} /></div>

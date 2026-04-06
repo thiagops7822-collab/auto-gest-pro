@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, type CustoFixo } from "@/lib/mock-data";
 import { useData } from "@/contexts/DataContext";
+import { CurrencyInput, parseCurrencyToNumber } from "@/components/CurrencyInput";
 
 const statusColors: Record<string, string> = {
   'Pago': 'badge-success',
@@ -60,7 +61,7 @@ export default function CustosFixos() {
         ...c,
         nome: form.nome.toUpperCase(),
         categoria: form.categoria as CustoFixo['categoria'],
-        valorPrevisto: parseFloat(form.valorPrevisto) || 0,
+        valorPrevisto: parseCurrencyToNumber(form.valorPrevisto),
         diaVencimento: parseInt(form.diaVencimento) || 1,
         recorrencia: form.recorrencia || 'Mensal',
       } : c));
@@ -70,7 +71,7 @@ export default function CustosFixos() {
         id: crypto.randomUUID(),
         nome: form.nome.toUpperCase(),
         categoria: form.categoria as CustoFixo['categoria'],
-        valorPrevisto: parseFloat(form.valorPrevisto) || 0,
+        valorPrevisto: parseCurrencyToNumber(form.valorPrevisto),
         diaVencimento: parseInt(form.diaVencimento) || 1,
         recorrencia: form.recorrencia || 'Mensal',
         statusPagamento: 'Pendente',
@@ -106,7 +107,7 @@ export default function CustosFixos() {
           </SelectContent>
         </Select>
       </div>
-      <div><Label>Valor Previsto (R$) *</Label><Input type="number" placeholder="0,00" value={form.valorPrevisto} onChange={e => setForm(p => ({ ...p, valorPrevisto: e.target.value }))} /></div>
+      <div><Label>Valor Previsto (R$) *</Label><CurrencyInput value={form.valorPrevisto} onChange={v => setForm(p => ({ ...p, valorPrevisto: v }))} /></div>
       <div><Label>Dia de Vencimento</Label><Input type="number" placeholder="10" value={form.diaVencimento} onChange={e => setForm(p => ({ ...p, diaVencimento: e.target.value }))} /></div>
       <div>
         <Label>Recorrência</Label>

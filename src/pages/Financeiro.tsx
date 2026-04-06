@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate } from "@/lib/mock-data";
 import { useData, type SaidaNaoPlanejada } from "@/contexts/DataContext";
 import { getMonthLabel } from "@/components/MonthFilter";
+import { CurrencyInput, parseCurrencyToNumber } from "@/components/CurrencyInput";
 
 type TipoSaida = SaidaNaoPlanejada['tipo'];
 
@@ -73,9 +74,9 @@ export default function Financeiro() {
   };
 
   const handleSaveSaldo = () => {
-    setSaldoAnterior(parseFloat(saldoInput) || 0);
+    setSaldoAnterior(parseCurrencyToNumber(saldoInput));
     setSaldoDialogOpen(false);
-    toast({ title: "Saldo atualizado!", description: `Saldo anterior definido como ${formatCurrency(parseFloat(saldoInput) || 0)}` });
+    toast({ title: "Saldo atualizado!", description: `Saldo anterior definido como ${formatCurrency(parseCurrencyToNumber(saldoInput))}` });
   };
 
   const handleCustoSelect = (custoId: string) => {
@@ -126,7 +127,7 @@ export default function Financeiro() {
       return;
     }
 
-    const valorNum = parseFloat(form.valor) || 0;
+    const valorNum = parseCurrencyToNumber(form.valor);
 
     if (editingId) {
       setSaidasList(prev => prev.map(s => s.id === editingId ? {
@@ -287,9 +288,9 @@ export default function Financeiro() {
               <div className="grid gap-4 mt-4">
                 <div>
                   <Label>Saldo do mês passado (R$)</Label>
-                  <Input
-                    type="number" placeholder="0,00" value={saldoInput}
-                    onChange={e => setSaldoInput(e.target.value)}
+                  <CurrencyInput
+                    value={saldoInput}
+                    onChange={v => setSaldoInput(v)}
                   />
                   <p className="text-xs text-muted-foreground mt-1">Insira o saldo que será usado como base para o cálculo do mês atual.</p>
                 </div>
@@ -407,7 +408,7 @@ export default function Financeiro() {
                 )}
 
                 <div><Label>Descrição *</Label><Input placeholder="Ex: Compra emergencial de peça" value={form.descricao} onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))} /></div>
-                <div><Label>Valor (R$) *</Label><Input type="number" placeholder="0,00" value={form.valor} onChange={e => setForm(p => ({ ...p, valor: e.target.value }))} /></div>
+                <div><Label>Valor (R$) *</Label><CurrencyInput value={form.valor} onChange={v => setForm(p => ({ ...p, valor: v }))} /></div>
                 <div>
                   <Label>Forma de Pagamento</Label>
                   <Select value={form.formaPagamento} onValueChange={v => setForm(p => ({ ...p, formaPagamento: v }))}>
