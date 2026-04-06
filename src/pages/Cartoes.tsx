@@ -111,6 +111,7 @@ export default function Cartoes() {
         parcelas,
         dataCompra: despesaForm.dataCompra || d.dataCompra,
         parcelasGeradas,
+        osVinculadaId: (despesaForm.categoria === 'Peças' || despesaForm.categoria === 'Terceiros') ? despesaForm.osVinculadaId || undefined : undefined,
       } : d));
       toast({ title: "Despesa atualizada!", description: `${despesaForm.descricao.toUpperCase()} editada.` });
     } else {
