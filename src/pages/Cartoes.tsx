@@ -18,7 +18,7 @@ const emptyCartao = { nome: '', limiteTotal: '', diaFechamento: '', diaVenciment
 const emptyDespesa = { cartaoId: '', descricao: '', categoria: '', valorTotal: '', parcelas: '1', dataCompra: '', osVinculadaId: '' };
 
 export default function Cartoes() {
-  const { cartoesList, setCartoesList, despesasList, setDespesasList } = useData();
+  const { cartoesList, setCartoesList, despesasList, setDespesasList, osList } = useData();
   const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
   const [cartaoDialog, setCartaoDialog] = useState(false);
   const [despesaDialog, setDespesaDialog] = useState(false);
