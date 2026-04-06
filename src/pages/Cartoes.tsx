@@ -171,7 +171,7 @@ export default function Cartoes() {
               <DialogHeader><DialogTitle>{editingCartaoId ? 'Editar Cartão' : 'Cadastrar Cartão'}</DialogTitle></DialogHeader>
               <div className="grid gap-4 mt-4">
                 <div><Label>Nome do Cartão *</Label><Input placeholder="Ex: Nubank PJ" value={cartaoForm.nome} onChange={e => setCartaoForm(p => ({ ...p, nome: e.target.value }))} /></div>
-                <div><Label>Limite Total (R$) *</Label><Input type="number" placeholder="0,00" value={cartaoForm.limiteTotal} onChange={e => setCartaoForm(p => ({ ...p, limiteTotal: e.target.value }))} /></div>
+                <div><Label>Limite Total (R$) *</Label><CurrencyInput value={cartaoForm.limiteTotal} onChange={v => setCartaoForm(p => ({ ...p, limiteTotal: v }))} /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><Label>Dia Fechamento</Label><Input type="number" placeholder="3" value={cartaoForm.diaFechamento} onChange={e => setCartaoForm(p => ({ ...p, diaFechamento: e.target.value }))} /></div>
                   <div><Label>Dia Vencimento</Label><Input type="number" placeholder="10" value={cartaoForm.diaVencimento} onChange={e => setCartaoForm(p => ({ ...p, diaVencimento: e.target.value }))} /></div>
