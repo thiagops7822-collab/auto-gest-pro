@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, type CustoFixo } from "@/lib/mock-data";
 import { useData } from "@/contexts/DataContext";
+import { CurrencyInput, parseCurrencyToNumber } from "@/components/CurrencyInput";
 
 const statusColors: Record<string, string> = {
   'Pago': 'badge-success',
