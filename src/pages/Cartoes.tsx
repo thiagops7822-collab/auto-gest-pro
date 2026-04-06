@@ -194,13 +194,28 @@ export default function Cartoes() {
                 <div><Label>Descrição *</Label><Input placeholder="Ex: Compressor de ar" value={despesaForm.descricao} onChange={e => setDespesaForm(p => ({ ...p, descricao: e.target.value }))} /></div>
                 <div>
                   <Label>Categoria</Label>
-                  <Select value={despesaForm.categoria} onValueChange={v => setDespesaForm(p => ({ ...p, categoria: v }))}>
+                  <Select value={despesaForm.categoria} onValueChange={v => setDespesaForm(p => ({ ...p, categoria: v, osVinculadaId: '' }))}>
                     <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
-                      {['Peças','Ferramentas','Combustível','Alimentação','Material de escritório','Outros'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      {['Peças','Terceiros','Ferramentas','Combustível','Alimentação','Material de escritório','Outros'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
+                {(despesaForm.categoria === 'Peças' || despesaForm.categoria === 'Terceiros') && (
+                  <div>
+                    <Label>Vincular à OS</Label>
+                    <Select value={despesaForm.osVinculadaId} onValueChange={v => setDespesaForm(p => ({ ...p, osVinculadaId: v }))}>
+                      <SelectTrigger><SelectValue placeholder="Selecione a OS" /></SelectTrigger>
+                      <SelectContent>
+                        {osList.map(os => (
+                          <SelectItem key={os.id} value={os.id}>
+                            OS #{os.numero} - {os.modelo} {os.placa ? `(${os.placa})` : ''} - {os.cliente || 'Sem cliente'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div><Label>Valor Total (R$) *</Label><Input type="number" placeholder="0,00" value={despesaForm.valorTotal} onChange={e => setDespesaForm(p => ({ ...p, valorTotal: e.target.value }))} /></div>
                   <div><Label>Parcelas</Label><Input type="number" placeholder="1" value={despesaForm.parcelas} onChange={e => setDespesaForm(p => ({ ...p, parcelas: e.target.value }))} /></div>
