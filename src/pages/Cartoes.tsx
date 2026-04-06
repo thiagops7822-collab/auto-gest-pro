@@ -15,7 +15,7 @@ import { formatCurrency, type CartaoCredito, type DespesaCartao } from "@/lib/mo
 import { useData } from "@/contexts/DataContext";
 
 const emptyCartao = { nome: '', limiteTotal: '', diaFechamento: '', diaVencimento: '' };
-const emptyDespesa = { cartaoId: '', descricao: '', categoria: '', valorTotal: '', parcelas: '1', dataCompra: '' };
+const emptyDespesa = { cartaoId: '', descricao: '', categoria: '', valorTotal: '', parcelas: '1', dataCompra: '', osVinculadaId: '' };
 
 export default function Cartoes() {
   const { cartoesList, setCartoesList, despesasList, setDespesasList } = useData();

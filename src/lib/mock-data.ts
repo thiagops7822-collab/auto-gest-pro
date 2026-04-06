@@ -89,6 +89,7 @@ export interface DespesaCartao {
   parcelas: number;
   dataCompra: string;
   parcelasGeradas: { mes: string; valor: number; status: 'Aberta' | 'Paga' | 'Vencida' }[];
+  osVinculadaId?: string;
 }
 
 export interface Terceiro {
