@@ -95,7 +95,7 @@ export default function Funcionarios() {
         cpf: form.cpf,
         cargo: form.cargo.toUpperCase(),
         tipoContrato: (form.tipoContrato || 'Informal') as Funcionario['tipoContrato'],
-        salarioBase: parseFloat(form.salarioBase) || 0,
+        salarioBase: parseCurrencyToNumber(form.salarioBase),
         dataAdmissao: form.dataAdmissao || new Date().toISOString().split('T')[0],
         status: 'Ativo',
         diaPagamento: parseInt(form.diaPagamento) || 5,

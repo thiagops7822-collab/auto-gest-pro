@@ -71,7 +71,7 @@ export default function CustosFixos() {
         id: crypto.randomUUID(),
         nome: form.nome.toUpperCase(),
         categoria: form.categoria as CustoFixo['categoria'],
-        valorPrevisto: parseFloat(form.valorPrevisto) || 0,
+        valorPrevisto: parseCurrencyToNumber(form.valorPrevisto),
         diaVencimento: parseInt(form.diaVencimento) || 1,
         recorrencia: form.recorrencia || 'Mensal',
         statusPagamento: 'Pendente',

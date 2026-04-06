@@ -127,7 +127,7 @@ export default function Financeiro() {
       return;
     }
 
-    const valorNum = parseFloat(form.valor) || 0;
+    const valorNum = parseCurrencyToNumber(form.valor);
 
     if (editingId) {
       setSaidasList(prev => prev.map(s => s.id === editingId ? {
