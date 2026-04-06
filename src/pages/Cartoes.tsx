@@ -66,7 +66,7 @@ export default function Cartoes() {
       setCartoesList(prev => prev.map(c => c.id === editingCartaoId ? {
         ...c,
         nome: cartaoForm.nome.toUpperCase(),
-        limiteTotal: parseFloat(cartaoForm.limiteTotal) || 0,
+        limiteTotal: parseCurrencyToNumber(cartaoForm.limiteTotal),
         diaFechamento: parseInt(cartaoForm.diaFechamento) || 1,
         diaVencimento: parseInt(cartaoForm.diaVencimento) || 10,
       } : c));
