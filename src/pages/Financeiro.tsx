@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate } from "@/lib/mock-data";
 import { useData, type SaidaNaoPlanejada } from "@/contexts/DataContext";
 import { getMonthLabel } from "@/components/MonthFilter";
+import { CurrencyInput, parseCurrencyToNumber } from "@/components/CurrencyInput";
 
 type TipoSaida = SaidaNaoPlanejada['tipo'];
 
