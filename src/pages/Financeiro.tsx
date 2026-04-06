@@ -288,9 +288,9 @@ export default function Financeiro() {
               <div className="grid gap-4 mt-4">
                 <div>
                   <Label>Saldo do mês passado (R$)</Label>
-                  <Input
-                    type="number" placeholder="0,00" value={saldoInput}
-                    onChange={e => setSaldoInput(e.target.value)}
+                  <CurrencyInput
+                    value={saldoInput}
+                    onChange={v => setSaldoInput(v)}
                   />
                   <p className="text-xs text-muted-foreground mt-1">Insira o saldo que será usado como base para o cálculo do mês atual.</p>
                 </div>
