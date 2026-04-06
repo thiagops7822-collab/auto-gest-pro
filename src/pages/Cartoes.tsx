@@ -220,7 +220,7 @@ export default function Cartoes() {
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Valor Total (R$) *</Label><Input type="number" placeholder="0,00" value={despesaForm.valorTotal} onChange={e => setDespesaForm(p => ({ ...p, valorTotal: e.target.value }))} /></div>
+                  <div><Label>Valor Total (R$) *</Label><CurrencyInput value={despesaForm.valorTotal} onChange={v => setDespesaForm(p => ({ ...p, valorTotal: v }))} /></div>
                   <div><Label>Parcelas</Label><Input type="number" placeholder="1" value={despesaForm.parcelas} onChange={e => setDespesaForm(p => ({ ...p, parcelas: e.target.value }))} /></div>
                 </div>
                 <div><Label>Data da Compra</Label><Input type="date" value={despesaForm.dataCompra} onChange={e => setDespesaForm(p => ({ ...p, dataCompra: e.target.value }))} /></div>
