@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, type CartaoCredito, type DespesaCartao } from "@/lib/mock-data";
 import { useData } from "@/contexts/DataContext";
+import { CurrencyInput, parseCurrencyToNumber } from "@/components/CurrencyInput";
 
 const emptyCartao = { nome: '', limiteTotal: '', diaFechamento: '', diaVencimento: '' };
 const emptyDespesa = { cartaoId: '', descricao: '', categoria: '', valorTotal: '', parcelas: '1', dataCompra: '', osVinculadaId: '' };
