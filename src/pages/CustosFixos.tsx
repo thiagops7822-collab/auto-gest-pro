@@ -106,7 +106,7 @@ export default function CustosFixos() {
           </SelectContent>
         </Select>
       </div>
-      <div><Label>Valor Previsto (R$) *</Label><Input type="number" placeholder="0,00" value={form.valorPrevisto} onChange={e => setForm(p => ({ ...p, valorPrevisto: e.target.value }))} /></div>
+      <div><Label>Valor Previsto (R$) *</Label><CurrencyInput value={form.valorPrevisto} onChange={v => setForm(p => ({ ...p, valorPrevisto: v }))} /></div>
       <div><Label>Dia de Vencimento</Label><Input type="number" placeholder="10" value={form.diaVencimento} onChange={e => setForm(p => ({ ...p, diaVencimento: e.target.value }))} /></div>
       <div>
         <Label>Recorrência</Label>

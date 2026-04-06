@@ -408,7 +408,7 @@ export default function Financeiro() {
                 )}
 
                 <div><Label>Descrição *</Label><Input placeholder="Ex: Compra emergencial de peça" value={form.descricao} onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))} /></div>
-                <div><Label>Valor (R$) *</Label><Input type="number" placeholder="0,00" value={form.valor} onChange={e => setForm(p => ({ ...p, valor: e.target.value }))} /></div>
+                <div><Label>Valor (R$) *</Label><CurrencyInput value={form.valor} onChange={v => setForm(p => ({ ...p, valor: v }))} /></div>
                 <div>
                   <Label>Forma de Pagamento</Label>
                   <Select value={form.formaPagamento} onValueChange={v => setForm(p => ({ ...p, formaPagamento: v }))}>

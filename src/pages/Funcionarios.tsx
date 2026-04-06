@@ -143,7 +143,7 @@ export default function Funcionarios() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Salário Base (R$) *</Label><Input type="number" placeholder="0,00" value={form.salarioBase} onChange={e => setForm(p => ({ ...p, salarioBase: e.target.value }))} /></div>
+              <div><Label>Salário Base (R$) *</Label><CurrencyInput value={form.salarioBase} onChange={v => setForm(p => ({ ...p, salarioBase: v }))} /></div>
               <div><Label>Dia de Pagamento *</Label><Input type="number" min="1" max="31" placeholder="5" value={form.diaPagamento} onChange={e => setForm(p => ({ ...p, diaPagamento: e.target.value }))} /></div>
               <div><Label>Data de Admissão</Label><Input type="date" value={form.dataAdmissao} onChange={e => setForm(p => ({ ...p, dataAdmissao: e.target.value }))} /></div>
               {editingId && (

@@ -295,7 +295,7 @@ export default function Orcamentos() {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">Valor do Serviço (R$)</Label>
-              <Input className="h-8 text-xs" type="number" step="0.01" value={item.valorUnitario || ''} onChange={e => updateItem(setter, item.id, 'valorUnitario', parseFloat(e.target.value) || 0)} placeholder="0,00" />
+              <Input className="h-8 text-xs" type="number" step="0.01" value={item.valorUnitario || ''} onChange={e => updateItem(setter, item.id, 'valorUnitario', parseFloat(e.target.value) || 0)} placeholder="R$ 0,00" />
             </div>
             <div>
               <Label className="text-xs">Valor Total (R$)</Label>
