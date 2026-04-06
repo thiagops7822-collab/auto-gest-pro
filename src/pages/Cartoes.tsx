@@ -129,6 +129,7 @@ export default function Cartoes() {
         parcelas,
         dataCompra: despesaForm.dataCompra || new Date().toISOString().split('T')[0],
         parcelasGeradas,
+        osVinculadaId: (despesaForm.categoria === 'Peças' || despesaForm.categoria === 'Terceiros') ? despesaForm.osVinculadaId || undefined : undefined,
       };
       setDespesasList(prev => [...prev, nova]);
       toast({ title: "Despesa lançada!", description: `${nova.descricao} em ${parcelas}x de ${formatCurrency(valorParcela)}.` });
