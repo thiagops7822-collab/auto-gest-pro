@@ -74,9 +74,9 @@ export default function Financeiro() {
   };
 
   const handleSaveSaldo = () => {
-    setSaldoAnterior(parseFloat(saldoInput) || 0);
+    setSaldoAnterior(parseCurrencyToNumber(saldoInput));
     setSaldoDialogOpen(false);
-    toast({ title: "Saldo atualizado!", description: `Saldo anterior definido como ${formatCurrency(parseFloat(saldoInput) || 0)}` });
+    toast({ title: "Saldo atualizado!", description: `Saldo anterior definido como ${formatCurrency(parseCurrencyToNumber(saldoInput))}` });
   };
 
   const handleCustoSelect = (custoId: string) => {
