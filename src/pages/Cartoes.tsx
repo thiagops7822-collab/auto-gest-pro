@@ -46,7 +46,7 @@ export default function Cartoes() {
 
   const openEditDespesa = (d: DespesaCartao) => {
     setEditingDespesaId(d.id);
-    setDespesaForm({ cartaoId: d.cartaoId, descricao: d.descricao, categoria: d.categoria, valorTotal: String(d.valorTotal), parcelas: String(d.parcelas), dataCompra: d.dataCompra });
+    setDespesaForm({ cartaoId: d.cartaoId, descricao: d.descricao, categoria: d.categoria, valorTotal: String(d.valorTotal), parcelas: String(d.parcelas), dataCompra: d.dataCompra, osVinculadaId: d.osVinculadaId || '' });
     setDespesaDialog(true);
   };
 
