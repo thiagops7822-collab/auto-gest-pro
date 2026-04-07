@@ -65,7 +65,6 @@ const createEmptyItem = (): OrcamentoItem => ({
   qtde: 1,
   valorUnitario: 0,
   valorTotal: 0,
-  valorUnitarioFormatted: '',
 });
 
 function getTotal(itens: OrcamentoItem[]) {
