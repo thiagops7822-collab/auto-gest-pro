@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Plus, Eye, Pencil, Trash2, FileDown, ArrowRightLeft, X } from "lucide-react";
+import { CurrencyInput, formatToCurrency, parseCurrencyToNumber } from "@/components/CurrencyInput";
 import MonthFilter, { getCurrentMonth } from "@/components/MonthFilter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,7 @@ const createEmptyItem = (): OrcamentoItem => ({
   qtde: 1,
   valorUnitario: 0,
   valorTotal: 0,
+  valorUnitarioFormatted: '',
 });
 
 function getTotal(itens: OrcamentoItem[]) {

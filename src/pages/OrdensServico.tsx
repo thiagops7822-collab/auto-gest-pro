@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Plus, Eye, DollarSign, Pencil, Trash2, FileDown } from "lucide-react";
+import { CurrencyInput, formatToCurrency, parseCurrencyToNumber } from "@/components/CurrencyInput";
 import MonthFilter, { getCurrentMonth, filterByMonth } from "@/components/MonthFilter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,16 +61,16 @@ export default function OrdensServico() {
   const handleEditChange = (field: string, value: string) => setEditForm(prev => ({ ...prev, [field]: field === 'tipoServico' ? value : value.toUpperCase() }));
 
   const getValorTotal = () => {
-    const orcado = parseFloat(form.valorOrcado) || 0;
-    const pecas = parseFloat(form.valorPecas) || 0;
-    const terceiros = parseFloat(form.valorTerceiros) || 0;
+    const orcado = parseCurrencyToNumber(form.valorOrcado);
+    const pecas = parseCurrencyToNumber(form.valorPecas);
+    const terceiros = parseCurrencyToNumber(form.valorTerceiros);
     return orcado + pecas + terceiros;
   };
 
   const getEditValorTotal = () => {
-    const orcado = parseFloat(editForm.valorOrcado) || 0;
-    const pecas = parseFloat(editForm.valorPecas) || 0;
-    const terceiros = parseFloat(editForm.valorTerceiros) || 0;
+    const orcado = parseCurrencyToNumber(editForm.valorOrcado);
+    const pecas = parseCurrencyToNumber(editForm.valorPecas);
+    const terceiros = parseCurrencyToNumber(editForm.valorTerceiros);
     return orcado + pecas + terceiros;
   };
 
@@ -79,8 +80,8 @@ export default function OrdensServico() {
       return;
     }
     const nextNumero = Math.max(...osList.map(o => o.numero), 1000) + 1;
-    const valorPecas = parseFloat(form.valorPecas) || 0;
-    const valorTerceiros = parseFloat(form.valorTerceiros) || 0;
+    const valorPecas = parseCurrencyToNumber(form.valorPecas);
+    const valorTerceiros = parseCurrencyToNumber(form.valorTerceiros);
     const newOS: OrdemServico = {
       id: crypto.randomUUID(),
       numero: nextNumero,
@@ -93,7 +94,7 @@ export default function OrdensServico() {
       telefone: form.telefone,
       tipoServico: form.tipoServico || 'Reparo Geral',
       descricao: form.descricao,
-      valorOrcado: parseFloat(form.valorOrcado) || 0,
+      valorOrcado: parseCurrencyToNumber(form.valorOrcado),
       status: 'Em Andamento',
       pecas: valorPecas > 0 ? [{ id: crypto.randomUUID(), descricao: 'Peças diversas', fornecedor: 'Diversos', valor: valorPecas, data: new Date().toISOString().split('T')[0], status: 'Solicitado' }] : [],
       pagamentos: [],
@@ -132,8 +133,8 @@ export default function OrdensServico() {
       toast({ title: "Campos obrigatórios", description: "Preencha modelo e valor orçado.", variant: "destructive" });
       return;
     }
-    const valorPecas = parseFloat(editForm.valorPecas) || 0;
-    const valorTerceiros = parseFloat(editForm.valorTerceiros) || 0;
+    const valorPecas = parseCurrencyToNumber(editForm.valorPecas);
+    const valorTerceiros = parseCurrencyToNumber(editForm.valorTerceiros);
 
     const updatedPecas = [...editingOS.pecas];
     // Update or rebuild pecas based on new values
@@ -162,7 +163,7 @@ export default function OrdensServico() {
       telefone: editForm.telefone,
       tipoServico: editForm.tipoServico || os.tipoServico,
       descricao: editForm.descricao,
-      valorOrcado: parseFloat(editForm.valorOrcado) || 0,
+      valorOrcado: parseCurrencyToNumber(editForm.valorOrcado),
       pecas: finalPecas,
     } : os));
 
@@ -178,7 +179,7 @@ export default function OrdensServico() {
   };
 
   const handleAddPagamento = (osId: string) => {
-    const valor = parseFloat(pagForm.valor);
+    const valor = parseCurrencyToNumber(pagForm.valor);
     if (!valor || valor <= 0) {
       toast({ title: "Valor inválido", description: "Informe um valor válido.", variant: "destructive" });
       return;
@@ -225,9 +226,9 @@ export default function OrdensServico() {
           </SelectContent>
         </Select>
       </div>
-      <div><Label>Valor Orçado (R$) *</Label><Input placeholder="0,00" type="number" value={formData.valorOrcado} onChange={e => onChange('valorOrcado', e.target.value)} /></div>
-      <div><Label>Valor de Peças (R$)</Label><Input placeholder="0,00" type="number" value={formData.valorPecas} onChange={e => onChange('valorPecas', e.target.value)} /></div>
-      <div><Label>Valor Serviços Terceiros (R$)</Label><Input placeholder="0,00" type="number" value={formData.valorTerceiros} onChange={e => onChange('valorTerceiros', e.target.value)} /></div>
+      <div><Label>Valor Orçado (R$) *</Label><CurrencyInput value={formData.valorOrcado} onChange={v => onChange('valorOrcado', v)} /></div>
+      <div><Label>Valor de Peças (R$)</Label><CurrencyInput value={formData.valorPecas} onChange={v => onChange('valorPecas', v)} /></div>
+      <div><Label>Valor Serviços Terceiros (R$)</Label><CurrencyInput value={formData.valorTerceiros} onChange={v => onChange('valorTerceiros', v)} /></div>
       <div className="sm:col-span-2"><Label>Descrição do Serviço</Label><Textarea placeholder="Descreva o serviço..." value={formData.descricao} onChange={e => onChange('descricao', e.target.value)} /></div>
     </div>
   );
@@ -389,7 +390,7 @@ export default function OrdensServico() {
                   <p>OS #{os.numero} — {os.modelo} {os.placa && `(${os.placa})`}</p>
                   <p className="text-muted-foreground">Valor Total: {formatCurrency(getValorTotalOS(os))} | Recebido: {formatCurrency(getTotalRecebido(os))} | <span className="text-warning font-semibold">Restante: {formatCurrency(pendente)}</span></p>
                 </div>
-                <div><Label>Valor (R$)</Label><Input type="number" placeholder="0,00" value={pagForm.valor} onChange={e => setPagForm(p => ({ ...p, valor: e.target.value }))} /></div>
+                <div><Label>Valor (R$)</Label><CurrencyInput value={pagForm.valor} onChange={v => setPagForm(p => ({ ...p, valor: v }))} /></div>
                 <div>
                   <Label>Forma de Pagamento</Label>
                   <Select value={pagForm.forma} onValueChange={v => setPagForm(p => ({ ...p, forma: v }))}>
