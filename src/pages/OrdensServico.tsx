@@ -57,8 +57,8 @@ export default function OrdensServico() {
     return matchSearch && matchStatus && matchMonth;
   });
 
-  const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: field === 'tipoServico' ? value : value.toUpperCase() }));
-  const handleEditChange = (field: string, value: string) => setEditForm(prev => ({ ...prev, [field]: field === 'tipoServico' ? value : value.toUpperCase() }));
+  const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: ['tipoServico', 'valorOrcado', 'valorPecas', 'valorTerceiros'].includes(field) ? value : value.toUpperCase() }));
+  const handleEditChange = (field: string, value: string) => setEditForm(prev => ({ ...prev, [field]: ['tipoServico', 'valorOrcado', 'valorPecas', 'valorTerceiros'].includes(field) ? value : value.toUpperCase() }));
 
   const getValorTotal = () => {
     const orcado = parseCurrencyToNumber(form.valorOrcado);
