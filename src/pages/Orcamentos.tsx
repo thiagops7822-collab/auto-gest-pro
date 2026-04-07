@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Plus, Eye, Pencil, Trash2, FileDown, ArrowRightLeft, X } from "lucide-react";
+import { CurrencyInput, formatToCurrency, parseCurrencyToNumber } from "@/components/CurrencyInput";
 import MonthFilter, { getCurrentMonth } from "@/components/MonthFilter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -126,14 +127,12 @@ export default function Orcamentos() {
         }
 
         if (isPecas(updated.operacao)) {
-          // Peças: total = qtde * valorUnitario
           if (field === 'qtde' || field === 'valorUnitario') {
             const qtde = field === 'qtde' ? Number(value) : item.qtde;
             const unitario = field === 'valorUnitario' ? Number(value) : item.valorUnitario;
             updated.valorTotal = qtde * unitario;
           }
         } else {
-          // Serviços: total = valorUnitario (valor do serviço)
           if (field === 'valorUnitario') {
             updated.valorTotal = Number(value);
           }
@@ -145,6 +144,11 @@ export default function Orcamentos() {
         return updated;
       }),
     }));
+  };
+
+  const handleCurrencyItemUpdate = (setter: React.Dispatch<React.SetStateAction<OrcamentoForm>>, id: string, field: 'valorUnitario' | 'valorTotal', formatted: string) => {
+    const numValue = parseCurrencyToNumber(formatted);
+    updateItem(setter, id, field, numValue);
   };
 
   const getDefaultValidade = () => {
@@ -284,22 +288,22 @@ export default function Orcamentos() {
             </div>
             <div>
               <Label className="text-xs">Valor Unit. (R$)</Label>
-              <Input className="h-8 text-xs" type="number" step="0.01" value={item.valorUnitario || ''} onChange={e => updateItem(setter, item.id, 'valorUnitario', parseFloat(e.target.value) || 0)} placeholder="R$ 0,00" />
+              <CurrencyInput className="h-8 text-xs" value={item.valorUnitario > 0 ? item.valorUnitario.toString() : ''} onChange={v => handleCurrencyItemUpdate(setter, item.id, 'valorUnitario', v)} />
             </div>
             <div>
               <Label className="text-xs">Valor Total (R$)</Label>
-              <Input className="h-8 text-xs bg-muted" readOnly value={item.valorTotal > 0 ? item.valorTotal.toFixed(2) : ''} placeholder="0,00" />
+              <CurrencyInput className="h-8 text-xs bg-muted" readOnly value={item.valorTotal > 0 ? item.valorTotal.toString() : ''} onChange={() => {}} />
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">Valor do Serviço (R$)</Label>
-              <Input className="h-8 text-xs" type="number" step="0.01" value={item.valorUnitario || ''} onChange={e => updateItem(setter, item.id, 'valorUnitario', parseFloat(e.target.value) || 0)} placeholder="R$ 0,00" />
+              <CurrencyInput className="h-8 text-xs" value={item.valorUnitario > 0 ? item.valorUnitario.toString() : ''} onChange={v => handleCurrencyItemUpdate(setter, item.id, 'valorUnitario', v)} />
             </div>
             <div>
               <Label className="text-xs">Valor Total (R$)</Label>
-              <Input className="h-8 text-xs bg-muted" readOnly value={item.valorTotal > 0 ? item.valorTotal.toFixed(2) : ''} placeholder="0,00" />
+              <CurrencyInput className="h-8 text-xs bg-muted" readOnly value={item.valorTotal > 0 ? item.valorTotal.toString() : ''} onChange={() => {}} />
             </div>
           </div>
         )}
