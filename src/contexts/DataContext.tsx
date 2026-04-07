@@ -1,8 +1,19 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   mapOS, mapCusto, mapFuncionario, mapCartao, mapDespesa, mapTerceiro, mapSaida, mapOrcamento,
 } from "@/lib/supabase-mappers";
+import {
+  upsertOS, deleteOS as dbDeleteOS,
+  upsertCusto, deleteCusto as dbDeleteCusto,
+  upsertFuncionario, deleteFuncionario as dbDeleteFuncionario,
+  upsertCartao, deleteCartao as dbDeleteCartao,
+  upsertDespesa, deleteDespesa as dbDeleteDespesa,
+  upsertTerceiro, deleteTerceiro as dbDeleteTerceiro,
+  upsertSaida, deleteSaida as dbDeleteSaida,
+  upsertOrcamento, deleteOrcamento as dbDeleteOrcamento,
+  saveSaldoAnterior,
+} from "@/lib/supabase-actions";
 import type { OrdemServico, CustoFixo, Funcionario, CartaoCredito, DespesaCartao, Terceiro } from "@/lib/mock-data";
 
 export interface SaidaNaoPlanejada {
@@ -90,18 +101,66 @@ const defaultDataContext: DataContextType = {
 
 const DataContext = createContext<DataContextType>(defaultDataContext);
 
+// Helper: creates a syncing setter that detects adds, updates and deletes
+function useSyncedList<T extends { id: string }>(
+  initial: T[],
+  syncUpsert: (item: T) => Promise<void>,
+  syncDelete: (id: string) => Promise<void>,
+) {
+  const [list, setListRaw] = useState<T[]>(initial);
+  const prevRef = useRef<T[]>(initial);
+
+  const setList: React.Dispatch<React.SetStateAction<T[]>> = useCallback((action) => {
+    setListRaw(prev => {
+      const next = typeof action === 'function' ? (action as (p: T[]) => T[])(prev) : action;
+      // Detect changes and sync in background
+      const prevIds = new Set(prev.map(i => i.id));
+      const nextIds = new Set(next.map(i => i.id));
+
+      // Upsert new or changed items
+      for (const item of next) {
+        const old = prev.find(o => o.id === item.id);
+        if (!old || JSON.stringify(old) !== JSON.stringify(item)) {
+          syncUpsert(item).catch(e => console.error('Sync upsert error:', e));
+        }
+      }
+
+      // Delete removed items
+      for (const item of prev) {
+        if (!nextIds.has(item.id)) {
+          syncDelete(item.id).catch(e => console.error('Sync delete error:', e));
+        }
+      }
+
+      prevRef.current = next;
+      return next;
+    });
+  }, [syncUpsert, syncDelete]);
+
+  return [list, setList, setListRaw] as const;
+}
+
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [osList, setOsList] = useState<OrdemServico[]>([]);
-  const [custosList, setCustosList] = useState<CustoFixo[]>([]);
-  const [funcList, setFuncList] = useState<Funcionario[]>([]);
-  const [cartoesList, setCartoesList] = useState<CartaoCredito[]>([]);
-  const [despesasList, setDespesasList] = useState<DespesaCartao[]>([]);
-  const [terceirosList, setTerceirosList] = useState<Terceiro[]>([]);
-  const [saidasList, setSaidasList] = useState<SaidaNaoPlanejada[]>([]);
-  const [orcamentosList, setOrcamentosList] = useState<Orcamento[]>([]);
-  const [saldoAnterior, setSaldoAnterior] = useState<number>(0);
+  const [osList, setOsListWrapped, setOsListRaw] = useSyncedList<OrdemServico>([], upsertOS, dbDeleteOS);
+  const [custosList, setCustosListWrapped, setCustosListRaw] = useSyncedList<CustoFixo>([], upsertCusto, dbDeleteCusto);
+  const [funcList, setFuncListWrapped, setFuncListRaw] = useSyncedList<Funcionario>([], upsertFuncionario, dbDeleteFuncionario);
+  const [cartoesList, setCartoesListWrapped, setCartoesListRaw] = useSyncedList<CartaoCredito>([], upsertCartao, dbDeleteCartao);
+  const [despesasList, setDespesasListWrapped, setDespesasListRaw] = useSyncedList<DespesaCartao>([], upsertDespesa, dbDeleteDespesa);
+  const [terceirosList, setTerceirosListWrapped, setTerceirosListRaw] = useSyncedList<Terceiro>([], upsertTerceiro, dbDeleteTerceiro);
+  const [saidasList, setSaidasListWrapped, setSaidasListRaw] = useSyncedList<SaidaNaoPlanejada>([], upsertSaida, dbDeleteSaida);
+  const [orcamentosList, setOrcamentosListWrapped, setOrcamentosListRaw] = useSyncedList<Orcamento>([], upsertOrcamento, dbDeleteOrcamento);
+
+  const [saldoAnterior, setSaldoAnteriorRaw] = useState<number>(0);
   const [pagamentosMes, setPagamentosMes] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
+
+  const setSaldoAnterior: React.Dispatch<React.SetStateAction<number>> = useCallback((action) => {
+    setSaldoAnteriorRaw(prev => {
+      const next = typeof action === 'function' ? (action as (p: number) => number)(prev) : action;
+      saveSaldoAnterior(next).catch(e => console.error('Sync saldo error:', e));
+      return next;
+    });
+  }, []);
 
   const refreshData = useCallback(async () => {
     try {
@@ -135,19 +194,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
         supabase.from('configuracoes').select('*'),
       ]);
 
+      // Use raw setters to avoid triggering sync on initial load
       if (osData && pecasData && pagData) {
-        setOsList(osData.map(os => mapOS(os, pecasData, pagData)));
+        setOsListRaw(osData.map(os => mapOS(os, pecasData, pagData)));
       }
-      if (custosData) setCustosList(custosData.map(mapCusto));
-      if (funcData) setFuncList(funcData.map(mapFuncionario));
-      if (cartoesData) setCartoesList(cartoesData.map(mapCartao));
-      if (despData && parcData) setDespesasList(despData.map(d => mapDespesa(d, parcData)));
-      if (tercData) setTerceirosList(tercData.map(mapTerceiro));
-      if (saidasData) setSaidasList(saidasData.map(mapSaida));
-      if (orcData && orcItensData) setOrcamentosList(orcData.map(o => mapOrcamento(o, orcItensData)));
+      if (custosData) setCustosListRaw(custosData.map(mapCusto));
+      if (funcData) setFuncListRaw(funcData.map(mapFuncionario));
+      if (cartoesData) setCartoesListRaw(cartoesData.map(mapCartao));
+      if (despData && parcData) setDespesasListRaw(despData.map(d => mapDespesa(d, parcData)));
+      if (tercData) setTerceirosListRaw(tercData.map(mapTerceiro));
+      if (saidasData) setSaidasListRaw(saidasData.map(mapSaida));
+      if (orcData && orcItensData) setOrcamentosListRaw(orcData.map(o => mapOrcamento(o, orcItensData)));
 
       const saldoConfig = configData?.find(c => c.chave === 'saldo_anterior');
-      if (saldoConfig) setSaldoAnterior(Number(saldoConfig.valor) || 0);
+      if (saldoConfig) setSaldoAnteriorRaw(Number(saldoConfig.valor) || 0);
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
     } finally {
@@ -161,14 +221,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      osList, setOsList,
-      custosList, setCustosList,
-      funcList, setFuncList,
-      cartoesList, setCartoesList,
-      despesasList, setDespesasList,
-      terceirosList, setTerceirosList,
-      saidasList, setSaidasList,
-      orcamentosList, setOrcamentosList,
+      osList, setOsList: setOsListWrapped,
+      custosList, setCustosList: setCustosListWrapped,
+      funcList, setFuncList: setFuncListWrapped,
+      cartoesList, setCartoesList: setCartoesListWrapped,
+      despesasList, setDespesasList: setDespesasListWrapped,
+      terceirosList, setTerceirosList: setTerceirosListWrapped,
+      saidasList, setSaidasList: setSaidasListWrapped,
+      orcamentosList, setOrcamentosList: setOrcamentosListWrapped,
       saldoAnterior, setSaldoAnterior,
       pagamentosMes, setPagamentosMes,
       loading, refreshData,
