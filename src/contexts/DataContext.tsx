@@ -1,18 +1,20 @@
-import React, { createContext, useContext, useState, type ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  ordensServico as initialOS,
-  custosFixos as initialCustos,
-  funcionarios as initialFunc,
-  cartoes as initialCartoes,
-  despesasCartao as initialDespesas,
-  terceiros as initialTerceiros,
-  type OrdemServico,
-  type CustoFixo,
-  type Funcionario,
-  type CartaoCredito,
-  type DespesaCartao,
-  type Terceiro,
-} from "@/lib/mock-data";
+  mapOS, mapCusto, mapFuncionario, mapCartao, mapDespesa, mapTerceiro, mapSaida, mapOrcamento,
+} from "@/lib/supabase-mappers";
+import {
+  upsertOS, deleteOS as dbDeleteOS,
+  upsertCusto, deleteCusto as dbDeleteCusto,
+  upsertFuncionario, deleteFuncionario as dbDeleteFuncionario,
+  upsertCartao, deleteCartao as dbDeleteCartao,
+  upsertDespesa, deleteDespesa as dbDeleteDespesa,
+  upsertTerceiro, deleteTerceiro as dbDeleteTerceiro,
+  upsertSaida, deleteSaida as dbDeleteSaida,
+  upsertOrcamento, deleteOrcamento as dbDeleteOrcamento,
+  saveSaldoAnterior,
+} from "@/lib/supabase-actions";
+import type { OrdemServico, CustoFixo, Funcionario, CartaoCredito, DespesaCartao, Terceiro } from "@/lib/mock-data";
 
 export interface SaidaNaoPlanejada {
   id: string;
@@ -55,27 +57,6 @@ export interface Orcamento {
   status: 'Pendente' | 'Aprovado' | 'Recusado' | 'Convertido';
 }
 
-const initialSaidas: SaidaNaoPlanejada[] = [
-  { id: 's1', descricao: 'Compra emergencial de lixa', valor: 85, formaPagamento: 'PIX', data: '2025-03-12', tipo: 'Peça' },
-  { id: 's2', descricao: 'Pagamento avulso eletricista', valor: 350, formaPagamento: 'Dinheiro', data: '2025-03-15', observacao: 'Reparo urgente na fiação', tipo: 'Terceiro' },
-];
-
-const initialOrcamentos: Orcamento[] = [
-  {
-    id: 'orc1', numero: 720, dataCriacao: '2026-02-06', validade: '2026-03-06',
-    placa: 'BYI2F19', modelo: 'SAVEIRO', ano: '2019/20', cor: 'BRANCO',
-    cliente: 'HENRIQUE', telefone: '(11) 94744-0501', sinistro: 'Não',
-    orcamentista: 'VLADIMIR ANDRE COSTA',
-    itens: [
-      { id: 'i1', operacao: 'Fun / Pint / Mont', descricao: 'PARA CHOQUE DIANTEIRO', qtde: 1, valorUnitario: 0, valorTotal: 0 },
-      { id: 'i2', operacao: 'Pintura', descricao: 'GRADE DO TETO', qtde: 1, valorUnitario: 0, valorTotal: 0 },
-      { id: 'i3', operacao: 'Peças / Mont', descricao: 'MOLDURA DO PARA CHOQUE LADO DIREITO', qtde: 1, valorUnitario: 123, valorTotal: 123 },
-      { id: 'i4', operacao: 'Peças / Mont', descricao: 'LANTERNA DE PLACA', qtde: 2, valorUnitario: 38, valorTotal: 76 },
-    ],
-    observacoes: '', status: 'Pendente',
-  },
-];
-
 interface DataContextType {
   osList: OrdemServico[];
   setOsList: React.Dispatch<React.SetStateAction<OrdemServico[]>>;
@@ -97,59 +78,160 @@ interface DataContextType {
   setSaldoAnterior: React.Dispatch<React.SetStateAction<number>>;
   pagamentosMes: Record<string, boolean>;
   setPagamentosMes: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  loading: boolean;
+  refreshData: () => Promise<void>;
 }
 
 const noopSetter = <T,>(_value: React.SetStateAction<T>) => undefined;
 
 const defaultDataContext: DataContextType = {
-  osList: initialOS,
-  setOsList: noopSetter<OrdemServico[]>,
-  custosList: initialCustos,
-  setCustosList: noopSetter<CustoFixo[]>,
-  funcList: initialFunc,
-  setFuncList: noopSetter<Funcionario[]>,
-  cartoesList: initialCartoes,
-  setCartoesList: noopSetter<CartaoCredito[]>,
-  despesasList: initialDespesas,
-  setDespesasList: noopSetter<DespesaCartao[]>,
-  terceirosList: initialTerceiros,
-  setTerceirosList: noopSetter<Terceiro[]>,
-  saidasList: initialSaidas,
-  setSaidasList: noopSetter<SaidaNaoPlanejada[]>,
-  orcamentosList: initialOrcamentos,
-  setOrcamentosList: noopSetter<Orcamento[]>,
-  saldoAnterior: 0,
-  setSaldoAnterior: noopSetter<number>,
-  pagamentosMes: {},
-  setPagamentosMes: noopSetter<Record<string, boolean>>,
+  osList: [], setOsList: noopSetter<OrdemServico[]>,
+  custosList: [], setCustosList: noopSetter<CustoFixo[]>,
+  funcList: [], setFuncList: noopSetter<Funcionario[]>,
+  cartoesList: [], setCartoesList: noopSetter<CartaoCredito[]>,
+  despesasList: [], setDespesasList: noopSetter<DespesaCartao[]>,
+  terceirosList: [], setTerceirosList: noopSetter<Terceiro[]>,
+  saidasList: [], setSaidasList: noopSetter<SaidaNaoPlanejada[]>,
+  orcamentosList: [], setOrcamentosList: noopSetter<Orcamento[]>,
+  saldoAnterior: 0, setSaldoAnterior: noopSetter<number>,
+  pagamentosMes: {}, setPagamentosMes: noopSetter<Record<string, boolean>>,
+  loading: true,
+  refreshData: async () => {},
 };
 
 const DataContext = createContext<DataContextType>(defaultDataContext);
 
+// Helper: creates a syncing setter that detects adds, updates and deletes
+function useSyncedList<T extends { id: string }>(
+  initial: T[],
+  syncUpsert: (item: T) => Promise<void>,
+  syncDelete: (id: string) => Promise<void>,
+) {
+  const [list, setListRaw] = useState<T[]>(initial);
+  const prevRef = useRef<T[]>(initial);
+
+  const setList: React.Dispatch<React.SetStateAction<T[]>> = useCallback((action) => {
+    setListRaw(prev => {
+      const next = typeof action === 'function' ? (action as (p: T[]) => T[])(prev) : action;
+      // Detect changes and sync in background
+      const prevIds = new Set(prev.map(i => i.id));
+      const nextIds = new Set(next.map(i => i.id));
+
+      // Upsert new or changed items
+      for (const item of next) {
+        const old = prev.find(o => o.id === item.id);
+        if (!old || JSON.stringify(old) !== JSON.stringify(item)) {
+          syncUpsert(item).catch(e => console.error('Sync upsert error:', e));
+        }
+      }
+
+      // Delete removed items
+      for (const item of prev) {
+        if (!nextIds.has(item.id)) {
+          syncDelete(item.id).catch(e => console.error('Sync delete error:', e));
+        }
+      }
+
+      prevRef.current = next;
+      return next;
+    });
+  }, [syncUpsert, syncDelete]);
+
+  return [list, setList, setListRaw] as const;
+}
+
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [osList, setOsList] = useState<OrdemServico[]>(initialOS);
-  const [custosList, setCustosList] = useState<CustoFixo[]>(initialCustos);
-  const [funcList, setFuncList] = useState<Funcionario[]>(initialFunc);
-  const [cartoesList, setCartoesList] = useState<CartaoCredito[]>(initialCartoes);
-  const [despesasList, setDespesasList] = useState<DespesaCartao[]>(initialDespesas);
-  const [terceirosList, setTerceirosList] = useState<Terceiro[]>(initialTerceiros);
-  const [saidasList, setSaidasList] = useState<SaidaNaoPlanejada[]>(initialSaidas);
-  const [orcamentosList, setOrcamentosList] = useState<Orcamento[]>(initialOrcamentos);
-  const [saldoAnterior, setSaldoAnterior] = useState<number>(0);
+  const [osList, setOsListWrapped, setOsListRaw] = useSyncedList<OrdemServico>([], upsertOS, dbDeleteOS);
+  const [custosList, setCustosListWrapped, setCustosListRaw] = useSyncedList<CustoFixo>([], upsertCusto, dbDeleteCusto);
+  const [funcList, setFuncListWrapped, setFuncListRaw] = useSyncedList<Funcionario>([], upsertFuncionario, dbDeleteFuncionario);
+  const [cartoesList, setCartoesListWrapped, setCartoesListRaw] = useSyncedList<CartaoCredito>([], upsertCartao, dbDeleteCartao);
+  const [despesasList, setDespesasListWrapped, setDespesasListRaw] = useSyncedList<DespesaCartao>([], upsertDespesa, dbDeleteDespesa);
+  const [terceirosList, setTerceirosListWrapped, setTerceirosListRaw] = useSyncedList<Terceiro>([], upsertTerceiro, dbDeleteTerceiro);
+  const [saidasList, setSaidasListWrapped, setSaidasListRaw] = useSyncedList<SaidaNaoPlanejada>([], upsertSaida, dbDeleteSaida);
+  const [orcamentosList, setOrcamentosListWrapped, setOrcamentosListRaw] = useSyncedList<Orcamento>([], upsertOrcamento, dbDeleteOrcamento);
+
+  const [saldoAnterior, setSaldoAnteriorRaw] = useState<number>(0);
   const [pagamentosMes, setPagamentosMes] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+
+  const setSaldoAnterior: React.Dispatch<React.SetStateAction<number>> = useCallback((action) => {
+    setSaldoAnteriorRaw(prev => {
+      const next = typeof action === 'function' ? (action as (p: number) => number)(prev) : action;
+      saveSaldoAnterior(next).catch(e => console.error('Sync saldo error:', e));
+      return next;
+    });
+  }, []);
+
+  const refreshData = useCallback(async () => {
+    try {
+      const [
+        { data: osData },
+        { data: pecasData },
+        { data: pagData },
+        { data: custosData },
+        { data: funcData },
+        { data: cartoesData },
+        { data: despData },
+        { data: parcData },
+        { data: tercData },
+        { data: saidasData },
+        { data: orcData },
+        { data: orcItensData },
+        { data: configData },
+      ] = await Promise.all([
+        supabase.from('ordens_servico').select('*').order('numero', { ascending: false }),
+        supabase.from('pecas_os').select('*'),
+        supabase.from('pagamentos_os').select('*'),
+        supabase.from('custos_fixos').select('*').order('nome'),
+        supabase.from('funcionarios').select('*').order('nome'),
+        supabase.from('cartoes_credito').select('*').order('nome'),
+        supabase.from('despesas_cartao').select('*').order('data_compra', { ascending: false }),
+        supabase.from('parcelas_despesa').select('*'),
+        supabase.from('terceiros').select('*').order('nome'),
+        supabase.from('saidas_nao_planejadas').select('*').order('data', { ascending: false }),
+        supabase.from('orcamentos').select('*').order('numero', { ascending: false }),
+        supabase.from('orcamento_itens').select('*'),
+        supabase.from('configuracoes').select('*'),
+      ]);
+
+      // Use raw setters to avoid triggering sync on initial load
+      if (osData && pecasData && pagData) {
+        setOsListRaw(osData.map(os => mapOS(os, pecasData, pagData)));
+      }
+      if (custosData) setCustosListRaw(custosData.map(mapCusto));
+      if (funcData) setFuncListRaw(funcData.map(mapFuncionario));
+      if (cartoesData) setCartoesListRaw(cartoesData.map(mapCartao));
+      if (despData && parcData) setDespesasListRaw(despData.map(d => mapDespesa(d, parcData)));
+      if (tercData) setTerceirosListRaw(tercData.map(mapTerceiro));
+      if (saidasData) setSaidasListRaw(saidasData.map(mapSaida));
+      if (orcData && orcItensData) setOrcamentosListRaw(orcData.map(o => mapOrcamento(o, orcItensData)));
+
+      const saldoConfig = configData?.find(c => c.chave === 'saldo_anterior');
+      if (saldoConfig) setSaldoAnteriorRaw(Number(saldoConfig.valor) || 0);
+    } catch (err) {
+      console.error('Erro ao carregar dados:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
   return (
     <DataContext.Provider value={{
-      osList, setOsList,
-      custosList, setCustosList,
-      funcList, setFuncList,
-      cartoesList, setCartoesList,
-      despesasList, setDespesasList,
-      terceirosList, setTerceirosList,
-      saidasList, setSaidasList,
-      orcamentosList, setOrcamentosList,
+      osList, setOsList: setOsListWrapped,
+      custosList, setCustosList: setCustosListWrapped,
+      funcList, setFuncList: setFuncListWrapped,
+      cartoesList, setCartoesList: setCartoesListWrapped,
+      despesasList, setDespesasList: setDespesasListWrapped,
+      terceirosList, setTerceirosList: setTerceirosListWrapped,
+      saidasList, setSaidasList: setSaidasListWrapped,
+      orcamentosList, setOrcamentosList: setOrcamentosListWrapped,
       saldoAnterior, setSaldoAnterior,
       pagamentosMes, setPagamentosMes,
+      loading, refreshData,
     }}>
       {children}
     </DataContext.Provider>
