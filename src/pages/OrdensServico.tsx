@@ -119,7 +119,7 @@ export default function OrdensServico() {
       cliente: os.cliente,
       telefone: os.telefone,
       tipoServico: os.tipoServico,
-      valorOrcado: os.valorOrcado.toString(),
+      valorOrcado: os.valorOrcado > 0 ? os.valorOrcado.toString() : '',
       valorPecas: pecasVal > 0 ? pecasVal.toString() : '',
       valorTerceiros: '',
       descricao: os.descricao,
