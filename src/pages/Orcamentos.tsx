@@ -48,6 +48,7 @@ interface OrcamentoForm {
   cliente: string; telefone: string; sinistro: string;
   orcamentista: string;
   observacoes: string; validade: string;
+  dataCriacao: string;
   itens: OrcamentoItem[];
 }
 
@@ -55,6 +56,7 @@ const emptyForm: OrcamentoForm = {
   placa: '', modelo: '', ano: '', cor: '', cliente: '', telefone: '',
   sinistro: 'Não', orcamentista: '',
   observacoes: '', validade: '',
+  dataCriacao: new Date().toISOString().split('T')[0],
   itens: [],
 };
 
@@ -166,7 +168,7 @@ export default function Orcamentos() {
     const newOrc: Orcamento = {
       id: crypto.randomUUID(),
       numero: nextNumero,
-      dataCriacao: new Date().toISOString().split('T')[0],
+      dataCriacao: form.dataCriacao || new Date().toISOString().split('T')[0],
       validade: form.validade || getDefaultValidade(),
       placa: form.placa, modelo: form.modelo, ano: form.ano, cor: form.cor,
       cliente: form.cliente, telefone: form.telefone, sinistro: form.sinistro,
@@ -188,6 +190,7 @@ export default function Orcamentos() {
       cliente: orc.cliente, telefone: orc.telefone, sinistro: orc.sinistro,
       orcamentista: orc.orcamentista,
       observacoes: orc.observacoes, validade: orc.validade,
+      dataCriacao: orc.dataCriacao,
       itens: orc.itens.map(i => ({ ...i })),
     });
     setEditDialogOpen(true);
@@ -205,6 +208,7 @@ export default function Orcamentos() {
       orcamentista: editForm.orcamentista,
       itens: editForm.itens, observacoes: editForm.observacoes,
       validade: editForm.validade || orc.validade,
+      dataCriacao: editForm.dataCriacao || orc.dataCriacao,
     } : orc));
     setEditDialogOpen(false);
     setEditingOrc(null);
@@ -337,7 +341,10 @@ export default function Orcamentos() {
         <div><Label>Telefone</Label><Input value={f.telefone} onChange={e => onChange('telefone', e.target.value)} placeholder="(11) 99999-9999" /></div>
       </div>
       <div className="grid grid-cols-2 gap-3">
+        <div><Label>Data de Criação</Label><Input type="date" value={f.dataCriacao} onChange={e => setter(prev => ({ ...prev, dataCriacao: e.target.value }))} /></div>
         <div><Label>Orçamentista</Label><Input value={f.orcamentista} onChange={e => onChange('orcamentista', e.target.value)} /></div>
+      </div>
+      <div className="grid grid-cols-1 gap-3">
         <div><Label>Validade</Label><Input type="date" value={f.validade || getDefaultValidade()} onChange={e => setter(prev => ({ ...prev, validade: e.target.value }))} /></div>
       </div>
 

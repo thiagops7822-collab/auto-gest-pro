@@ -30,7 +30,7 @@ const pagamentoColors: Record<string, string> = {
   'Pendente': 'badge-danger',
 };
 
-const emptyForm = { placa: '', modelo: '', ano: '', cor: '', cliente: '', telefone: '', tipoServico: '', valorOrcado: '', valorPecas: '', valorTerceiros: '', descricao: '' };
+const emptyForm = { placa: '', modelo: '', ano: '', cor: '', cliente: '', telefone: '', tipoServico: '', valorOrcado: '', valorPecas: '', valorTerceiros: '', descricao: '', dataEntrada: new Date().toISOString().split('T')[0] };
 
 export default function OrdensServico() {
   const [search, setSearch] = useState("");
@@ -85,7 +85,7 @@ export default function OrdensServico() {
     const newOS: OrdemServico = {
       id: crypto.randomUUID(),
       numero: nextNumero,
-      dataEntrada: new Date().toISOString().split('T')[0],
+      dataEntrada: form.dataEntrada || new Date().toISOString().split('T')[0],
       placa: form.placa,
       modelo: form.modelo,
       ano: form.ano,
@@ -123,6 +123,7 @@ export default function OrdensServico() {
       valorPecas: pecasVal > 0 ? pecasVal.toString() : '',
       valorTerceiros: '',
       descricao: os.descricao,
+      dataEntrada: os.dataEntrada,
     });
     setEditDialogOpen(true);
   };
@@ -164,6 +165,7 @@ export default function OrdensServico() {
       tipoServico: editForm.tipoServico || os.tipoServico,
       descricao: editForm.descricao,
       valorOrcado: parseCurrencyToNumber(editForm.valorOrcado),
+      dataEntrada: editForm.dataEntrada || os.dataEntrada,
       pecas: finalPecas,
     } : os));
 
@@ -198,8 +200,9 @@ export default function OrdensServico() {
     toast({ title: "Pagamento registrado!", description: `${formatCurrency(valor)} recebido.` });
   };
 
-  const renderFormFields = (formData: typeof emptyForm, onChange: (field: string, value: string) => void) => (
+  const renderFormFields = (formData: typeof emptyForm, onChange: (field: string, value: string) => void, setter: React.Dispatch<React.SetStateAction<typeof emptyForm>>) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+      <div><Label>Data de Entrada</Label><Input type="date" value={formData.dataEntrada} onChange={e => setter(prev => ({ ...prev, dataEntrada: e.target.value }))} /></div>
       <div><Label>Placa</Label><Input placeholder="ABC-1234" value={formData.placa} onChange={e => onChange('placa', e.target.value)} /></div>
       <div><Label>Modelo *</Label><Input placeholder="Ex: Honda Civic" value={formData.modelo} onChange={e => onChange('modelo', e.target.value)} /></div>
       <div><Label>Ano</Label><Input placeholder="2022" value={formData.ano} onChange={e => onChange('ano', e.target.value)} /></div>
@@ -248,7 +251,7 @@ export default function OrdensServico() {
             <DialogHeader>
               <DialogTitle>Nova Ordem de Serviço</DialogTitle>
             </DialogHeader>
-            {renderFormFields(form, handleChange)}
+            {renderFormFields(form, handleChange, setForm)}
             <div className="p-3 rounded-lg bg-secondary/50 mt-2">
               <p className="text-sm text-muted-foreground">Valor Total da OS: <span className="text-lg font-bold text-primary">{formatCurrency(getValorTotal())}</span></p>
             </div>
@@ -350,7 +353,7 @@ export default function OrdensServico() {
           <DialogHeader>
             <DialogTitle>Editar OS #{editingOS?.numero}</DialogTitle>
           </DialogHeader>
-          {renderFormFields(editForm, handleEditChange)}
+          {renderFormFields(editForm, handleEditChange, setEditForm)}
           <div className="p-3 rounded-lg bg-secondary/50 mt-2">
             <p className="text-sm text-muted-foreground">Valor Total da OS: <span className="text-lg font-bold text-primary">{formatCurrency(getEditValorTotal())}</span></p>
           </div>
