@@ -13,7 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, type CartaoCredito, type DespesaCartao } from "@/lib/mock-data";
 import { useData } from "@/contexts/DataContext";
-import { CurrencyInput, parseCurrencyToNumber } from "@/components/CurrencyInput";
+import { CurrencyInput, parseCurrencyToNumber, numberToCurrency } from "@/components/CurrencyInput";
 
 const emptyCartao = { nome: '', limiteTotal: '', diaFechamento: '', diaVencimento: '' };
 const emptyDespesa = { cartaoId: '', descricao: '', categoria: '', valorTotal: '', parcelas: '1', dataCompra: '', osVinculadaId: '' };
@@ -35,7 +35,7 @@ export default function Cartoes() {
 
   const openEditCartao = (c: CartaoCredito) => {
     setEditingCartaoId(c.id);
-    setCartaoForm({ nome: c.nome, limiteTotal: String(c.limiteTotal), diaFechamento: String(c.diaFechamento), diaVencimento: String(c.diaVencimento) });
+    setCartaoForm({ nome: c.nome, limiteTotal: numberToCurrency(c.limiteTotal), diaFechamento: String(c.diaFechamento), diaVencimento: String(c.diaVencimento) });
     setCartaoDialog(true);
   };
 

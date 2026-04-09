@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate } from "@/lib/mock-data";
 import { useData, type SaidaNaoPlanejada } from "@/contexts/DataContext";
 import { getMonthLabel } from "@/components/MonthFilter";
-import { CurrencyInput, parseCurrencyToNumber } from "@/components/CurrencyInput";
+import { CurrencyInput, parseCurrencyToNumber, numberToCurrency } from "@/components/CurrencyInput";
 
 type TipoSaida = SaidaNaoPlanejada['tipo'];
 
@@ -59,7 +59,7 @@ export default function Financeiro() {
   const openEdit = (s: SaidaNaoPlanejada) => {
     setEditingId(s.id);
     setForm({
-      descricao: s.descricao, valor: String(s.valor), formaPagamento: s.formaPagamento,
+      descricao: s.descricao, valor: numberToCurrency(s.valor), formaPagamento: s.formaPagamento,
       data: s.data, observacao: s.observacao || '', tipo: s.tipo,
       osVinculadaId: s.osVinculadaId || '', funcionarioId: s.funcionarioId || '',
       custoVinculadoId: s.custoVinculadoId || '', cartaoVinculadoId: s.cartaoVinculadoId || '',

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Search, Plus, Eye, DollarSign, Pencil, Trash2, FileDown } from "lucide-react";
-import { CurrencyInput, formatToCurrency, parseCurrencyToNumber } from "@/components/CurrencyInput";
+import { CurrencyInput, formatToCurrency, parseCurrencyToNumber, numberToCurrency } from "@/components/CurrencyInput";
 import MonthFilter, { getCurrentMonth, filterByMonth } from "@/components/MonthFilter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -119,8 +119,8 @@ export default function OrdensServico() {
       cliente: os.cliente,
       telefone: os.telefone,
       tipoServico: os.tipoServico,
-      valorOrcado: os.valorOrcado > 0 ? os.valorOrcado.toString() : '',
-      valorPecas: pecasVal > 0 ? pecasVal.toString() : '',
+      valorOrcado: numberToCurrency(os.valorOrcado),
+      valorPecas: numberToCurrency(pecasVal),
       valorTerceiros: '',
       descricao: os.descricao,
       dataEntrada: os.dataEntrada,
