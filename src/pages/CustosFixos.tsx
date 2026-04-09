@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, type CustoFixo } from "@/lib/mock-data";
 import { useData } from "@/contexts/DataContext";
-import { CurrencyInput, parseCurrencyToNumber } from "@/components/CurrencyInput";
+import { CurrencyInput, parseCurrencyToNumber, numberToCurrency } from "@/components/CurrencyInput";
 
 const statusColors: Record<string, string> = {
   'Pago': 'badge-success',
@@ -41,7 +41,7 @@ export default function CustosFixos() {
 
   const openEdit = (c: CustoFixo) => {
     setEditingId(c.id);
-    setForm({ nome: c.nome, categoria: c.categoria, valorPrevisto: String(c.valorPrevisto), diaVencimento: c.diaVencimento ? String(c.diaVencimento) : '', recorrencia: c.recorrencia });
+    setForm({ nome: c.nome, categoria: c.categoria, valorPrevisto: numberToCurrency(c.valorPrevisto), diaVencimento: c.diaVencimento ? String(c.diaVencimento) : '', recorrencia: c.recorrencia });
     setDialogOpen(true);
   };
 

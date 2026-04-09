@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Search, Plus, Eye, Pencil, Trash2, FileDown, ArrowRightLeft, X } from "lucide-react";
-import { CurrencyInput, formatToCurrency, parseCurrencyToNumber } from "@/components/CurrencyInput";
+import { CurrencyInput, formatToCurrency, parseCurrencyToNumber, numberToCurrency } from "@/components/CurrencyInput";
 import MonthFilter, { getCurrentMonth } from "@/components/MonthFilter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -292,22 +292,22 @@ export default function Orcamentos() {
             </div>
             <div>
               <Label className="text-xs">Valor Unit. (R$)</Label>
-              <CurrencyInput className="h-8 text-xs" value={item.valorUnitario > 0 ? item.valorUnitario.toString() : ''} onChange={v => handleCurrencyItemUpdate(setter, item.id, 'valorUnitario', v)} />
+              <CurrencyInput className="h-8 text-xs" value={numberToCurrency(item.valorUnitario)} onChange={v => handleCurrencyItemUpdate(setter, item.id, 'valorUnitario', v)} />
             </div>
             <div>
               <Label className="text-xs">Valor Total (R$)</Label>
-              <CurrencyInput className="h-8 text-xs bg-muted" readOnly value={item.valorTotal > 0 ? item.valorTotal.toString() : ''} onChange={() => {}} />
+              <CurrencyInput className="h-8 text-xs bg-muted" readOnly value={numberToCurrency(item.valorTotal)} onChange={() => {}} />
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">Valor do Serviço (R$)</Label>
-              <CurrencyInput className="h-8 text-xs" value={item.valorUnitario > 0 ? item.valorUnitario.toString() : ''} onChange={v => handleCurrencyItemUpdate(setter, item.id, 'valorUnitario', v)} />
+              <CurrencyInput className="h-8 text-xs" value={numberToCurrency(item.valorUnitario)} onChange={v => handleCurrencyItemUpdate(setter, item.id, 'valorUnitario', v)} />
             </div>
             <div>
               <Label className="text-xs">Valor Total (R$)</Label>
-              <CurrencyInput className="h-8 text-xs bg-muted" readOnly value={item.valorTotal > 0 ? item.valorTotal.toString() : ''} onChange={() => {}} />
+              <CurrencyInput className="h-8 text-xs bg-muted" readOnly value={numberToCurrency(item.valorTotal)} onChange={() => {}} />
             </div>
           </div>
         )}
