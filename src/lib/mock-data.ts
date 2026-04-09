@@ -38,7 +38,7 @@ export interface CustoFixo {
   nome: string;
   categoria: 'Fixo Mensal' | 'Fixo Anual' | 'Variável' | 'Imposto';
   valorPrevisto: number;
-  diaVencimento: number;
+  diaVencimento?: number | null;
   recorrencia: string;
   observacoes?: string;
   statusPagamento: 'Pago' | 'Pendente' | 'Vencido' | 'Isento';

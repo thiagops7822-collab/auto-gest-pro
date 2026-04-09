@@ -41,7 +41,7 @@ export default function CustosFixos() {
 
   const openEdit = (c: CustoFixo) => {
     setEditingId(c.id);
-    setForm({ nome: c.nome, categoria: c.categoria, valorPrevisto: String(c.valorPrevisto), diaVencimento: String(c.diaVencimento), recorrencia: c.recorrencia });
+    setForm({ nome: c.nome, categoria: c.categoria, valorPrevisto: String(c.valorPrevisto), diaVencimento: c.diaVencimento ? String(c.diaVencimento) : '', recorrencia: c.recorrencia });
     setDialogOpen(true);
   };
 
@@ -62,7 +62,7 @@ export default function CustosFixos() {
         nome: form.nome.toUpperCase(),
         categoria: form.categoria as CustoFixo['categoria'],
         valorPrevisto: parseCurrencyToNumber(form.valorPrevisto),
-        diaVencimento: parseInt(form.diaVencimento) || 1,
+        diaVencimento: form.diaVencimento ? parseInt(form.diaVencimento) : null,
         recorrencia: form.recorrencia || 'Mensal',
       } : c));
       toast({ title: "Custo atualizado!", description: `${form.nome.toUpperCase()} editado com sucesso.` });
@@ -72,7 +72,7 @@ export default function CustosFixos() {
         nome: form.nome.toUpperCase(),
         categoria: form.categoria as CustoFixo['categoria'],
         valorPrevisto: parseCurrencyToNumber(form.valorPrevisto),
-        diaVencimento: parseInt(form.diaVencimento) || 1,
+        diaVencimento: form.diaVencimento ? parseInt(form.diaVencimento) : null,
         recorrencia: form.recorrencia || 'Mensal',
         statusPagamento: 'Pendente',
       };
@@ -185,7 +185,7 @@ export default function CustosFixos() {
                   <TableCell className="font-medium">{c.nome}</TableCell>
                   <TableCell className="text-muted-foreground">{c.categoria}</TableCell>
                   <TableCell className="text-right">{formatCurrency(c.valorPrevisto)}</TableCell>
-                  <TableCell className="text-muted-foreground">Dia {c.diaVencimento}</TableCell>
+                  <TableCell className="text-muted-foreground">{c.diaVencimento ? `Dia ${c.diaVencimento}` : '—'}</TableCell>
                   <TableCell className="text-muted-foreground">{c.recorrencia}</TableCell>
                   <TableCell><Badge variant="outline" className={statusColors[c.statusPagamento]}>{c.statusPagamento}</Badge></TableCell>
                   <TableCell className="text-right">{c.valorPago ? formatCurrency(c.valorPago) : '—'}</TableCell>
