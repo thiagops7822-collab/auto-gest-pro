@@ -1,0 +1,1 @@
+ALTER TABLE public.custos_fixos ALTER COLUMN dia_vencimento DROP NOT NULL;
