@@ -24,6 +24,16 @@ function formatToCurrency(rawValue: string): string {
 }
 
 /**
+ * Converts a number to formatted currency string R$ 0.000,00
+ * Use this when initializing edit forms with numeric values.
+ */
+export function numberToCurrency(num: number): string {
+  if (!num || num <= 0) return '';
+  const cents = Math.round(num * 100).toString();
+  return formatToCurrency(cents);
+}
+
+/**
  * Parses a formatted currency string back to a plain numeric string (for form state)
  */
 export function parseCurrencyToNumber(formatted: string): number {
