@@ -353,7 +353,7 @@ export default function OrdensServico() {
           <DialogHeader>
             <DialogTitle>Editar OS #{editingOS?.numero}</DialogTitle>
           </DialogHeader>
-          {renderFormFields(editForm, handleEditChange)}
+          {renderFormFields(editForm, handleEditChange, setEditForm)}
           <div className="p-3 rounded-lg bg-secondary/50 mt-2">
             <p className="text-sm text-muted-foreground">Valor Total da OS: <span className="text-lg font-bold text-primary">{formatCurrency(getEditValorTotal())}</span></p>
           </div>
