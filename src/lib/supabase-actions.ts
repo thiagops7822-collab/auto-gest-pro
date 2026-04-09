@@ -35,7 +35,7 @@ export async function deleteOS(id: string) {
 export async function upsertCusto(c: CustoFixo) {
   await supabase.from('custos_fixos').upsert({
     id: c.id, nome: c.nome, categoria: c.categoria, valor_previsto: c.valorPrevisto,
-    dia_vencimento: c.diaVencimento, recorrencia: c.recorrencia, observacoes: c.observacoes,
+    dia_vencimento: c.diaVencimento ?? null, recorrencia: c.recorrencia, observacoes: c.observacoes,
     status_pagamento: c.statusPagamento, valor_pago: c.valorPago,
     data_pagamento: c.dataPagamento, forma_pagamento: c.formaPagamento,
   });

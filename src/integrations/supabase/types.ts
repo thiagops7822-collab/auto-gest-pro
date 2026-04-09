@@ -70,7 +70,7 @@ export type Database = {
           categoria: string
           created_at: string
           data_pagamento: string | null
-          dia_vencimento: number
+          dia_vencimento: number | null
           forma_pagamento: string | null
           id: string
           nome: string
@@ -85,7 +85,7 @@ export type Database = {
           categoria: string
           created_at?: string
           data_pagamento?: string | null
-          dia_vencimento?: number
+          dia_vencimento?: number | null
           forma_pagamento?: string | null
           id?: string
           nome: string
@@ -100,7 +100,7 @@ export type Database = {
           categoria?: string
           created_at?: string
           data_pagamento?: string | null
-          dia_vencimento?: number
+          dia_vencimento?: number | null
           forma_pagamento?: string | null
           id?: string
           nome?: string
