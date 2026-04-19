@@ -86,14 +86,14 @@ export default function OrdensServico() {
       id: crypto.randomUUID(),
       numero: nextNumero,
       dataEntrada: form.dataEntrada || new Date().toISOString().split('T')[0],
-      placa: form.placa,
-      modelo: form.modelo,
+      placa: form.placa.toUpperCase(),
+      modelo: form.modelo.toUpperCase(),
       ano: form.ano,
-      cor: form.cor,
-      cliente: form.cliente,
+      cor: form.cor.toUpperCase(),
+      cliente: form.cliente.toUpperCase(),
       telefone: form.telefone,
       tipoServico: form.tipoServico || 'Reparo Geral',
-      descricao: form.descricao,
+      descricao: form.descricao.toUpperCase(),
       valorOrcado: parseCurrencyToNumber(form.valorOrcado),
       status: 'Em Andamento',
       pecas: valorPecas > 0 ? [{ id: crypto.randomUUID(), descricao: 'Peças diversas', fornecedor: 'Diversos', valor: valorPecas, data: new Date().toISOString().split('T')[0], status: 'Solicitado' }] : [],
@@ -156,14 +156,14 @@ export default function OrdensServico() {
 
     setOsList(prev => prev.map(os => os.id === editingOS.id ? {
       ...os,
-      placa: editForm.placa,
-      modelo: editForm.modelo,
+      placa: editForm.placa.toUpperCase(),
+      modelo: editForm.modelo.toUpperCase(),
       ano: editForm.ano,
-      cor: editForm.cor,
-      cliente: editForm.cliente,
+      cor: editForm.cor.toUpperCase(),
+      cliente: editForm.cliente.toUpperCase(),
       telefone: editForm.telefone,
       tipoServico: editForm.tipoServico || os.tipoServico,
-      descricao: editForm.descricao,
+      descricao: editForm.descricao.toUpperCase(),
       valorOrcado: parseCurrencyToNumber(editForm.valorOrcado),
       dataEntrada: editForm.dataEntrada || os.dataEntrada,
       pecas: finalPecas,
@@ -203,11 +203,11 @@ export default function OrdensServico() {
   const renderFormFields = (formData: typeof emptyForm, onChange: (field: string, value: string) => void, setter: React.Dispatch<React.SetStateAction<typeof emptyForm>>) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
       <div><Label>Data de Entrada</Label><Input type="date" value={formData.dataEntrada} onChange={e => setter(prev => ({ ...prev, dataEntrada: e.target.value }))} /></div>
-      <div><Label>Placa</Label><Input placeholder="ABC-1234" value={formData.placa} onChange={e => onChange('placa', e.target.value)} /></div>
-      <div><Label>Modelo *</Label><Input placeholder="Ex: Honda Civic" value={formData.modelo} onChange={e => onChange('modelo', e.target.value)} /></div>
+      <div><Label>Placa</Label><Input className="uppercase" placeholder="ABC-1234" value={formData.placa} onChange={e => onChange('placa', e.target.value)} /></div>
+      <div><Label>Modelo *</Label><Input className="uppercase" placeholder="Ex: Honda Civic" value={formData.modelo} onChange={e => onChange('modelo', e.target.value)} /></div>
       <div><Label>Ano</Label><Input placeholder="2022" value={formData.ano} onChange={e => onChange('ano', e.target.value)} /></div>
-      <div><Label>Cor</Label><Input placeholder="Prata" value={formData.cor} onChange={e => onChange('cor', e.target.value)} /></div>
-      <div><Label>Cliente</Label><Input placeholder="Nome completo" value={formData.cliente} onChange={e => onChange('cliente', e.target.value)} /></div>
+      <div><Label>Cor</Label><Input className="uppercase" placeholder="Prata" value={formData.cor} onChange={e => onChange('cor', e.target.value)} /></div>
+      <div><Label>Cliente</Label><Input className="uppercase" placeholder="Nome completo" value={formData.cliente} onChange={e => onChange('cliente', e.target.value)} /></div>
       <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" value={formData.telefone} onChange={e => onChange('telefone', e.target.value)} /></div>
       <div>
         <Label>Tipo de Serviço</Label>
@@ -232,7 +232,7 @@ export default function OrdensServico() {
       <div><Label>Valor Orçado (R$) *</Label><CurrencyInput value={formData.valorOrcado} onChange={v => onChange('valorOrcado', v)} /></div>
       <div><Label>Valor de Peças (R$)</Label><CurrencyInput value={formData.valorPecas} onChange={v => onChange('valorPecas', v)} /></div>
       <div><Label>Valor Serviços Terceiros (R$)</Label><CurrencyInput value={formData.valorTerceiros} onChange={v => onChange('valorTerceiros', v)} /></div>
-      <div className="sm:col-span-2"><Label>Descrição do Serviço</Label><Textarea placeholder="Descreva o serviço..." value={formData.descricao} onChange={e => onChange('descricao', e.target.value)} /></div>
+      <div className="sm:col-span-2"><Label>Descrição do Serviço</Label><Textarea className="uppercase" placeholder="Descreva o serviço..." value={formData.descricao} onChange={e => onChange('descricao', e.target.value)} /></div>
     </div>
   );
 
