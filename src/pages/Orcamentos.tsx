@@ -98,10 +98,10 @@ export default function Orcamentos() {
   });
 
   const handleChange = (field: string, value: string) =>
-    setForm(prev => ({ ...prev, [field]: value.toUpperCase() }));
+    setForm(prev => ({ ...prev, [field]: value }));
 
   const handleEditChange = (field: string, value: string) =>
-    setEditForm(prev => ({ ...prev, [field]: value.toUpperCase() }));
+    setEditForm(prev => ({ ...prev, [field]: value }));
 
   const addItem = (setter: React.Dispatch<React.SetStateAction<OrcamentoForm>>) => {
     setter(prev => ({ ...prev, itens: [...prev.itens, createEmptyItem()] }));
@@ -281,7 +281,7 @@ export default function Orcamentos() {
           </div>
           <div>
             <Label className="text-xs">Descrição</Label>
-            <Input className="h-8 text-xs" value={item.descricao} onChange={e => updateItem(setter, item.id, 'descricao', e.target.value.toUpperCase())} placeholder={isPeca ? "Nome da peça" : "Descrição do serviço"} />
+            <Input className="h-8 text-xs" value={item.descricao} onChange={e => updateItem(setter, item.id, 'descricao', e.target.value)} placeholder={isPeca ? "Nome da peça" : "Descrição do serviço"} />
           </div>
         </div>
         {isPeca ? (
