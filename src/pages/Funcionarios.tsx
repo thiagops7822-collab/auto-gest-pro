@@ -130,9 +130,9 @@ export default function Funcionarios() {
           <DialogContent>
             <DialogHeader><DialogTitle>{editingId ? 'Editar Funcionário' : 'Cadastrar Funcionário'}</DialogTitle></DialogHeader>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div className="sm:col-span-2"><Label>Nome Completo *</Label><Input placeholder="Nome" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} /></div>
+              <div className="sm:col-span-2"><Label>Nome Completo *</Label><Input className="uppercase" placeholder="Nome" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} /></div>
               <div><Label>CPF</Label><Input placeholder="000.000.000-00" value={form.cpf} onChange={e => setForm(p => ({ ...p, cpf: e.target.value }))} /></div>
-              <div><Label>Cargo *</Label><Input placeholder="Ex: Funileiro" value={form.cargo} onChange={e => setForm(p => ({ ...p, cargo: e.target.value }))} /></div>
+              <div><Label>Cargo *</Label><Input className="uppercase" placeholder="Ex: Funileiro" value={form.cargo} onChange={e => setForm(p => ({ ...p, cargo: e.target.value }))} /></div>
               <div>
                 <Label>Tipo de Contrato</Label>
                 <Select value={form.tipoContrato} onValueChange={v => setForm(p => ({ ...p, tipoContrato: v }))}>
