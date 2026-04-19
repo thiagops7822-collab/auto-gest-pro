@@ -281,7 +281,7 @@ export default function Orcamentos() {
           </div>
           <div>
             <Label className="text-xs">Descrição</Label>
-            <Input className="h-8 text-xs" value={item.descricao} onChange={e => updateItem(setter, item.id, 'descricao', e.target.value)} placeholder={isPeca ? "Nome da peça" : "Descrição do serviço"} />
+            <Input className="h-8 text-xs uppercase" value={item.descricao} onChange={e => updateItem(setter, item.id, 'descricao', e.target.value)} placeholder={isPeca ? "Nome da peça" : "Descrição do serviço"} />
           </div>
         </div>
         {isPeca ? (
@@ -319,12 +319,12 @@ export default function Orcamentos() {
     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
       <h3 className="font-semibold text-sm text-muted-foreground">Dados do Veículo e Cliente</h3>
       <div className="grid grid-cols-2 gap-3">
-        <div><Label>Placa</Label><Input value={f.placa} onChange={e => onChange('placa', e.target.value)} placeholder="ABC-1234" /></div>
-        <div><Label>Modelo *</Label><Input value={f.modelo} onChange={e => onChange('modelo', e.target.value)} placeholder="Ex: Saveiro" /></div>
+        <div><Label>Placa</Label><Input className="uppercase" value={f.placa} onChange={e => onChange('placa', e.target.value)} placeholder="ABC-1234" /></div>
+        <div><Label>Modelo *</Label><Input className="uppercase" value={f.modelo} onChange={e => onChange('modelo', e.target.value)} placeholder="Ex: Saveiro" /></div>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div><Label>Ano</Label><Input value={f.ano} onChange={e => onChange('ano', e.target.value)} placeholder="2023" /></div>
-        <div><Label>Cor</Label><Input value={f.cor} onChange={e => onChange('cor', e.target.value)} placeholder="Branco" /></div>
+        <div><Label>Cor</Label><Input className="uppercase" value={f.cor} onChange={e => onChange('cor', e.target.value)} placeholder="Branco" /></div>
         <div>
           <Label>Sinistro</Label>
           <Select value={f.sinistro} onValueChange={v => setter(prev => ({ ...prev, sinistro: v }))}>
@@ -337,12 +337,12 @@ export default function Orcamentos() {
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <div><Label>Proprietário / Cliente</Label><Input value={f.cliente} onChange={e => onChange('cliente', e.target.value)} placeholder="Nome" /></div>
+        <div><Label>Proprietário / Cliente</Label><Input className="uppercase" value={f.cliente} onChange={e => onChange('cliente', e.target.value)} placeholder="Nome" /></div>
         <div><Label>Telefone</Label><Input value={f.telefone} onChange={e => onChange('telefone', e.target.value)} placeholder="(11) 99999-9999" /></div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div><Label>Data de Criação</Label><Input type="date" value={f.dataCriacao} onChange={e => setter(prev => ({ ...prev, dataCriacao: e.target.value }))} /></div>
-        <div><Label>Orçamentista</Label><Input value={f.orcamentista} onChange={e => onChange('orcamentista', e.target.value)} /></div>
+        <div><Label>Orçamentista</Label><Input className="uppercase" value={f.orcamentista} onChange={e => onChange('orcamentista', e.target.value)} /></div>
       </div>
       <div className="grid grid-cols-1 gap-3">
         <div><Label>Validade</Label><Input type="date" value={f.validade || getDefaultValidade()} onChange={e => setter(prev => ({ ...prev, validade: e.target.value }))} /></div>
@@ -367,7 +367,7 @@ export default function Orcamentos() {
         )}
       </div>
 
-      <div><Label>Observações</Label><Textarea value={f.observacoes} onChange={e => onChange('observacoes', e.target.value)} placeholder="Observações adicionais" /></div>
+      <div><Label>Observações</Label><Textarea className="uppercase" value={f.observacoes} onChange={e => onChange('observacoes', e.target.value)} placeholder="Observações adicionais" /></div>
     </div>
   );
 
