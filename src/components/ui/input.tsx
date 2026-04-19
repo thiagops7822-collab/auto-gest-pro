@@ -32,8 +32,8 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className,
         )}
         ref={ref}
-        {...mobileTextProps}
         {...props}
+        {...mobileTextProps}
       />
     );
   },
