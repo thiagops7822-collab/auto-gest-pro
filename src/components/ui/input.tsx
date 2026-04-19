@@ -4,6 +4,26 @@ import { cn } from "@/lib/utils";
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
+    const isTextLike =
+      !type ||
+      type === "text" ||
+      type === "search" ||
+      type === "email" ||
+      type === "url" ||
+      type === "tel";
+
+    // Habilita sugestões/autocompletar do teclado mobile para campos de texto.
+    // Para campos não-texto (number, date, password, etc.) preserva o comportamento padrão.
+    const mobileTextProps = isTextLike
+      ? {
+          autoComplete: props.autoComplete ?? "on",
+          autoCorrect: (props as React.InputHTMLAttributes<HTMLInputElement>).autoCorrect ?? "on",
+          autoCapitalize: props.autoCapitalize ?? "sentences",
+          spellCheck: props.spellCheck ?? true,
+          inputMode: props.inputMode ?? "text",
+        }
+      : {};
+
     return (
       <input
         type={type}
@@ -12,6 +32,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
           className,
         )}
         ref={ref}
+        {...mobileTextProps}
         {...props}
       />
     );
