@@ -170,11 +170,11 @@ export default function Orcamentos() {
       numero: nextNumero,
       dataCriacao: form.dataCriacao || new Date().toISOString().split('T')[0],
       validade: form.validade || getDefaultValidade(),
-      placa: form.placa, modelo: form.modelo, ano: form.ano, cor: form.cor,
-      cliente: form.cliente, telefone: form.telefone, sinistro: form.sinistro,
-      orcamentista: form.orcamentista,
-      itens: form.itens,
-      observacoes: form.observacoes,
+      placa: form.placa.toUpperCase(), modelo: form.modelo.toUpperCase(), ano: form.ano, cor: form.cor.toUpperCase(),
+      cliente: form.cliente.toUpperCase(), telefone: form.telefone, sinistro: form.sinistro,
+      orcamentista: form.orcamentista.toUpperCase(),
+      itens: form.itens.map(i => ({ ...i, descricao: i.descricao.toUpperCase() })),
+      observacoes: form.observacoes.toUpperCase(),
       status: 'Pendente',
     };
     setOrcamentosList(prev => [newOrc, ...prev]);
@@ -202,11 +202,12 @@ export default function Orcamentos() {
       return;
     }
     setOrcamentosList(prev => prev.map(orc => orc.id === editingOrc.id ? {
-      ...orc, placa: editForm.placa, modelo: editForm.modelo, ano: editForm.ano,
-      cor: editForm.cor, cliente: editForm.cliente, telefone: editForm.telefone,
+      ...orc, placa: editForm.placa.toUpperCase(), modelo: editForm.modelo.toUpperCase(), ano: editForm.ano,
+      cor: editForm.cor.toUpperCase(), cliente: editForm.cliente.toUpperCase(), telefone: editForm.telefone,
       sinistro: editForm.sinistro,
-      orcamentista: editForm.orcamentista,
-      itens: editForm.itens, observacoes: editForm.observacoes,
+      orcamentista: editForm.orcamentista.toUpperCase(),
+      itens: editForm.itens.map(i => ({ ...i, descricao: i.descricao.toUpperCase() })),
+      observacoes: editForm.observacoes.toUpperCase(),
       validade: editForm.validade || orc.validade,
       dataCriacao: editForm.dataCriacao || orc.dataCriacao,
     } : orc));
