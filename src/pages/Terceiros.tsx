@@ -96,7 +96,7 @@ export default function Terceiros() {
           <DialogContent>
             <DialogHeader><DialogTitle>{editingId ? 'Editar Terceiro' : 'Cadastrar Terceiro/Fornecedor'}</DialogTitle></DialogHeader>
             <div className="grid gap-4 mt-4">
-              <div><Label>Nome *</Label><Input placeholder="Nome da empresa ou pessoa" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} /></div>
+              <div><Label>Nome *</Label><Input className="uppercase" placeholder="Nome da empresa ou pessoa" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} /></div>
               <div>
                 <Label>Tipo *</Label>
                 <Select value={form.tipo} onValueChange={v => setForm(p => ({ ...p, tipo: v }))}>
@@ -109,7 +109,7 @@ export default function Terceiros() {
                 </Select>
               </div>
               <div><Label>Telefone/WhatsApp</Label><Input placeholder="(11) 99999-9999" value={form.telefone} onChange={e => setForm(p => ({ ...p, telefone: e.target.value }))} /></div>
-              <div><Label>Especialidade</Label><Input placeholder="Ex: Vidros automotivos" value={form.especialidade} onChange={e => setForm(p => ({ ...p, especialidade: e.target.value }))} /></div>
+              <div><Label>Especialidade</Label><Input className="uppercase" placeholder="Ex: Vidros automotivos" value={form.especialidade} onChange={e => setForm(p => ({ ...p, especialidade: e.target.value }))} /></div>
             </div>
             <Button className="w-full mt-4" onClick={handleSave}>{editingId ? 'Salvar Alterações' : 'Cadastrar'}</Button>
           </DialogContent>

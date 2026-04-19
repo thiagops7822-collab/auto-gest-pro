@@ -407,7 +407,7 @@ export default function Financeiro() {
                   </div>
                 )}
 
-                <div><Label>Descrição *</Label><Input placeholder="Ex: Compra emergencial de peça" value={form.descricao} onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))} /></div>
+                <div><Label>Descrição *</Label><Input className="uppercase" placeholder="Ex: Compra emergencial de peça" value={form.descricao} onChange={e => setForm(p => ({ ...p, descricao: e.target.value }))} /></div>
                 <div><Label>Valor (R$) *</Label><CurrencyInput value={form.valor} onChange={v => setForm(p => ({ ...p, valor: v }))} /></div>
                 <div>
                   <Label>Forma de Pagamento</Label>
@@ -423,7 +423,7 @@ export default function Financeiro() {
                   </Select>
                 </div>
                 <div><Label>Data</Label><Input type="date" value={form.data} onChange={e => setForm(p => ({ ...p, data: e.target.value }))} /></div>
-                <div><Label>Observação</Label><Textarea placeholder="Detalhes adicionais..." value={form.observacao} onChange={e => setForm(p => ({ ...p, observacao: e.target.value }))} /></div>
+                <div><Label>Observação</Label><Textarea className="uppercase" placeholder="Detalhes adicionais..." value={form.observacao} onChange={e => setForm(p => ({ ...p, observacao: e.target.value }))} /></div>
               </div>
               <Button className="w-full mt-4" onClick={handleSave}>{editingId ? 'Salvar Alterações' : 'Registrar Saída'}</Button>
             </DialogContent>

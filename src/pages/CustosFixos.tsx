@@ -94,7 +94,7 @@ export default function CustosFixos() {
 
   const formFields = (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-      <div className="sm:col-span-2"><Label>Nome *</Label><Input placeholder="Ex: Aluguel" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} /></div>
+      <div className="sm:col-span-2"><Label>Nome *</Label><Input className="uppercase" placeholder="Ex: Aluguel" value={form.nome} onChange={e => setForm(p => ({ ...p, nome: e.target.value }))} /></div>
       <div>
         <Label>Categoria *</Label>
         <Select value={form.categoria} onValueChange={v => setForm(p => ({ ...p, categoria: v }))}>
