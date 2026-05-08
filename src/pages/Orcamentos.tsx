@@ -278,37 +278,11 @@ Olá ${orc.cliente || ''}, segue em anexo o orçamento do veículo *${orc.modelo
 Validade: ${formatDate(orc.validade)}
 
 Qualquer dúvida estamos à disposição!`;
-    const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
-
-    // Detecta se podemos usar Web Share API (mobile) — se sim, não abre wa.me
-    const nav = navigator as Navigator & {
-      canShare?: (data?: ShareData) => boolean;
-      share?: (data?: ShareData) => Promise<void>;
-    };
-    const canShareFiles = !!(nav.share && nav.canShare);
-
-    // Abre o WhatsApp IMEDIATAMENTE no clique para preservar o gesto do usuário
-    const waWindow = window.open(waUrl, '_blank', 'noopener,noreferrer');
+    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 
     try {
+      // 1) Baixa o PDF primeiro (vai pra galeria/Downloads do celular ou pasta no desktop)
       const file = await getOrcamentoPDFFile(orc);
-
-      // 1) Mobile compatível: tenta compartilhar o PDF nativamente
-      if (canShareFiles && nav.canShare!({ files: [file] })) {
-        try {
-          await nav.share!({
-            files: [file],
-            text: msg,
-            title: `Orçamento #${orc.numero}`,
-          });
-          return;
-        } catch (err) {
-          if ((err as Error)?.name === 'AbortError') return;
-          // se falhar, cai no fallback de download
-        }
-      }
-
-      // 2) Desktop: baixa o PDF (WhatsApp já foi aberto antes do await)
       const url = URL.createObjectURL(file);
       const a = document.createElement('a');
       a.href = url;
@@ -316,18 +290,18 @@ Qualquer dúvida estamos à disposição!`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-      if (!waWindow) {
-        // Caso o popup tenha sido bloqueado, tenta abrir novamente
-        window.open(waUrl, '_blank', 'noopener,noreferrer');
-      }
       toast({
-        title: "PDF baixado",
-        description: "O WhatsApp Web não permite anexar arquivos automaticamente. Anexe o PDF baixado na conversa que será aberta.",
+        title: "PDF baixado!",
+        description: "Abrindo conversa no WhatsApp. Toque no 📎 (clipe) → Documento e selecione o PDF baixado.",
       });
+
+      // 2) Abre o WhatsApp na conversa do número (funciona mesmo sem o contato salvo)
+      setTimeout(() => {
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+      }, 400);
     } catch (err) {
-      if ((err as Error)?.name === 'AbortError') return;
       toast({ title: "Erro ao enviar", description: "Não foi possível preparar o PDF.", variant: "destructive" });
     }
   };
