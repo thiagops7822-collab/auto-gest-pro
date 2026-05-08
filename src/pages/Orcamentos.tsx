@@ -279,20 +279,20 @@ Validade: ${formatDate(orc.validade)}
 
 Qualquer dúvida estamos à disposição!`;
     try {
-      const file = await getOrcamentoPDFFile(orc);
-      const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
-      if (nav.canShare && nav.canShare({ files: [file] })) {
-        await nav.share({ files: [file], text: msg, title: `Orçamento #${orc.numero}` });
-        return;
-      }
-      // Fallback: baixa o PDF e abre o WhatsApp Web com a mensagem
-      const url = URL.createObjectURL(file);
-      const a = document.createElement('a');
-      a.href = url; a.download = file.name; a.click();
-      URL.revokeObjectURL(url);
-      toast({ title: "PDF baixado", description: "Anexe o arquivo manualmente na conversa do WhatsApp que será aberta." });
+      // Abre WhatsApp direto com o número e mensagem
       const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
       window.open(waUrl, '_blank', 'noopener,noreferrer');
+
+      // Baixa o PDF automaticamente para o usuário anexar
+      const file = await getOrcamentoPDFFile(orc);
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (err) {
       if ((err as Error)?.name === 'AbortError') return;
       toast({ title: "Erro ao enviar", description: "Não foi possível preparar o PDF.", variant: "destructive" });
