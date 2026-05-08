@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate, type OrdemServico } from "@/lib/mock-data";
 import { useData, type Orcamento, type OrcamentoItem } from "@/contexts/DataContext";
-import { exportOrcamentoPDF } from "@/lib/pdf-orcamento";
+import { exportOrcamentoPDF, getOrcamentoPDFFile } from "@/lib/pdf-orcamento";
 
 const statusColors: Record<string, string> = {
   'Pendente': 'badge-warning',
@@ -262,7 +262,7 @@ export default function Orcamentos() {
     toast({ title: `Status alterado para "${newStatus}"` });
   };
 
-  const sendWhatsApp = (orc: Orcamento) => {
+  const sendWhatsApp = async (orc: Orcamento) => {
     const digits = (orc.telefone || '').replace(/\D/g, '');
     if (!digits) {
       toast({ title: "Telefone não informado", description: "Cadastre o telefone do cliente para enviar via WhatsApp.", variant: "destructive" });
@@ -270,22 +270,33 @@ export default function Orcamentos() {
     }
     const phone = digits.startsWith('55') ? digits : `55${digits}`;
     const total = getTotal(orc.itens);
-    const linhas = orc.itens.map((i, idx) => {
-      const qtd = isPecas(i.operacao) ? `${i.qtde}x ` : '';
-      return `${idx + 1}. ${qtd}${i.descricao || i.operacao} — ${formatCurrency(i.valorTotal)}`;
-    }).join('\n');
     const msg =
 `*Orçamento #${orc.numero}*
-Olá ${orc.cliente || ''}, segue o orçamento do veículo *${orc.modelo}* ${orc.placa ? `(${orc.placa})` : ''}.
-
-${linhas || 'Sem itens cadastrados.'}
+Olá ${orc.cliente || ''}, segue em anexo o orçamento do veículo *${orc.modelo}* ${orc.placa ? `(${orc.placa})` : ''}.
 
 *Total: ${formatCurrency(total)}*
 Validade: ${formatDate(orc.validade)}
 
-${orc.observacoes ? `Obs: ${orc.observacoes}\n\n` : ''}Qualquer dúvida estamos à disposição!`;
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+Qualquer dúvida estamos à disposição!`;
+    try {
+      const file = await getOrcamentoPDFFile(orc);
+      const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        await nav.share({ files: [file], text: msg, title: `Orçamento #${orc.numero}` });
+        return;
+      }
+      // Fallback: baixa o PDF e abre o WhatsApp Web com a mensagem
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url; a.download = file.name; a.click();
+      URL.revokeObjectURL(url);
+      toast({ title: "PDF baixado", description: "Anexe o arquivo manualmente na conversa do WhatsApp que será aberta." });
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      if ((err as Error)?.name === 'AbortError') return;
+      toast({ title: "Erro ao enviar", description: "Não foi possível preparar o PDF.", variant: "destructive" });
+    }
   };
 
   const renderItemFields = (item: OrcamentoItem, idx: number, setter: React.Dispatch<React.SetStateAction<OrcamentoForm>>) => {
