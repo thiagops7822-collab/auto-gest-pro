@@ -353,19 +353,21 @@ export default function Orcamentos() {
       <div className="border-t pt-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-sm text-muted-foreground">Itens do Orçamento</h3>
+        </div>
+        {f.itens.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-4">Nenhum item adicionado. Clique em "Adicionar Item" abaixo.</p>
+        )}
+        {f.itens.map((item, idx) => renderItemFields(item, idx, setter))}
+        {f.itens.length > 0 && (
+          <div className="text-right text-sm font-bold mt-2 mb-3">
+            Total: {formatCurrency(getTotal(f.itens))}
+          </div>
+        )}
+        <div className="flex justify-end">
           <Button type="button" variant="outline" size="sm" onClick={() => addItem(setter)}>
             <Plus className="h-3 w-3 mr-1" />Adicionar Item
           </Button>
         </div>
-        {f.itens.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">Nenhum item adicionado. Clique em "Adicionar Item".</p>
-        )}
-        {f.itens.map((item, idx) => renderItemFields(item, idx, setter))}
-        {f.itens.length > 0 && (
-          <div className="text-right text-sm font-bold mt-2">
-            Total: {formatCurrency(getTotal(f.itens))}
-          </div>
-        )}
       </div>
 
       <div><Label>Observações</Label><Textarea className="uppercase" value={f.observacoes} onChange={e => onChange('observacoes', e.target.value)} placeholder="Observações adicionais" /></div>
