@@ -564,6 +564,9 @@ ${orc.observacoes ? `Obs: ${orc.observacoes}\n\n` : ''}Qualquer dúvida estamos 
                 )}
                 <div className="flex gap-2">
                   <Button className="flex-1" onClick={() => exportOrcamentoPDF(selectedOrc)}><FileDown className="mr-2 h-4 w-4" />Exportar PDF</Button>
+                  <Button variant="secondary" className="flex-1" onClick={() => sendWhatsApp(selectedOrc)}>
+                    <MessageCircle className="mr-2 h-4 w-4" />Enviar WhatsApp
+                  </Button>
                   {selectedOrc.status !== 'Convertido' && (
                     <Button variant="secondary" className="flex-1" onClick={() => { setSelectedOrc(null); setConvertOrc(selectedOrc); }}>
                       <ArrowRightLeft className="mr-2 h-4 w-4" />Converter em OS
