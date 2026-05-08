@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Eye, Pencil, Trash2, FileDown, ArrowRightLeft, X } from "lucide-react";
+import { Search, Plus, Eye, Pencil, Trash2, FileDown, ArrowRightLeft, X, MessageCircle } from "lucide-react";
 import { CurrencyInput, formatToCurrency, parseCurrencyToNumber, numberToCurrency } from "@/components/CurrencyInput";
 import MonthFilter, { getCurrentMonth } from "@/components/MonthFilter";
 import { Input } from "@/components/ui/input";
@@ -262,6 +262,32 @@ export default function Orcamentos() {
     toast({ title: `Status alterado para "${newStatus}"` });
   };
 
+  const sendWhatsApp = (orc: Orcamento) => {
+    const digits = (orc.telefone || '').replace(/\D/g, '');
+    if (!digits) {
+      toast({ title: "Telefone não informado", description: "Cadastre o telefone do cliente para enviar via WhatsApp.", variant: "destructive" });
+      return;
+    }
+    const phone = digits.startsWith('55') ? digits : `55${digits}`;
+    const total = getTotal(orc.itens);
+    const linhas = orc.itens.map((i, idx) => {
+      const qtd = isPecas(i.operacao) ? `${i.qtde}x ` : '';
+      return `${idx + 1}. ${qtd}${i.descricao || i.operacao} — ${formatCurrency(i.valorTotal)}`;
+    }).join('\n');
+    const msg =
+`*Orçamento #${orc.numero}*
+Olá ${orc.cliente || ''}, segue o orçamento do veículo *${orc.modelo}* ${orc.placa ? `(${orc.placa})` : ''}.
+
+${linhas || 'Sem itens cadastrados.'}
+
+*Total: ${formatCurrency(total)}*
+Validade: ${formatDate(orc.validade)}
+
+${orc.observacoes ? `Obs: ${orc.observacoes}\n\n` : ''}Qualquer dúvida estamos à disposição!`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   const renderItemFields = (item: OrcamentoItem, idx: number, setter: React.Dispatch<React.SetStateAction<OrcamentoForm>>) => {
     const isPeca = isPecas(item.operacao);
     return (
@@ -466,6 +492,7 @@ export default function Orcamentos() {
                     <div className="flex gap-1 justify-end">
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedOrc(orc)} title="Detalhes"><Eye className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => exportOrcamentoPDF(orc)} title="Exportar PDF"><FileDown className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={() => sendWhatsApp(orc)} title="Enviar via WhatsApp"><MessageCircle className="h-4 w-4" /></Button>
                       {orc.status !== 'Convertido' && (
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setConvertOrc(orc)} title="Converter em OS"><ArrowRightLeft className="h-4 w-4" /></Button>
                       )}
@@ -537,6 +564,9 @@ export default function Orcamentos() {
                 )}
                 <div className="flex gap-2">
                   <Button className="flex-1" onClick={() => exportOrcamentoPDF(selectedOrc)}><FileDown className="mr-2 h-4 w-4" />Exportar PDF</Button>
+                  <Button variant="secondary" className="flex-1" onClick={() => sendWhatsApp(selectedOrc)}>
+                    <MessageCircle className="mr-2 h-4 w-4" />Enviar WhatsApp
+                  </Button>
                   {selectedOrc.status !== 'Convertido' && (
                     <Button variant="secondary" className="flex-1" onClick={() => { setSelectedOrc(null); setConvertOrc(selectedOrc); }}>
                       <ArrowRightLeft className="mr-2 h-4 w-4" />Converter em OS
