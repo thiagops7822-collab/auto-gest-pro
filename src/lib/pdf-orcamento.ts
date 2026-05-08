@@ -75,7 +75,7 @@ function addFooter(doc: jsPDF) {
   }
 }
 
-export async function exportOrcamentoPDF(orc: Orcamento) {
+export async function buildOrcamentoPDF(orc: Orcamento): Promise<{ doc: jsPDF; filename: string }> {
   const doc = new jsPDF();
   const logo = await loadLogoBase64();
   let y = addHeader(doc, logo, orc.numero);
@@ -193,5 +193,16 @@ export async function exportOrcamentoPDF(orc: Orcamento) {
   doc.text("Após essa data, os valores poderão sofrer alteração.", 20, y + 14);
 
   addFooter(doc);
-  doc.save(`AutoEstufaLippe_Orcamento_${orc.numero}.pdf`);
+  return { doc, filename: `AutoEstufaLippe_Orcamento_${orc.numero}.pdf` };
+}
+
+export async function exportOrcamentoPDF(orc: Orcamento) {
+  const { doc, filename } = await buildOrcamentoPDF(orc);
+  doc.save(filename);
+}
+
+export async function getOrcamentoPDFFile(orc: Orcamento): Promise<File> {
+  const { doc, filename } = await buildOrcamentoPDF(orc);
+  const blob = doc.output("blob");
+  return new File([blob], filename, { type: "application/pdf" });
 }
