@@ -278,7 +278,7 @@ Olá ${orc.cliente || ''}, segue em anexo o orçamento do veículo *${orc.modelo
 Validade: ${formatDate(orc.validade)}
 
 Qualquer dúvida estamos à disposição!`;
-    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    const waUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
 
     // Detecta se podemos usar Web Share API (mobile) — se sim, não abre wa.me
     const nav = navigator as Navigator & {
@@ -287,16 +287,13 @@ Qualquer dúvida estamos à disposição!`;
     };
     const canShareFiles = !!(nav.share && nav.canShare);
 
-    // Abre o WhatsApp IMEDIATAMENTE no clique (evita bloqueio de popup do navegador)
-    let waWindow: Window | null = null;
-    if (!canShareFiles) {
-      waWindow = window.open(waUrl, '_blank', 'noopener,noreferrer');
-    }
+    // Abre o WhatsApp IMEDIATAMENTE no clique para preservar o gesto do usuário
+    const waWindow = window.open(waUrl, '_blank', 'noopener,noreferrer');
 
     try {
       const file = await getOrcamentoPDFFile(orc);
 
-      // 1) Mobile: envia o PDF direto pelo WhatsApp via Web Share API
+      // 1) Mobile compatível: tenta compartilhar o PDF nativamente
       if (canShareFiles && nav.canShare!({ files: [file] })) {
         try {
           await nav.share!({
@@ -322,7 +319,7 @@ Qualquer dúvida estamos à disposição!`;
       URL.revokeObjectURL(url);
 
       if (!waWindow) {
-        // Caso o popup tenha sido bloqueado, tenta abrir agora
+        // Caso o popup tenha sido bloqueado, tenta abrir novamente
         window.open(waUrl, '_blank', 'noopener,noreferrer');
       }
       toast({
