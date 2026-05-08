@@ -279,12 +279,28 @@ Validade: ${formatDate(orc.validade)}
 
 Qualquer dúvida estamos à disposição!`;
     try {
-      // Abre WhatsApp direto com o número e mensagem
-      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-      window.open(waUrl, '_blank', 'noopener,noreferrer');
-
-      // Baixa o PDF automaticamente para o usuário anexar
       const file = await getOrcamentoPDFFile(orc);
+      const nav = navigator as Navigator & {
+        canShare?: (data?: ShareData) => boolean;
+        share?: (data?: ShareData) => Promise<void>;
+      };
+
+      // 1) Mobile / navegadores compatíveis: envia o PDF direto pelo WhatsApp via Web Share API
+      if (nav.share && nav.canShare && nav.canShare({ files: [file] })) {
+        try {
+          await nav.share({
+            files: [file],
+            text: `${msg}\n\nEnviar para: +${phone}`,
+            title: `Orçamento #${orc.numero}`,
+          });
+          return;
+        } catch (err) {
+          if ((err as Error)?.name === 'AbortError') return;
+          // se falhar, cai no fallback abaixo
+        }
+      }
+
+      // 2) Desktop fallback: baixa o PDF e abre o WhatsApp Web com a mensagem
       const url = URL.createObjectURL(file);
       const a = document.createElement('a');
       a.href = url;
@@ -293,6 +309,13 @@ Qualquer dúvida estamos à disposição!`;
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+      toast({
+        title: "PDF baixado",
+        description: "O WhatsApp Web não permite anexar arquivos automaticamente. Anexe o PDF baixado na conversa que será aberta.",
+      });
     } catch (err) {
       if ((err as Error)?.name === 'AbortError') return;
       toast({ title: "Erro ao enviar", description: "Não foi possível preparar o PDF.", variant: "destructive" });
