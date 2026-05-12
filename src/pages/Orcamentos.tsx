@@ -280,8 +280,16 @@ Validade: ${formatDate(orc.validade)}
 Qualquer dúvida estamos à disposição!`;
     const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 
+    // 1) Abre o WhatsApp IMEDIATAMENTE (precisa estar dentro do user gesture
+    //    do clique, senão mobile/desktop bloqueiam o popup/intent).
+    const waWindow = window.open(waUrl, '_blank', 'noopener,noreferrer');
+    if (!waWindow) {
+      // Fallback: navega na própria aba se o popup foi bloqueado
+      window.location.href = waUrl;
+    }
+
+    // 2) Em paralelo, gera e dispara o download do PDF
     try {
-      // 1) Baixa o PDF primeiro (vai pra galeria/Downloads do celular ou pasta no desktop)
       const file = await getOrcamentoPDFFile(orc);
       const url = URL.createObjectURL(file);
       const a = document.createElement('a');
@@ -294,15 +302,10 @@ Qualquer dúvida estamos à disposição!`;
 
       toast({
         title: "PDF baixado!",
-        description: "Abrindo conversa no WhatsApp. Toque no 📎 (clipe) → Documento e selecione o PDF baixado.",
+        description: "Toque no 📎 (clipe) → Documento no WhatsApp e selecione o PDF baixado.",
       });
-
-      // 2) Abre o WhatsApp na conversa do número (funciona mesmo sem o contato salvo)
-      setTimeout(() => {
-        window.open(waUrl, '_blank', 'noopener,noreferrer');
-      }, 400);
     } catch (err) {
-      toast({ title: "Erro ao enviar", description: "Não foi possível preparar o PDF.", variant: "destructive" });
+      toast({ title: "Erro ao gerar PDF", description: "WhatsApp foi aberto, mas não foi possível baixar o PDF.", variant: "destructive" });
     }
   };
 
