@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatDate, type OrdemServico } from "@/lib/mock-data";
 import { useData, type Orcamento, type OrcamentoItem } from "@/contexts/DataContext";
-import { exportOrcamentoPDF, getOrcamentoPDFFile } from "@/lib/pdf-orcamento";
+import { exportOrcamentoPDF } from "@/lib/pdf-orcamento";
 
 const statusColors: Record<string, string> = {
   'Pendente': 'badge-warning',
@@ -279,32 +279,31 @@ Validade: ${formatDate(orc.validade)}
 
 Qualquer dúvida estamos à disposição!`;
     const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+    const waWindow = window.open('', '_blank');
 
-    // 1) Abre o WhatsApp IMEDIATAMENTE (precisa estar dentro do user gesture
-    //    do clique, senão mobile/desktop bloqueiam o popup/intent).
-    const waWindow = window.open(waUrl, '_blank', 'noopener,noreferrer');
-    if (!waWindow) {
-      // Fallback: navega na própria aba se o popup foi bloqueado
-      window.location.href = waUrl;
+    if (waWindow) {
+      waWindow.opener = null;
+      waWindow.document.write('<!doctype html><html><head><title>Abrindo WhatsApp...</title></head><body style="font-family: Arial, sans-serif; padding: 16px;">Preparando WhatsApp...</body></html>');
+      waWindow.document.close();
     }
 
-    // 2) Em paralelo, gera e dispara o download do PDF
     try {
-      const file = await getOrcamentoPDFFile(orc);
-      const url = URL.createObjectURL(file);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await exportOrcamentoPDF(orc);
 
       toast({
         title: "PDF baixado!",
         description: "Toque no 📎 (clipe) → Documento no WhatsApp e selecione o PDF baixado.",
       });
+
+      if (waWindow) {
+        waWindow.location.replace(waUrl);
+      } else {
+        window.location.href = waUrl;
+      }
     } catch (err) {
+      if (waWindow) {
+        waWindow.location.replace(waUrl);
+      }
       toast({ title: "Erro ao gerar PDF", description: "WhatsApp foi aberto, mas não foi possível baixar o PDF.", variant: "destructive" });
     }
   };
