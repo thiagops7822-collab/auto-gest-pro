@@ -13,23 +13,17 @@ export default function Dashboard() {
   const computed = useMemo(() => {
     const osFiltered = filterByMonth(osList, 'dataEntrada', mesFiltro);
     const saidasFiltered = filterByMonth(saidasList, 'data', mesFiltro);
-    const orcamentosFiltered = filterByMonth(orcamentosList, 'dataCriacao', mesFiltro);
-    const totalOrcamentos = orcamentosFiltered.reduce(
-      (sum, o) => sum + o.itens.reduce((s, it) => s + (it.valorTotal || 0), 0),
-      0,
-    );
-    const qtdOrcamentos = orcamentosFiltered.length;
-    const statusColorOrc: Record<string, string> = {
-      'Pendente': 'hsl(38, 92%, 50%)',
-      'Aprovado': 'hsl(142, 71%, 45%)',
-      'Recusado': 'hsl(0, 84%, 60%)',
-      'Convertido': 'hsl(210, 80%, 55%)',
-    };
-    const orcamentosByStatus = ['Pendente', 'Aprovado', 'Recusado', 'Convertido'].map(status => {
-      const items = orcamentosFiltered.filter(o => o.status === status);
+    // Orçamentos: gráfico anual com todos os meses do ano do filtro
+    const anoFiltro = mesFiltro.split('-')[0];
+    const monthNamesShort = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const orcamentosByMonth = monthNamesShort.map((nome, i) => {
+      const mesKey = `${anoFiltro}-${String(i + 1).padStart(2, '0')}`;
+      const items = orcamentosList.filter(o => String(o.dataCriacao || '').startsWith(mesKey));
       const valor = items.reduce((s, o) => s + o.itens.reduce((x, it) => x + (it.valorTotal || 0), 0), 0);
-      return { status, valor, qtde: items.length, color: statusColorOrc[status] };
+      return { mes: nome, valor, qtde: items.length };
     });
+    const totalOrcamentos = orcamentosByMonth.reduce((s, m) => s + m.valor, 0);
+    const qtdOrcamentos = orcamentosByMonth.reduce((s, m) => s + m.qtde, 0);
     const veiculosAtivos = osFiltered.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').length;
     const faturamentoBruto = osFiltered.reduce((sum, os) => sum + os.valorOrcado, 0);
     const totalRecebido = osFiltered.reduce((sum, os) => sum + getTotalRecebido(os), 0);
@@ -106,7 +100,7 @@ export default function Dashboard() {
       expenseCategoryData, osStatusData, alerts,
       custoPecas, vendaPecas, lucroPecas, margemPecas,
       custoTerceiros, vendaTerceiros, lucroTerceiros, margemTerceiros,
-      totalOrcamentos, qtdOrcamentos, orcamentosByStatus,
+      totalOrcamentos, qtdOrcamentos, orcamentosByMonth, anoFiltro,
     };
   }, [osList, custosList, funcList, despesasList, saidasList, orcamentosList, mesFiltro]);
 
@@ -181,33 +175,29 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* Orçamentos do Mês */}
+      {/* Orçamentos por Mês (ano todo) */}
       <div className="glass-card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">📄 Orçamentos do Mês por Status</h3>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h3 className="text-sm font-semibold text-foreground">📄 Orçamentos por Mês — {computed.anoFiltro}</h3>
           <div className="text-xs text-muted-foreground">
-            Total: <span className="font-bold text-info">{formatCurrency(computed.totalOrcamentos)}</span> ({computed.qtdOrcamentos})
+            Total do ano: <span className="font-bold text-info">{formatCurrency(computed.totalOrcamentos)}</span> ({computed.qtdOrcamentos})
           </div>
         </div>
         {computed.qtdOrcamentos > 0 ? (
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={computed.orcamentosByStatus}>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={computed.orcamentosByMonth}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 18%)" />
-              <XAxis dataKey="status" tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} />
+              <XAxis dataKey="mes" tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} />
               <YAxis tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} />
               <Tooltip
                 contentStyle={{ background: 'hsl(220, 15%, 13%)', border: '1px solid hsl(220, 13%, 20%)', borderRadius: '8px', color: 'hsl(210, 20%, 92%)' }}
                 formatter={(value: number, _name, item) => [`${formatCurrency(value)} (${(item.payload as { qtde: number }).qtde} orç.)`, 'Valor']}
               />
-              <Bar dataKey="valor" radius={[4, 4, 0, 0]} name="Valor">
-                {computed.orcamentosByStatus.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Bar>
+              <Bar dataKey="valor" radius={[4, 4, 0, 0]} name="Valor" fill="hsl(24, 95%, 53%)" />
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-muted-foreground text-sm text-center py-10">Sem orçamentos no período</p>
+          <p className="text-muted-foreground text-sm text-center py-10">Sem orçamentos em {computed.anoFiltro}</p>
         )}
       </div>
 
