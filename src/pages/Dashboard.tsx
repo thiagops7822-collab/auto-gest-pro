@@ -181,6 +181,36 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </div>
 
+      {/* Orçamentos do Mês */}
+      <div className="glass-card p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-foreground">📄 Orçamentos do Mês por Status</h3>
+          <div className="text-xs text-muted-foreground">
+            Total: <span className="font-bold text-info">{formatCurrency(computed.totalOrcamentos)}</span> ({computed.qtdOrcamentos})
+          </div>
+        </div>
+        {computed.qtdOrcamentos > 0 ? (
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={computed.orcamentosByStatus}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 18%)" />
+              <XAxis dataKey="status" tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} />
+              <YAxis tick={{ fill: 'hsl(215, 15%, 55%)', fontSize: 12 }} tickFormatter={(v) => formatCurrency(v)} />
+              <Tooltip
+                contentStyle={{ background: 'hsl(220, 15%, 13%)', border: '1px solid hsl(220, 13%, 20%)', borderRadius: '8px', color: 'hsl(210, 20%, 92%)' }}
+                formatter={(value: number, _name, item) => [`${formatCurrency(value)} (${(item.payload as { qtde: number }).qtde} orç.)`, 'Valor']}
+              />
+              <Bar dataKey="valor" radius={[4, 4, 0, 0]} name="Valor">
+                {computed.orcamentosByStatus.map((entry, i) => (
+                  <Cell key={i} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-muted-foreground text-sm text-center py-10">Sem orçamentos no período</p>
+        )}
+      </div>
+
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Expense Categories */}
