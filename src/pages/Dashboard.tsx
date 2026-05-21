@@ -19,6 +19,17 @@ export default function Dashboard() {
       0,
     );
     const qtdOrcamentos = orcamentosFiltered.length;
+    const statusColorOrc: Record<string, string> = {
+      'Pendente': 'hsl(38, 92%, 50%)',
+      'Aprovado': 'hsl(142, 71%, 45%)',
+      'Recusado': 'hsl(0, 84%, 60%)',
+      'Convertido': 'hsl(210, 80%, 55%)',
+    };
+    const orcamentosByStatus = ['Pendente', 'Aprovado', 'Recusado', 'Convertido'].map(status => {
+      const items = orcamentosFiltered.filter(o => o.status === status);
+      const valor = items.reduce((s, o) => s + o.itens.reduce((x, it) => x + (it.valorTotal || 0), 0), 0);
+      return { status, valor, qtde: items.length, color: statusColorOrc[status] };
+    });
     const veiculosAtivos = osFiltered.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').length;
     const faturamentoBruto = osFiltered.reduce((sum, os) => sum + os.valorOrcado, 0);
     const totalRecebido = osFiltered.reduce((sum, os) => sum + getTotalRecebido(os), 0);
@@ -95,7 +106,7 @@ export default function Dashboard() {
       expenseCategoryData, osStatusData, alerts,
       custoPecas, vendaPecas, lucroPecas, margemPecas,
       custoTerceiros, vendaTerceiros, lucroTerceiros, margemTerceiros,
-      totalOrcamentos, qtdOrcamentos,
+      totalOrcamentos, qtdOrcamentos, orcamentosByStatus,
     };
   }, [osList, custosList, funcList, despesasList, saidasList, orcamentosList, mesFiltro]);
 
