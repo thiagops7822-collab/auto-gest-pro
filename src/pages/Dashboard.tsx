@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Car, DollarSign, TrendingUp, TrendingDown, AlertTriangle, Clock } from "lucide-react";
+import { Car, DollarSign, TrendingUp, TrendingDown, AlertTriangle, Clock, FileText } from "lucide-react";
 import MonthFilter, { getCurrentMonth, filterByMonth } from "@/components/MonthFilter";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { formatCurrency, getTotalRecebido, getSaldoPendente, getTotalPecas } from "@/lib/mock-data";
@@ -7,12 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { useData } from "@/contexts/DataContext";
 
 export default function Dashboard() {
-  const { osList, custosList, funcList, despesasList, saidasList } = useData();
+  const { osList, custosList, funcList, despesasList, saidasList, orcamentosList } = useData();
   const [mesFiltro, setMesFiltro] = useState(getCurrentMonth());
 
   const computed = useMemo(() => {
     const osFiltered = filterByMonth(osList, 'dataEntrada', mesFiltro);
     const saidasFiltered = filterByMonth(saidasList, 'data', mesFiltro);
+    const orcamentosFiltered = filterByMonth(orcamentosList, 'dataCriacao', mesFiltro);
+    const totalOrcamentos = orcamentosFiltered.reduce(
+      (sum, o) => sum + o.itens.reduce((s, it) => s + (it.valorTotal || 0), 0),
+      0,
+    );
+    const qtdOrcamentos = orcamentosFiltered.length;
     const veiculosAtivos = osFiltered.filter(os => os.status !== 'Finalizado' && os.status !== 'Cancelado').length;
     const faturamentoBruto = osFiltered.reduce((sum, os) => sum + os.valorOrcado, 0);
     const totalRecebido = osFiltered.reduce((sum, os) => sum + getTotalRecebido(os), 0);
@@ -89,8 +95,9 @@ export default function Dashboard() {
       expenseCategoryData, osStatusData, alerts,
       custoPecas, vendaPecas, lucroPecas, margemPecas,
       custoTerceiros, vendaTerceiros, lucroTerceiros, margemTerceiros,
+      totalOrcamentos, qtdOrcamentos,
     };
-  }, [osList, custosList, funcList, despesasList, saidasList, mesFiltro]);
+  }, [osList, custosList, funcList, despesasList, saidasList, orcamentosList, mesFiltro]);
 
   const stats = [
     { label: 'Veículos em Atendimento', value: computed.veiculosAtivos, icon: Car, color: 'text-info' },
@@ -99,6 +106,7 @@ export default function Dashboard() {
     { label: 'Total Pendente', value: formatCurrency(computed.totalPendente), icon: Clock, color: 'text-warning' },
     { label: 'Lucro Estimado', value: formatCurrency(computed.lucroEstimado), icon: TrendingUp, color: computed.lucroEstimado > 0 ? 'text-success' : 'text-destructive' },
     { label: 'Total Despesas', value: formatCurrency(computed.totalDespesas), icon: TrendingDown, color: 'text-destructive' },
+    { label: `Orçamentos do Mês (${computed.qtdOrcamentos})`, value: formatCurrency(computed.totalOrcamentos), icon: FileText, color: 'text-info' },
   ];
 
   // Lucro health indicator
