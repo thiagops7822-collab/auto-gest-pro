@@ -106,7 +106,6 @@ export default function Dashboard() {
     { label: 'Total Pendente', value: formatCurrency(computed.totalPendente), icon: Clock, color: 'text-warning' },
     { label: 'Lucro Estimado', value: formatCurrency(computed.lucroEstimado), icon: TrendingUp, color: computed.lucroEstimado > 0 ? 'text-success' : 'text-destructive' },
     { label: 'Total Despesas', value: formatCurrency(computed.totalDespesas), icon: TrendingDown, color: 'text-destructive' },
-    { label: `Orçamentos do Mês (${computed.qtdOrcamentos})`, value: formatCurrency(computed.totalOrcamentos), icon: FileText, color: 'text-info' },
   ];
 
   // Lucro health indicator
