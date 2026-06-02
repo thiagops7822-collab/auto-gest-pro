@@ -513,9 +513,7 @@ Qualquer dúvida estamos à disposição!`;
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedOrc(orc)} title="Detalhes"><Eye className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => exportOrcamentoPDF(orc)} title="Exportar PDF"><FileDown className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={() => sendWhatsApp(orc)} title="Enviar via WhatsApp"><MessageCircle className="h-4 w-4" /></Button>
-                      {orc.status !== 'Convertido' && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setConvertOrc(orc)} title="Converter em OS"><ArrowRightLeft className="h-4 w-4" /></Button>
-                      )}
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setConvertOrc(orc)} title={orc.status === 'Convertido' ? 'Converter novamente em OS' : 'Converter em OS'}><ArrowRightLeft className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleStartEdit(orc)} title="Editar"><Pencil className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteOrc(orc)} title="Excluir"><Trash2 className="h-4 w-4" /></Button>
                     </div>
@@ -587,11 +585,9 @@ Qualquer dúvida estamos à disposição!`;
                   <Button variant="secondary" className="flex-1" onClick={() => sendWhatsApp(selectedOrc)}>
                     <MessageCircle className="mr-2 h-4 w-4" />Enviar WhatsApp
                   </Button>
-                  {selectedOrc.status !== 'Convertido' && (
-                    <Button variant="secondary" className="flex-1" onClick={() => { setSelectedOrc(null); setConvertOrc(selectedOrc); }}>
-                      <ArrowRightLeft className="mr-2 h-4 w-4" />Converter em OS
-                    </Button>
-                  )}
+                  <Button variant="secondary" className="flex-1" onClick={() => { setSelectedOrc(null); setConvertOrc(selectedOrc); }}>
+                    <ArrowRightLeft className="mr-2 h-4 w-4" />{selectedOrc.status === 'Convertido' ? 'Converter novamente' : 'Converter em OS'}
+                  </Button>
                 </div>
               </div>
             );
